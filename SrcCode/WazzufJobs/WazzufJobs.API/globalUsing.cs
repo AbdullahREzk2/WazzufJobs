@@ -1,0 +1,10 @@
+﻿global using MediatR;
+global using Microsoft.AspNetCore.Authorization;
+global using Microsoft.AspNetCore.Mvc;
+global using SurveyBasket.BLL.Features.Users.Command.UpdateUserProfile;
+global using SurveyBasket.BLL.Features.Users.Command.UploadProfileImage;
+global using SurveyBasket.BLL.Features.Users.Query.GetProfile;
+global using WazzufJobs.API.Extensions;
+global using WazzufJobs.BLL.Abstractions;
+global using WazzufJobs.BLL.Contracts.Users;
+global using WazzufJobs.BLL.Features.Users.Command.ChangePassword;
