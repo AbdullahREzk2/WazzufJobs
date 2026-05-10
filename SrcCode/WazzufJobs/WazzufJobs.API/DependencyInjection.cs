@@ -16,6 +16,7 @@ using WazzufJobs.API.Setting;
 using WazzufJobs.BLL.Authentication;
 using WazzufJobs.BLL.Errors;
 using WazzufJobs.BLL.Helpers;
+using WazzufJobs.BLL.Services;
 using WazzufJobs.BLL.Setting;
 using WazzufJobs.DAL.Entities;
 using WazzufJobs.DAL.IRepository;
@@ -150,6 +151,8 @@ public static class DependencyInjection
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
+        services.AddScoped<ICloudinaryService, CloudinaryService>();  // ← add this
+
         return services;
     }
 
@@ -168,7 +171,7 @@ public static class DependencyInjection
     {
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IRoleRepository, RoleRepository>();
-
+        services.AddScoped<ICategoryRepository, CategoryRepository>(); 
         return services;
     }
 

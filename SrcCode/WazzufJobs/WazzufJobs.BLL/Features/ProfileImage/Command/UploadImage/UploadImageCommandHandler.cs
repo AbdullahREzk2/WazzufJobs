@@ -1,31 +1,20 @@
-﻿using CloudinaryDotNet;
-using CloudinaryDotNet.Actions;
-using Microsoft.Extensions.Options;
-using WazzufJobs.BLL.Setting;
+﻿using WazzufJobs.BLL.Services;
 
 namespace WazzufJobs.BLL.Features.ProfileImage.Command.UploadImage;
 
-public class UploadImageCommandHandler : IRequestHandler<UploadImageCommand, string?>
+public class UploadImageCommandHandler(ICloudinaryService cloudinaryService): IRequestHandler<UploadImageCommand, string?>
 {
-    private readonly Cloudinary _cloudinary;
+    private readonly ICloudinaryService _cloudinaryService = cloudinaryService;
 
-    public UploadImageCommandHandler(IOptions<CloudinarySettings> options)
+    public async Task<string?> Handle(
+        UploadImageCommand request,
+        CancellationToken cancellationToken)
     {
-        var settings = options.Value;
-        var account = new Account(settings.CloudName, settings.ApiKey, settings.ApiSecret);
-        _cloudinary = new Cloudinary(account);
-    }
+        var result = await _cloudinaryService.UploadImageAsync(
+            request.file,
+            "wazzuf-jobs/profiles",  
+            cancellationToken);
 
-    public async Task<string?> Handle(UploadImageCommand request, CancellationToken cancellationToken)
-    {
-        using var stream = request.file.OpenReadStream();
-        var uploadParams = new ImageUploadParams
-        {
-            File = new FileDescription(request.file.FileName, stream),
-            Folder = "survey-basket/profiles",
-            Transformation = new Transformation().Width(500).Height(500).Crop("fill")
-        };
-        var result = await _cloudinary.UploadAsync(uploadParams, cancellationToken);
-        return result.Error is null ? result.SecureUrl.ToString() : null;
+        return result.IsSuccess ? result.Url : null;
     }
 }
