@@ -22,5 +22,6 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\WazzufJobs.DAL\WazzufJobs.DAL.csproj" />
+		<ProjectReference Include="..\WazzufJobs.Shared\WazzufJobs.Shared.csproj" />
 	</ItemGroup>
 </Project>
