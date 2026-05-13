@@ -32,7 +32,7 @@ public class UsersController(IMediator mediator) : ControllerBase
 
     [HttpPost]
     [HasPermission(Permissions.UsersCreate)]
-    public async Task<IActionResult> CreateUser([FromBody] CreateUserRequest request,CancellationToken cancellationToken)
+    public async Task<IActionResult> CreateUser([FromBody] CreateUserRequest request, CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(new CreateUserCommand(request), cancellationToken);
         return result.IsSuccess
@@ -42,7 +42,7 @@ public class UsersController(IMediator mediator) : ControllerBase
 
     [HttpPut("{userId}")]
     [HasPermission(Permissions.UsersUpdate)]
-    public async Task<IActionResult> UpdateUser(string userId,[FromBody] UpdateUserRequest request,CancellationToken cancellationToken)
+    public async Task<IActionResult> UpdateUser(string userId, [FromBody] UpdateUserRequest request, CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(new UpdateUserCommand(userId, request), cancellationToken);
         return result.IsSuccess ? NoContent() : result.ToProblem();

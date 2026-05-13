@@ -1,6 +1,4 @@
-﻿using WazzufJobs.DAL.Entities;
-
-namespace WazzufJobs.BLL.Helpers;
+﻿namespace WazzufJobs.BLL.Helpers;
 public interface ISendResetPasswordEmailHelper
 {
     Task sendResetPasswordEmail(AppUser user, string code);

@@ -3,7 +3,7 @@ public class GetRoleDetailsQueryHandler(IRoleRepository roleRepository) : IReque
 {
     private readonly IRoleRepository _rolerepository = roleRepository;
 
-    public async  Task<Result<RoleDetailResponse>> Handle(GetRoleDetailsQuery request, CancellationToken cancellationToken)
+    public async Task<Result<RoleDetailResponse>> Handle(GetRoleDetailsQuery request, CancellationToken cancellationToken)
     {
 
         var role = await _rolerepository.getRoleById(request.RoleId);

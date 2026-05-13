@@ -35,7 +35,7 @@ public class CategoriesController(IMediator mediator) : ControllerBase
 
     [HttpPost]
     [HasPermission(Permissions.CategoriesCreate)]
-    public async Task<IActionResult> Create([FromForm] CategoryRequest request,CancellationToken cancellationToken)
+    public async Task<IActionResult> Create([FromForm] CategoryRequest request, CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(new CreateCategoryCommand(request), cancellationToken);
         return result.IsSuccess
@@ -45,7 +45,7 @@ public class CategoriesController(IMediator mediator) : ControllerBase
 
     [HttpPut("{id}")]
     [HasPermission(Permissions.CategoriesUpdate)]
-    public async Task<IActionResult> Update(int id,[FromForm] CategoryRequest request,CancellationToken cancellationToken)
+    public async Task<IActionResult> Update(int id, [FromForm] CategoryRequest request, CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(new UpdateCategoryCommand(id, request), cancellationToken);
         return result.IsSuccess ? NoContent() : result.ToProblem();

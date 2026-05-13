@@ -1,6 +1,4 @@
-﻿using Hangfire;
-using Microsoft.AspNetCore.Identity.UI.Services;
-using WazzufJobs.DAL.Entities;
+﻿using Microsoft.AspNetCore.Identity.UI.Services;
 
 namespace WazzufJobs.BLL.Helpers;
 public class sendWelcomeEmail(IBackgroundJobClient backgroundJob) : IsendWelcomeEmail

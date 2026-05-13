@@ -30,7 +30,7 @@ public class AccountController(IMediator mediator) : ControllerBase
     [HttpPut("change-password")]
     public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
     {
-        var result = await _mediator.Send(new ChangePasswordCommand(User.GetUserId()!,request));
+        var result = await _mediator.Send(new ChangePasswordCommand(User.GetUserId()!, request));
         return result.IsSuccess ? NoContent() : result.ToProblem();
     }
     #endregion
@@ -39,7 +39,7 @@ public class AccountController(IMediator mediator) : ControllerBase
     [HttpPost("profile-image")]
     public async Task<IActionResult> UploadProfileImage(IFormFile image, CancellationToken cancellationToken)
     {
-        var result = await _mediator.Send(new UploadProfileImageCommand(User.GetUserId()!,image));
+        var result = await _mediator.Send(new UploadProfileImageCommand(User.GetUserId()!, image));
         return result.IsSuccess ? NoContent() : result.ToProblem();
     }
     #endregion

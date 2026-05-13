@@ -1,12 +1,9 @@
 ﻿using System.Text;
 using FluentValidation;
 using Hangfire;
-using Hangfire.SqlServer;
 using Mapster;
 using MapsterMapper;
-using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
@@ -27,7 +24,7 @@ namespace WazzufJobs.API;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddDatabase(this IServiceCollection services,IConfiguration configuration)
+    public static IServiceCollection AddDatabase(this IServiceCollection services, IConfiguration configuration)
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection")
             ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
@@ -63,7 +60,7 @@ public static class DependencyInjection
         return services;
     }
 
-    public static IServiceCollection AddJwtAuthentication(this IServiceCollection services,IConfiguration configuration)
+    public static IServiceCollection AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddOptions<JwtOptions>()
             .BindConfiguration(JwtOptions.sectionName)
@@ -132,7 +129,7 @@ public static class DependencyInjection
         return services;
     }
 
-    public static IServiceCollection AddHangfireServices(this IServiceCollection services,IConfiguration configuration)
+    public static IServiceCollection AddHangfireServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddHangfire(config => config
             .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
@@ -144,7 +141,7 @@ public static class DependencyInjection
         return services;
     }
 
-    public static IServiceCollection AddCloudinaryServices(this IServiceCollection services,IConfiguration configuration)
+    public static IServiceCollection AddCloudinaryServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddOptions<CloudinarySettings>()
             .BindConfiguration(CloudinarySettings.SectionName)
@@ -156,7 +153,7 @@ public static class DependencyInjection
         return services;
     }
 
-    public static IServiceCollection AddMailServices(this IServiceCollection services,IConfiguration configuration)
+    public static IServiceCollection AddMailServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddOptions<MailSettings>()
             .BindConfiguration(nameof(MailSettings))
@@ -171,8 +168,9 @@ public static class DependencyInjection
     {
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IRoleRepository, RoleRepository>();
-        services.AddScoped<ICategoryRepository, CategoryRepository>(); 
+        services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<IJobRepository, JobRepository>();
+        services.AddScoped<IApplicationRepository, ApplicationRepository>();
 
         return services;
     }
@@ -183,6 +181,19 @@ public static class DependencyInjection
         services.AddScoped<ISendConfirmationEmailHelper, SendConfirmationEmailHelper>();
         services.AddScoped<ISendResetPasswordEmailHelper, SendResetPasswordEmailHelper>();
         services.AddScoped<IsendWelcomeEmail, sendWelcomeEmail>();
+
+        return services;
+    }
+
+    public static IServiceCollection AddAIServices(this IServiceCollection services,IConfiguration configuration)
+    {
+        services.AddOptions<AISettings>()
+            .BindConfiguration(AISettings.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddHttpClient<ICVTextExtractor, CVTextExtractor>();
+        services.AddScoped<IAIScoringService, AIScoringService>();
 
         return services;
     }

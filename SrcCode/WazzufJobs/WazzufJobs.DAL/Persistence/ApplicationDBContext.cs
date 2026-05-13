@@ -4,7 +4,7 @@ using WazzufJobs.DAL.Entities;
 
 namespace WazzufJobs.DAL.Persistence;
 
-public class ApplicationDBContext : IdentityDbContext<AppUser, ApplicationRole, string>  
+public class ApplicationDBContext : IdentityDbContext<AppUser, ApplicationRole, string>
 {
     public ApplicationDBContext(DbContextOptions<ApplicationDBContext> options)
         : base(options) { }

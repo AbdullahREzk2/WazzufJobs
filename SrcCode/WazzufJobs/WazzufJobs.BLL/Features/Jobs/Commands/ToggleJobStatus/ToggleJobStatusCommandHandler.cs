@@ -1,8 +1,4 @@
-﻿using MediatR;
-using WazzufJobs.BLL.Abstractions;
-using WazzufJobs.BLL.Errors;
-using WazzufJobs.DAL.Enums;
-using WazzufJobs.DAL.IRepository;
+﻿using WazzufJobs.DAL.Enums;
 
 namespace WazzufJobs.BLL.Features.Jobs.Commands.ToggleJobStatus;
 

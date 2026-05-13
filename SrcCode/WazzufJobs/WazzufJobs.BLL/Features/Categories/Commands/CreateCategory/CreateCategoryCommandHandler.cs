@@ -1,12 +1,6 @@
 ﻿// WazzufJobs.BLL/Features/Categories/Commands/CreateCategory/CreateCategoryCommandHandler.cs
-using MediatR;
-using WazzufJobs.BLL.Abstractions;
 using WazzufJobs.BLL.Contracts.Categories;
-using WazzufJobs.BLL.Errors;
-using WazzufJobs.BLL.Helpers;
 using WazzufJobs.BLL.Services;
-using WazzufJobs.DAL.Entities;
-using WazzufJobs.DAL.IRepository;
 
 namespace WazzufJobs.BLL.Features.Categories.Commands.CreateCategory;
 

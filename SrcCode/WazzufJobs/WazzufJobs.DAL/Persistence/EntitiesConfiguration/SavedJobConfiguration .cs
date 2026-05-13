@@ -18,7 +18,7 @@ public class SavedJobConfiguration : IEntityTypeConfiguration<SavedJob>
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(s => s.Job)
-            .WithMany()      
+            .WithMany()
             .HasForeignKey(s => s.JobId)
             .OnDelete(DeleteBehavior.Cascade);
     }

@@ -2,7 +2,7 @@
 
 namespace WazzufJobs.BLL.Features.ProfileImage.Command.UploadImage;
 
-public class UploadImageCommandHandler(ICloudinaryService cloudinaryService): IRequestHandler<UploadImageCommand, string?>
+public class UploadImageCommandHandler(ICloudinaryService cloudinaryService) : IRequestHandler<UploadImageCommand, string?>
 {
     private readonly ICloudinaryService _cloudinaryService = cloudinaryService;
 
@@ -12,7 +12,7 @@ public class UploadImageCommandHandler(ICloudinaryService cloudinaryService): IR
     {
         var result = await _cloudinaryService.UploadImageAsync(
             request.file,
-            "wazzuf-jobs/profiles",  
+            "wazzuf-jobs/profiles",
             cancellationToken);
 
         return result.IsSuccess ? result.Url : null;

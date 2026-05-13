@@ -1,9 +1,8 @@
-﻿using WazzufJobs.API.Extensions;
-using WazzufJobs.Shared;
+﻿using WazzufJobs.Shared;
 
 namespace WazzufJobs.API.Setting;
 
-public class CurrentUserService: ICurrentUserService
+public class CurrentUserService : ICurrentUserService
 {
     private readonly IHttpContextAccessor _httpcontextaccessor;
     public CurrentUserService(IHttpContextAccessor httpContextAccessor)

@@ -1,9 +1,4 @@
-﻿using MediatR;
-using WazzufJobs.BLL.Abstractions;
-using WazzufJobs.BLL.Errors;
-using WazzufJobs.DAL.IRepository;
-
-namespace WazzufJobs.BLL.Features.Jobs.Commands.DeleteJob;
+﻿namespace WazzufJobs.BLL.Features.Jobs.Commands.DeleteJob;
 
 public class DeleteJobCommandHandler(IJobRepository jobRepository)
     : IRequestHandler<DeleteJobCommand, Result>

@@ -1,6 +1,7 @@
 ﻿using Hangfire;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.OpenApi.Models;
+using WazzufJobs.API.Filters;
 using WazzufJobs.DAL.Entities;
 using WazzufJobs.DAL.Persistence.Seeders;
 
@@ -29,6 +30,8 @@ public class Program
         builder.Services.AddMailServices(builder.Configuration);
         builder.Services.AddRepositories();
         builder.Services.AddHelperServices();
+        builder.Services.AddAIServices(builder.Configuration);
+
         // ─────────────────────────────────────────────────
 
         builder.Services.AddSwaggerGen(c =>
@@ -83,8 +86,12 @@ public class Program
         app.UseHangfireDashboard("/hangfire");
         app.UseExceptionHandler();
         app.UseHttpsRedirection();
-        app.UseAuthentication();   
+        app.UseAuthentication();
         app.UseAuthorization();
+        app.UseHangfireDashboard("/hangfire", new DashboardOptions
+        {
+            Authorization = [new HangfireAuthorizationFilter()]
+        });
         app.MapControllers();
         await app.RunAsync();
     }
@@ -94,7 +101,7 @@ public class Program
         using var scope = app.Services.CreateScope();
 
         var roleManager = scope.ServiceProvider
-            .GetRequiredService<RoleManager<ApplicationRole>>();  
+            .GetRequiredService<RoleManager<ApplicationRole>>();
         var userManager = scope.ServiceProvider
             .GetRequiredService<UserManager<AppUser>>();
 

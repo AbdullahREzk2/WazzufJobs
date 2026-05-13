@@ -1,7 +1,7 @@
 ﻿using WazzufJobs.BLL.Features.Roles.Query.GetAllRoles;
 
 namespace WazzufJobs.BLL.Features.Users.Command.CreateUser;
-public class CreateUserCommandHandler(IUserRepository userRepository,IMediator mediator) : IRequestHandler<CreateUserCommand, Result<UserResponse>>
+public class CreateUserCommandHandler(IUserRepository userRepository, IMediator mediator) : IRequestHandler<CreateUserCommand, Result<UserResponse>>
 {
     private readonly IUserRepository _userrepository = userRepository;
     private readonly IMediator _mediator = mediator;

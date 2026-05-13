@@ -8,7 +8,7 @@ public class UpdateJobCommandHandler(
     private readonly IJobRepository _jobRepository = jobRepository;
     private readonly ICategoryRepository _categoryRepository = categoryRepository;
 
-    public async Task<Result> Handle(UpdateJobCommand request,CancellationToken cancellationToken)
+    public async Task<Result> Handle(UpdateJobCommand request, CancellationToken cancellationToken)
     {
         var job = await _jobRepository.GetByIdAsync(request.Id, cancellationToken);
 

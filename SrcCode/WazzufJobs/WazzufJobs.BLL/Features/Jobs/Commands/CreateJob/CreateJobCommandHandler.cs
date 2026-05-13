@@ -1,9 +1,5 @@
-﻿using MediatR;
-using WazzufJobs.BLL.Abstractions;
-using WazzufJobs.BLL.Contracts.Jobs;
-using WazzufJobs.BLL.Errors;
+﻿using WazzufJobs.BLL.Contracts.Jobs;
 using WazzufJobs.DAL.Enums;
-using WazzufJobs.Shared;
 
 namespace WazzufJobs.BLL.Features.Jobs.Commands.CreateJob;
 
@@ -15,7 +11,7 @@ public class CreateJobCommandHandler(
     private readonly IJobRepository _jobRepository = jobRepository;
     private readonly ICategoryRepository _categoryRepository = categoryRepository;
 
-    public async Task<Result<JobSummaryResponse>> Handle(CreateJobCommand request,CancellationToken cancellationToken)
+    public async Task<Result<JobSummaryResponse>> Handle(CreateJobCommand request, CancellationToken cancellationToken)
     {
         // validate category exists
         var category = await _categoryRepository

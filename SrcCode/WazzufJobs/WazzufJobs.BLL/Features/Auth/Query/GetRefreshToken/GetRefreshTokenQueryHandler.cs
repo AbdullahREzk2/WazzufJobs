@@ -1,7 +1,7 @@
 ﻿using WazzufJobs.BLL.Features.Auth.Query.GetRefreshToken;
 
 namespace SurveyBasket.BLL.Features.Auth.Query.GetRefreshToken;
-public class GetRefreshTokenQueryHandler(IJwtProvider jwtProvider,IUserRepository userRepository) : IRequestHandler<GetRefreshTokenQuery, Result<loginResponseDTO>>
+public class GetRefreshTokenQueryHandler(IJwtProvider jwtProvider, IUserRepository userRepository) : IRequestHandler<GetRefreshTokenQuery, Result<loginResponseDTO>>
 {
     private readonly IJwtProvider _jwtprovider = jwtProvider;
     private readonly IUserRepository _userrepository = userRepository;

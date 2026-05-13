@@ -1,6 +1,4 @@
-﻿using FluentValidation;
-
-namespace WazzufJobs.BLL.Features.Auth.Command.ConfirmEmail;
+﻿namespace WazzufJobs.BLL.Features.Auth.Command.ConfirmEmail;
 
 public class ConfirmEmailCommandValidator : AbstractValidator<ConfirmEmailCommand>
 {

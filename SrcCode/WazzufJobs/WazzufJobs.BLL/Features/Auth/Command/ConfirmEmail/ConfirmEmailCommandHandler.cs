@@ -1,5 +1,5 @@
 ﻿namespace WazzufJobs.BLL.Features.Auth.Command.ConfirmEmail;
-public class ConfirmEmailCommandHandler(IUserRepository userRepository,IBackgroundJobClient backgroundJob,IsendWelcomeEmail isendWelcome) : IRequestHandler<ConfirmEmailCommand, Result>
+public class ConfirmEmailCommandHandler(IUserRepository userRepository, IBackgroundJobClient backgroundJob, IsendWelcomeEmail isendWelcome) : IRequestHandler<ConfirmEmailCommand, Result>
 {
     private readonly IUserRepository _userrepository = userRepository;
     private readonly IBackgroundJobClient _backgroundjob = backgroundJob;
@@ -36,6 +36,6 @@ public class ConfirmEmailCommandHandler(IUserRepository userRepository,IBackgrou
         var error = result.Errors.First();
         return Result.Failure(new Error(error.Code, error.Description, StatusCodes.Status400BadRequest));
     }
-    
+
 
 }

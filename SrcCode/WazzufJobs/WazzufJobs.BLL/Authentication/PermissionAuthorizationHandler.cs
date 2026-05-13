@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using WazzufJobs.DAL.Persistence.Seeders;
 
 namespace WazzufJobs.BLL.Authentication;
 public class PermissionAuthorizationHandler : AuthorizationHandler<PermissionRequirment>

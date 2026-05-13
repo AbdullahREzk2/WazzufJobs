@@ -1,7 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using WazzufJobs.BLL.Abstractions;
-
-namespace WazzufJobs.BLL.Errors;
+﻿namespace WazzufJobs.BLL.Errors;
 public record RoleErros
 {
     public static Error RoleNotFound =

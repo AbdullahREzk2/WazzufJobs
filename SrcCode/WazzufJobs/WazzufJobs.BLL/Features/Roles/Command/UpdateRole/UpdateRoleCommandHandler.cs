@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using WazzufJobs.BLL.Features.Roles.Query.GetAllRoles;
 
 namespace WazzufJobs.BLL.Features.Roles.Command.UpdateRole;
 

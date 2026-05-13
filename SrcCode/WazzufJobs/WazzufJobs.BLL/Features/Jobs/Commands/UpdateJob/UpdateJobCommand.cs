@@ -1,6 +1,4 @@
-﻿using MediatR;
-using WazzufJobs.BLL.Abstractions;
-using WazzufJobs.BLL.Contracts.Jobs;
+﻿using WazzufJobs.BLL.Contracts.Jobs;
 
 namespace WazzufJobs.BLL.Features.Jobs.Commands.UpdateJob;
 

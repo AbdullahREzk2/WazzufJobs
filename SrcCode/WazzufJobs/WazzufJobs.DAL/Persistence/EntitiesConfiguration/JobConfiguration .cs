@@ -32,7 +32,7 @@ public class JobConfiguration : IEntityTypeConfiguration<Job>
             .Metadata.SetValueComparer(new ValueComparer<List<string>>(
                (c1, c2) => c1!.SequenceEqual(c2!),
                c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
-               c => c.ToList())); 
+               c => c.ToList()));
 
         builder.Property(j => j.JobType)
             .HasConversion<string>()

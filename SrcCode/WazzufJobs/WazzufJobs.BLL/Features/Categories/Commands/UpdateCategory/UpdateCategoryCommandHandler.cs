@@ -1,10 +1,5 @@
 ﻿// WazzufJobs.BLL/Features/Categories/Commands/UpdateCategory/UpdateCategoryCommandHandler.cs
-using MediatR;
-using WazzufJobs.BLL.Abstractions;
-using WazzufJobs.BLL.Errors;
-using WazzufJobs.BLL.Helpers;
 using WazzufJobs.BLL.Services;
-using WazzufJobs.DAL.IRepository;
 
 namespace WazzufJobs.BLL.Features.Categories.Commands.UpdateCategory;
 

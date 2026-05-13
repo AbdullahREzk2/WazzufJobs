@@ -3,7 +3,7 @@ public class LoginCommandHandler(
     IUserRepository userRepository,
     SignInManager<AppUser> signInManager,
     IJwtProvider jwtProvider
-    ) 
+    )
     : IRequestHandler<LoginCommand, Result<loginResponseDTO>>
 {
     private readonly IUserRepository _userrepository = userRepository;

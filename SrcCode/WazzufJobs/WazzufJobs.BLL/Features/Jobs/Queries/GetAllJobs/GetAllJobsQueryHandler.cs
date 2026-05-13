@@ -1,12 +1,10 @@
-﻿using MediatR;
-using WazzufJobs.BLL.Contracts.Common;
+﻿using WazzufJobs.BLL.Contracts.Common;
 using WazzufJobs.BLL.Contracts.Jobs;
-using WazzufJobs.DAL.IRepository;
 
 
 namespace WazzufJobs.BLL.Features.Jobs.Queries.GetAllJobs;
 
-public class GetAllJobsQueryHandler(IJobRepository jobRepository): IRequestHandler<GetAllJobsQuery, PaginatedResponse<JobSummaryResponse>>
+public class GetAllJobsQueryHandler(IJobRepository jobRepository) : IRequestHandler<GetAllJobsQuery, PaginatedResponse<JobSummaryResponse>>
 {
     private readonly IJobRepository _jobRepository = jobRepository;
 

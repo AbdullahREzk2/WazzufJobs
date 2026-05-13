@@ -26,7 +26,7 @@ public static class RoleSeeder
                 NormalizedName = AppRoles.User.Name.ToUpper(),
                 ConcurrencyStamp = AppRoles.User.RoleConcurrencyStamp,
                 IsDefault = true,
-                IsDeleted= false
+                IsDeleted = false
 
             });
     }

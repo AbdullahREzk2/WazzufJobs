@@ -1,7 +1,7 @@
 ﻿using WazzufJobs.BLL.Features.Roles.Query.GetAllRoles;
 
 namespace WazzufJobs.BLL.Features.Users.Command.UpdateUser;
-public class UpdateUserCommandHandler(IUserRepository userRepository,IMediator mediator) : IRequestHandler<UpdateUserCommand, Result>
+public class UpdateUserCommandHandler(IUserRepository userRepository, IMediator mediator) : IRequestHandler<UpdateUserCommand, Result>
 {
     private readonly IUserRepository _userrepository = userRepository;
     private readonly IMediator _mediator = mediator;

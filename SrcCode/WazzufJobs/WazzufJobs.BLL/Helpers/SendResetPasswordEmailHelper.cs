@@ -1,8 +1,6 @@
-﻿using Hangfire;
-using Microsoft.AspNetCore.Identity.UI.Services;
+﻿using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.Extensions.Options;
 using WazzufJobs.BLL.Setting;
-using WazzufJobs.DAL.Entities;
 
 namespace WazzufJobs.BLL.Helpers;
 public class SendResetPasswordEmailHelper(IBackgroundJobClient backgroundJob, IOptions<AppURLSetting> appURL) : ISendResetPasswordEmailHelper

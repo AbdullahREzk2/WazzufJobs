@@ -25,7 +25,7 @@ public class RoleConfiguration : IEntityTypeConfiguration<ApplicationRole>
                 Name = AppRoles.User.Name,
                 NormalizedName = AppRoles.User.Name.ToUpper(),
                 ConcurrencyStamp = AppRoles.User.RoleConcurrencyStamp,
-                IsDefault = true  ,
+                IsDefault = true,
                 IsDeleted = false
             }
         );

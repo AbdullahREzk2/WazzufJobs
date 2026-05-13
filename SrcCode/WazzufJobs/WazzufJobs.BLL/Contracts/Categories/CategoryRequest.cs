@@ -2,5 +2,5 @@
 public record CategoryRequest
 (
     string Name,
-    IFormFile? IconFile = null  
+    IFormFile? IconFile = null
     );

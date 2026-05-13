@@ -2,7 +2,7 @@
 
 namespace WazzufJobs.BLL.Features.ProfileImage.Command.DeleteImageByPublicId;
 
-public class DeleteImageByPublicIdCommandHandler(ICloudinaryService cloudinaryService): IRequestHandler<DeleteImageByPublicIdCommand, Unit>
+public class DeleteImageByPublicIdCommandHandler(ICloudinaryService cloudinaryService) : IRequestHandler<DeleteImageByPublicIdCommand, Unit>
 {
     private readonly ICloudinaryService _cloudinaryService = cloudinaryService;
 

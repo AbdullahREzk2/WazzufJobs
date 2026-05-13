@@ -1,5 +1,4 @@
 ﻿using WazzufJobs.DAL.Enums;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace WazzufJobs.DAL.Entities;
 public class Job

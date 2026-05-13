@@ -1,5 +1,4 @@
 ﻿using WazzufJobs.BLL.Features.Roles.Command.RoleToggleStatus;
-using WazzufJobs.DAL.IRepository;
 
 namespace SurveyBasket.BLL.Features.Roles.Command.RoleToggleStatus;
 public class RoleToggleStatusCommandHandler(IRoleRepository roleRepository) : IRequestHandler<RoleToggleStatusCommand, Result>

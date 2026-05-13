@@ -1,16 +1,12 @@
-﻿using MediatR;
-using WazzufJobs.BLL.Abstractions;
-using WazzufJobs.BLL.Contracts.Jobs;
-using WazzufJobs.BLL.Errors;
-using WazzufJobs.DAL.IRepository;
+﻿using WazzufJobs.BLL.Contracts.Jobs;
 
 namespace WazzufJobs.BLL.Features.Jobs.Queries.GetJobById;
 
-public class GetJobByIdQueryHandler(IJobRepository jobRepository): IRequestHandler<GetJobByIdQuery, Result<JobResponse>>
+public class GetJobByIdQueryHandler(IJobRepository jobRepository) : IRequestHandler<GetJobByIdQuery, Result<JobResponse>>
 {
     private readonly IJobRepository _jobRepository = jobRepository;
 
-    public async Task<Result<JobResponse>> Handle(GetJobByIdQuery request,CancellationToken cancellationToken)
+    public async Task<Result<JobResponse>> Handle(GetJobByIdQuery request, CancellationToken cancellationToken)
     {
         var job = await _jobRepository.GetByIdAsync(request.Id, cancellationToken);
 

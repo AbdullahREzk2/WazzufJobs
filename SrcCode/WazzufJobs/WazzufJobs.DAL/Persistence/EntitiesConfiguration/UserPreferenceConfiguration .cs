@@ -21,7 +21,7 @@ public class UserPreferenceConfiguration : IEntityTypeConfiguration<UserPreferen
             .Metadata.SetValueComparer(new ValueComparer<List<JobType>>(
                (c1, c2) => c1!.SequenceEqual(c2!),
                c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
-               c => c.ToList())); 
+               c => c.ToList()));
 
         builder.Property(p => p.PreferredWorkplaceTypes)
             .HasConversion(
@@ -44,7 +44,7 @@ public class UserPreferenceConfiguration : IEntityTypeConfiguration<UserPreferen
                 (c1, c2) => c1!.SequenceEqual(c2!),
                 c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
                 c => c.ToList()));
-        
+
 
         builder.Property(p => p.InterestedJobTitles)
             .HasConversion(
@@ -55,7 +55,7 @@ public class UserPreferenceConfiguration : IEntityTypeConfiguration<UserPreferen
              .Metadata.SetValueComparer(new ValueComparer<List<string>>(
                 (c1, c2) => c1!.SequenceEqual(c2!),
                 c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
-                c => c.ToList())); 
+                c => c.ToList()));
 
         builder.Property(p => p.MinSalary)
             .HasColumnType("decimal(18,2)");

@@ -3,7 +3,7 @@ using WazzufJobs.BLL.Features.ProfileImage.Command.DeleteImageByPublicId;
 using WazzufJobs.BLL.Features.ProfileImage.Command.UploadImage;
 
 namespace WazzufJobs.BLL.Features.Users.Command.UploadProfileImage;
-public class UploadProfileImageCommandHandler(IUserRepository userRepository,IMediator mediator) : IRequestHandler<UploadProfileImageCommand, Result<string>>
+public class UploadProfileImageCommandHandler(IUserRepository userRepository, IMediator mediator) : IRequestHandler<UploadProfileImageCommand, Result<string>>
 {
     private readonly IUserRepository _userrepository = userRepository;
     private readonly IMediator _mediator = mediator;

@@ -1,10 +1,10 @@
 ﻿namespace WazzufJobs.BLL.Features.Categories.Commands.DeleteCategory;
 
-public class DeleteCategoryCommandHandler(ICategoryRepository categoryRepository): IRequestHandler<DeleteCategoryCommand, Result>
+public class DeleteCategoryCommandHandler(ICategoryRepository categoryRepository) : IRequestHandler<DeleteCategoryCommand, Result>
 {
     private readonly ICategoryRepository _categoryRepository = categoryRepository;
 
-    public async Task<Result> Handle(DeleteCategoryCommand request,CancellationToken cancellationToken)
+    public async Task<Result> Handle(DeleteCategoryCommand request, CancellationToken cancellationToken)
     {
         var category = await _categoryRepository.GetByIdAsync(request.Id, cancellationToken);
 

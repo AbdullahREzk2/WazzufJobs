@@ -17,7 +17,7 @@ public class CloudinaryService : ICloudinaryService
         _cloudinary.Api.Secure = true;
     }
 
-    public async Task<CloudinaryUploadResult> UploadImageAsync(IFormFile file,string folder,CancellationToken cancellationToken = default)
+    public async Task<CloudinaryUploadResult> UploadImageAsync(IFormFile file, string folder, CancellationToken cancellationToken = default)
     {
         using var stream = file.OpenReadStream();
 
@@ -40,7 +40,7 @@ public class CloudinaryService : ICloudinaryService
             true);
     }
 
-    public async Task<CloudinaryUploadResult> UploadFileAsync(IFormFile file,string folder,CancellationToken cancellationToken = default)
+    public async Task<CloudinaryUploadResult> UploadFileAsync(IFormFile file, string folder, CancellationToken cancellationToken = default)
     {
         using var stream = file.OpenReadStream();
 
@@ -50,7 +50,7 @@ public class CloudinaryService : ICloudinaryService
             Folder = folder
         };
 
-        var result = await _cloudinary.UploadLargeRawAsync(uploadParams);  
+        var result = await _cloudinary.UploadLargeRawAsync(uploadParams);
 
         if (result.Error is not null)
             return new CloudinaryUploadResult(null, null, false);
@@ -61,7 +61,7 @@ public class CloudinaryService : ICloudinaryService
             true);
     }
 
-    public async Task<bool> DeleteAsync(string publicId,CancellationToken cancellationToken = default)
+    public async Task<bool> DeleteAsync(string publicId, CancellationToken cancellationToken = default)
     {
         var deleteParams = new DeletionParams(publicId);
         var result = await _cloudinary.DestroyAsync(deleteParams);

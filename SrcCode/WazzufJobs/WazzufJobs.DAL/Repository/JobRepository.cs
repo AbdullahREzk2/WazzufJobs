@@ -10,7 +10,7 @@ public class JobRepository(ApplicationDBContext context) : IJobRepository
 {
     private readonly ApplicationDBContext _context = context;
 
-    public async Task<(IEnumerable<Job> Items, int TotalCount)> GetAllAsync(JobFilterRequestDTO filter,CancellationToken cancellationToken)
+    public async Task<(IEnumerable<Job> Items, int TotalCount)> GetAllAsync(JobFilterRequestDTO filter, CancellationToken cancellationToken)
     {
         var query = _context.Jobs
             .Include(j => j.Category)

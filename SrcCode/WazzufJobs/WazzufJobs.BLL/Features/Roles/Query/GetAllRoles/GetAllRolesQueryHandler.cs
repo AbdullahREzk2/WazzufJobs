@@ -1,6 +1,4 @@
-﻿using WazzufJobs.DAL.IRepository;
-
-namespace WazzufJobs.BLL.Features.Roles.Query.GetAllRoles;
+﻿namespace WazzufJobs.BLL.Features.Roles.Query.GetAllRoles;
 public class GetAllRolesQueryHandler(IRoleRepository roleRepository) : IRequestHandler<GetAllRolesQuery, IEnumerable<RoleResponse>>
 {
     private readonly IRoleRepository _rolerepository = roleRepository;
