@@ -15,6 +15,7 @@ using WazzufJobs.BLL.Errors;
 using WazzufJobs.BLL.Helpers;
 using WazzufJobs.BLL.Services;
 using WazzufJobs.BLL.Setting;
+using WazzufJobs.BLL.Settings;
 using WazzufJobs.DAL.Entities;
 using WazzufJobs.DAL.IRepository;
 using WazzufJobs.DAL.Persistence;
@@ -60,7 +61,7 @@ public static class DependencyInjection
         return services;
     }
 
-    public static IServiceCollection AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddJwtAuthentication(this IServiceCollection services,IConfiguration configuration)
     {
         services.AddOptions<JwtOptions>()
             .BindConfiguration(JwtOptions.sectionName)
@@ -91,13 +92,29 @@ public static class DependencyInjection
                 IssuerSigningKey = new SymmetricSecurityKey(
                     Encoding.UTF8.GetBytes(jwtSettings.key!))
             };
+
+            o.Events = new JwtBearerEvents
+            {
+                OnMessageReceived = context =>
+                {
+                    var accessToken = context.Request.Query["access_token"];
+                    var path = context.HttpContext.Request.Path;
+
+                    if (!string.IsNullOrEmpty(accessToken) &&
+                        path.StartsWithSegments("/hubs"))
+                    {
+                        context.Token = accessToken;
+                    }
+
+                    return Task.CompletedTask;
+                }
+            };
         });
 
         services.AddSingleton<IJwtProvider, JwtProvider>();
 
         return services;
     }
-
     public static IServiceCollection AddMediatRServices(this IServiceCollection services)
     {
         services.AddMediatR(cfg =>
@@ -171,7 +188,8 @@ public static class DependencyInjection
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<IJobRepository, JobRepository>();
         services.AddScoped<IApplicationRepository, ApplicationRepository>();
-
+        services.AddScoped<ICVRepository, CVRepository>();
+        services.AddScoped<ISavedJobRepository, SavedJobRepository>();  
         return services;
     }
 
@@ -195,6 +213,12 @@ public static class DependencyInjection
         services.AddHttpClient<ICVTextExtractor, CVTextExtractor>();
         services.AddScoped<IAIScoringService, AIScoringService>();
 
+        return services;
+    }
+
+    public static IServiceCollection AddSignalRServices(this IServiceCollection services)
+    {
+        services.AddSignalR();
         return services;
     }
 }

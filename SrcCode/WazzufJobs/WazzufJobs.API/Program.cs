@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.OpenApi.Models;
 using WazzufJobs.API.Filters;
+using WazzufJobs.BLL.Hubs;
 using WazzufJobs.DAL.Entities;
 using WazzufJobs.DAL.Persistence.Seeders;
 
@@ -31,6 +32,7 @@ public class Program
         builder.Services.AddRepositories();
         builder.Services.AddHelperServices();
         builder.Services.AddAIServices(builder.Configuration);
+        builder.Services.AddSignalRServices();
 
         // ─────────────────────────────────────────────────
 
@@ -88,6 +90,7 @@ public class Program
         app.UseHttpsRedirection();
         app.UseAuthentication();
         app.UseAuthorization();
+        app.MapHub<ScoringHub>("/hubs/scoring");
         app.UseHangfireDashboard("/hangfire", new DashboardOptions
         {
             Authorization = [new HangfireAuthorizationFilter()]

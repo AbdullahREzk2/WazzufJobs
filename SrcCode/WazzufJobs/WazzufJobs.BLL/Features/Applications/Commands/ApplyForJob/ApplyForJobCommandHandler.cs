@@ -15,9 +15,7 @@ public class ApplyForJobCommandHandler(
     private readonly IUserRepository _userRepository = userRepository;
     private readonly IBackgroundJobClient _backgroundJob = backgroundJob;
 
-    public async Task<Result<int>> Handle(
-        ApplyForJobCommand request,
-        CancellationToken cancellationToken)
+    public async Task<Result<int>> Handle(ApplyForJobCommand request,CancellationToken cancellationToken)
     {
         // check job exists and is active
         var job = await _jobRepository.GetByIdAsync(request.JobId, cancellationToken);
@@ -28,8 +26,8 @@ public class ApplyForJobCommandHandler(
         if (job.Status != JobStatus.Active)
             return Result.Failure<int>(ApplicationErrors.JobNotActive);
 
-        // check user has a CV
-        var user = await _userRepository.FindByIdAsync(request.UserId);
+        var user = await _userRepository.FindByIdWithCVAsync(
+            request.UserId, cancellationToken);
 
         if (user is null)
             return Result.Failure<int>(UserErrors.UserNotFound);

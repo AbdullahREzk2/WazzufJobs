@@ -16,6 +16,7 @@ public interface IUserRepository
     Task<IList<string>> GetRolesAsync(AppUser user);
     Task<List<AppUser>> GetAllUsersAsync(CancellationToken cancellationToken);
     Task<List<UserWithRoles>> GetUsersWithRolesAsync(CancellationToken cancellationToken);
+    Task<AppUser?> FindByIdWithCVAsync(string userId, CancellationToken cancellationToken);
 
     // User lifecycle
     Task<IdentityResult> CreateAsync(AppUser user, string password);
