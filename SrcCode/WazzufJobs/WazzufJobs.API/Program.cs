@@ -1,7 +1,6 @@
 ﻿using Hangfire;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.OpenApi.Models;
-using WazzufJobs.API.Filters;
 using WazzufJobs.BLL.Hubs;
 using WazzufJobs.DAL.Entities;
 using WazzufJobs.DAL.Persistence.Seeders;
@@ -76,15 +75,14 @@ public class Program
         await SeedDataAsync(app);
         // ─────────────────────────────────────────────────
 
-        if (app.Environment.IsDevelopment())
-        {
+        
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "WazzufJobs API V1");
                 c.RoutePrefix = string.Empty;
             });
-        }
+        
         app.UseHangfireDashboard("/hangfire");
         app.UseExceptionHandler();
         app.UseHttpsRedirection();

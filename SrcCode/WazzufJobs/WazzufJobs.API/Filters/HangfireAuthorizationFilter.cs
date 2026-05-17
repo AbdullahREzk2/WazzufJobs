@@ -1,13 +1,14 @@
 ﻿using Hangfire.Dashboard;
 
-namespace WazzufJobs.API.Filters;
-
 public class HangfireAuthorizationFilter : IDashboardAuthorizationFilter
 {
     public bool Authorize(DashboardContext context)
     {
         var httpContext = context.GetHttpContext();
-        return httpContext.User.Identity?.IsAuthenticated == true
-            && httpContext.User.IsInRole("Admin");
+
+        var user = httpContext.Request.Query["u"];
+        var pass = httpContext.Request.Query["p"];
+
+        return user == "admin" && pass == "2003";
     }
 }

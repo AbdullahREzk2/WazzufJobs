@@ -5,6 +5,22 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<UserSecretsId>6c775d27-a1c5-4012-818f-b2cbaa886efd</UserSecretsId>
 	</PropertyGroup>
+	<ItemGroup>
+	  <None Remove="Templete\EmailConfirmation.html" />
+	  <None Remove="Templete\ResetPassword.html" />
+	  <None Remove="Templete\Welcome.html" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Content Include="Templete\EmailConfirmation.html">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="Templete\ResetPassword.html">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="Templete\Welcome.html">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
+	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Hangfire" Version="1.8.23" />
