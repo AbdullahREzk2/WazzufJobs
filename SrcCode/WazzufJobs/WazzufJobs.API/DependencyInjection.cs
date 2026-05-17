@@ -211,6 +211,7 @@ public static class DependencyInjection
             .ValidateOnStart();
 
         services.AddHttpClient<ICVTextExtractor, CVTextExtractor>();
+        services.AddHttpClient<IAIClient, GroqAIClient>();    
         services.AddScoped<IAIScoringService, AIScoringService>();
 
         return services;

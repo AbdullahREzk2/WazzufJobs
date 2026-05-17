@@ -2,6 +2,7 @@
 using WazzufJobs.BLL.Features.UserCV.Commands.DeleteCV;
 using WazzufJobs.BLL.Features.UserCV.Commands.UploadCV;
 using WazzufJobs.BLL.Features.UserCV.Queries.GetCV;
+using WazzufJobs.BLL.Services;
 using WazzufJobs.DAL.Persistence.Seeders;
 
 namespace WazzufJobs.API.Controllers;
@@ -9,9 +10,10 @@ namespace WazzufJobs.API.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 [Authorize]
-public class CVController(IMediator mediator) : ControllerBase
+public class CVController(IMediator mediator,ICloudinaryService cloudinaryService) : ControllerBase
 {
     private readonly IMediator _mediator = mediator;
+    private readonly ICloudinaryService _cloudinaryservice = cloudinaryService;
 
     [HttpGet]
     [HasPermission(Permissions.CVUpload)]
@@ -41,4 +43,7 @@ public class CVController(IMediator mediator) : ControllerBase
         var result = await _mediator.Send(new DeleteCVCommand(userId), cancellationToken);
         return result.IsSuccess ? NoContent() : result.ToProblem();
     }
+
+
+    
 }

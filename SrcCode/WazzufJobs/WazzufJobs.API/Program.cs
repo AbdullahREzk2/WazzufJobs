@@ -75,7 +75,6 @@ public class Program
         await SeedDataAsync(app);
         // ─────────────────────────────────────────────────
 
-        
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {

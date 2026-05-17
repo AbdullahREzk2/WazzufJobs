@@ -2,4 +2,6 @@
 public interface ICVTextExtractor
 {
     Task<string?> ExtractTextAsync(string cvUrl, CancellationToken cancellationToken);
+    string? ExtractFromBytes(byte[] pdfBytes); 
+
 }

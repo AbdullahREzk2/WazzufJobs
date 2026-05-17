@@ -1,12 +1,11 @@
-﻿using Microsoft.Extensions.Options;
-using Mscc.GenerativeAI;
-using WazzufJobs.BLL.Authentication;
+﻿using WazzufJobs.BLL.Authentication;
 using WazzufJobs.BLL.Contracts.Applications;
 using WazzufJobs.BLL.Features.Applications.Commands.ApplyForJob;
 using WazzufJobs.BLL.Features.Applications.Commands.UpdateApplicationStatus;
 using WazzufJobs.BLL.Features.Applications.Queries.GetApplicationDetail;
 using WazzufJobs.BLL.Features.Applications.Queries.GetApplicationsByJob;
 using WazzufJobs.BLL.Features.Applications.Queries.GetMyApplications;
+using WazzufJobs.BLL.Services;
 using WazzufJobs.BLL.Settings;
 using WazzufJobs.DAL.Persistence.Seeders;
 
@@ -80,22 +79,4 @@ public class ApplicationsController(IMediator mediator) : ControllerBase
         return Ok(result);
     }
 
-
-    [HttpGet("test-ai")]
-    [AllowAnonymous]
-    public async Task<IActionResult> TestAI(
-    [FromServices] IOptions<AISettings> aiSettings)
-    {
-        try
-        {
-            var googleAI = new GoogleAI(apiKey: aiSettings.Value.ApiKey);
-            var model = googleAI.GenerativeModel(model: aiSettings.Value.Model);
-            var response = await model.GenerateContent("Say hello in one sentence.");
-            return Ok(new { response.Text });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { error = ex.Message, inner = ex.InnerException?.Message });
-        }
-    }
 }

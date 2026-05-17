@@ -20,4 +20,9 @@ public static class CVErrors
         "CV.FileTooLarge",
         "CV file size cannot exceed 5MB.",
         StatusCodes.Status400BadRequest);
+
+    public static readonly Error ScannedPDF = new(
+    "CV.ScannedPDF",
+    "Your CV appears to be a scanned image. Please upload a text-based PDF exported from Word or Google Docs.",
+    StatusCodes.Status400BadRequest);
 }

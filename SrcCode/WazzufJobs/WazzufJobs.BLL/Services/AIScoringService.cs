@@ -1,34 +1,32 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿// WazzufJobs.BLL/Services/AIScoringService.cs
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Microsoft.Identity.Client;
-using Mscc.GenerativeAI;
+using WazzufJobs.BLL.Abstractions;
 using WazzufJobs.BLL.Helpers;
 using WazzufJobs.BLL.Hubs;
-using WazzufJobs.BLL.Settings;
 using WazzufJobs.DAL.Persistence;
 
 namespace WazzufJobs.BLL.Services;
 
 public class AIScoringService(
     ApplicationDBContext context,
-    ICVTextExtractor cvTextExtractor,
-    IOptions<AISettings> aiSettings,
+    IAIClient aiClient,
     IEmailSender emailSender,
     IHubContext<ScoringHub> hubContext,
     ILogger<AIScoringService> logger) : IAIScoringService
 {
     private readonly ApplicationDBContext _context = context;
-    private readonly ICVTextExtractor _cvTextExtractor = cvTextExtractor;
-    private readonly AISettings _aiSettings = aiSettings.Value;
+    private readonly IAIClient _aiClient = aiClient;
     private readonly IEmailSender _emailSender = emailSender;
     private readonly IHubContext<ScoringHub> _hubContext = hubContext;
     private readonly ILogger _logger = logger;
 
-    public async Task ScoreApplicationAsync(int applicationId,CancellationToken cancellationToken)
+    public async Task ScoreApplicationAsync(
+        int applicationId,
+        CancellationToken cancellationToken)
     {
         _logger.LogInformation("AI Scoring: Starting for application {Id}.", applicationId);
 
@@ -43,61 +41,40 @@ public class AIScoringService(
             return;
         }
 
-        _logger.LogInformation("AI Scoring: Found application for user {UserId}, job {JobId}.",
-            application.UserId, application.JobId);
-
         if (application.User.CV is null)
         {
-            _logger.LogWarning("AI Scoring: No CV found for user {UserId}.", application.UserId);
+            _logger.LogWarning("AI Scoring: No CV for user {UserId}.", application.UserId);
             return;
         }
 
-        _logger.LogInformation("AI Scoring: CV found at {Url}.", application.User.CV.Url);
+        // use stored extracted text — no download from Cloudinary needed
+        var cvText = application.User.CV.ExtractedText;
 
-        // extract CV text
-        var cvText = await _cvTextExtractor.ExtractTextAsync(
-            application.User.CV.Url, cancellationToken);
-
-        _logger.LogInformation("AI Scoring: Extracted CV text length = {Length}.",
-            cvText?.Length ?? 0);
+        _logger.LogInformation("AI Scoring: CV text length = {Length}.", cvText?.Length ?? 0);
 
         if (string.IsNullOrWhiteSpace(cvText))
         {
-            _logger.LogWarning("AI Scoring: CV text is empty for application {Id}. " +
-                "PDF may be image-based or unreadable.", applicationId);
+            _logger.LogWarning("AI Scoring: No extracted text for application {Id}.", applicationId);
 
-            // still mark as scored with 0 so it doesn't keep retrying
             application.AIScore = 0;
-            application.AIFeedback = "Could not extract text from CV. Please ensure your CV is a text-based PDF.";
+            application.AIFeedback = "CV text could not be extracted. Please re-upload your CV.";
             application.IsAIScored = true;
+
             await _context.SaveChangesAsync(cancellationToken);
             return;
         }
 
         try
         {
-            _logger.LogInformation("AI Scoring: Calling Gemini for application {Id}.", applicationId);
-
             var scoringPrompt = BuildScoringPrompt(cvText, application.Job);
 
-            var googleAI = new GoogleAI(apiKey: _aiSettings.ApiKey);
-            var model = googleAI.GenerativeModel(
-                model: _aiSettings.Model); 
-            var response = await model.GenerateContent(scoringPrompt);
-            var text = response?.Text ?? string.Empty;
+            _logger.LogInformation("AI Scoring: Calling Groq for application {Id}.", applicationId);
 
-            _logger.LogInformation("AI Scoring: Gemini raw response = {Response}.", text);
+            var responseText = await _aiClient.GenerateAsync(scoringPrompt, cancellationToken);
 
-            if (string.IsNullOrWhiteSpace(text))
-            {
-                _logger.LogWarning("AI Scoring: Gemini returned empty response for application {Id}.", applicationId);
-                return;
-            }
+            _logger.LogInformation("AI Scoring: Raw response = {Response}.", responseText);
 
-            var (score, feedback) = ParseAIResponse(text);
-
-            _logger.LogInformation("AI Scoring: Parsed score={Score}, feedback={Feedback}.",
-                score, feedback);
+            var (score, feedback) = ParseAIResponse(responseText);
 
             application.AIScore = score;
             application.AIFeedback = feedback;
@@ -108,7 +85,7 @@ public class AIScoringService(
             _logger.LogInformation(
                 "AI Scoring: Application {Id} scored {Score}/100.", applicationId, score);
 
-            // notify via SignalR
+            // notify user via SignalR
             await _hubContext.Clients
                 .User(application.UserId)
                 .SendAsync("ApplicationScored", new
@@ -119,34 +96,51 @@ public class AIScoringService(
                     feedback
                 }, cancellationToken);
 
-            // send email
+            // send score email
             await SendScoreEmailAsync(application, score, feedback, cancellationToken);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex,
-                "AI Scoring: Exception for application {Id}. Message: {Message}",
+                "AI Scoring: Exception for application {Id}: {Message}",
                 applicationId, ex.Message);
 
-            throw;
+            throw; // rethrow so Hangfire retries automatically
         }
     }
-    private async Task SendScoreEmailAsync(DAL.Entities.Application application,float score,string feedback,CancellationToken cancellationToken)
-    {
-        var emailBody = EmailBodyBuilder.GenerateEmailBody("ApplicationScore",
-            new Dictionary<string, string>
-            {
-                { "{name}",      application.User.FirstName },
-                { "{jobTitle}",  application.Job.Title      },
-                { "{score}",     score.ToString("F1")       },
-                { "{feedback}",  feedback                   },
-                { "{status}",    GetScoreStatus(score)      }
-            });
 
-        await _emailSender.SendEmailAsync(
-            application.User.Email!,
-            $"🎯 Your Application Score for {application.Job.Title}",
-            emailBody);
+    private async Task SendScoreEmailAsync(
+        DAL.Entities.Application application,
+        float score,
+        string feedback,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var emailBody = EmailBodyBuilder.GenerateEmailBody("ApplicationScore",
+                new Dictionary<string, string>
+                {
+                    { "{name}",     application.User.FirstName },
+                    { "{jobTitle}", application.Job.Title      },
+                    { "{score}",    score.ToString("F1")       },
+                    { "{feedback}", feedback                   },
+                    { "{status}",   GetScoreStatus(score)      }
+                });
+
+            await _emailSender.SendEmailAsync(
+                application.User.Email!,
+                $"🎯 Your Application Score for {application.Job.Title}",
+                emailBody);
+
+            _logger.LogInformation(
+                "AI Scoring: Score email sent to {Email}.", application.User.Email);
+        }
+        catch (Exception ex)
+        {
+            // don't fail the whole scoring if email fails
+            _logger.LogError(ex,
+                "AI Scoring: Failed to send score email for application {Id}.", application.Id);
+        }
     }
 
     private static string GetScoreStatus(float score) => score switch
@@ -173,7 +167,7 @@ public class AIScoringService(
         {cvText}
 
         ## Instructions
-        Respond in this EXACT format only:
+        Respond in this EXACT format only — no extra text:
 
         SCORE: [number between 0 and 100]
         FEEDBACK: [2-3 sentences explaining the score]
@@ -194,13 +188,18 @@ public class AIScoringService(
         {
             if (line.StartsWith("SCORE:", StringComparison.OrdinalIgnoreCase))
             {
-                var raw = line.Replace("SCORE:", "", StringComparison.OrdinalIgnoreCase).Trim();
+                var raw = line
+                    .Replace("SCORE:", "", StringComparison.OrdinalIgnoreCase)
+                    .Trim();
+
                 if (float.TryParse(raw, out var parsed))
                     score = Math.Clamp(parsed, 0, 100);
             }
             else if (line.StartsWith("FEEDBACK:", StringComparison.OrdinalIgnoreCase))
             {
-                feedback = line.Replace("FEEDBACK:", "", StringComparison.OrdinalIgnoreCase).Trim();
+                feedback = line
+                    .Replace("FEEDBACK:", "", StringComparison.OrdinalIgnoreCase)
+                    .Trim();
             }
         }
 
