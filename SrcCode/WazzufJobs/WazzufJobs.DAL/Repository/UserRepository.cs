@@ -125,4 +125,9 @@ public class UserRepository : IUserRepository
 
     public async Task<IdentityResult> ChangePasswordAsync(AppUser user, string currentPassword, string newPassword)
         => await _usermanager.ChangePasswordAsync(user, currentPassword, newPassword);
+
+    public async Task<AppUser?> FindByIdWithPreferenceAsync(string userId,CancellationToken cancellationToken) =>
+    await _dbcontext.Users
+        .Include(u => u.Preference)
+        .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
 }

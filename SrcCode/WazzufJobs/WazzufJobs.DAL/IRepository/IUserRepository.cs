@@ -37,4 +37,6 @@ public interface IUserRepository
 
     // Password change
     Task<IdentityResult> ChangePasswordAsync(AppUser user, string currentPassword, string newPassword);
+
+    Task<AppUser?> FindByIdWithPreferenceAsync(string userId,CancellationToken cancellationToken);
 }
