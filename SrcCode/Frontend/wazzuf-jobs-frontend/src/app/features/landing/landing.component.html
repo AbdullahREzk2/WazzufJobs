@@ -1,0 +1,143 @@
+<!-- src/app/features/landing/landing.component.html -->
+<div class="landing">
+
+  <!-- Three.js Canvas -->
+  <canvas #canvas class="canvas"></canvas>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="nav-logo">
+      <span class="logo-icon">⚡</span>
+      <span class="logo-text">Wazzuf<span class="accent">Jobs</span></span>
+    </div>
+    <div class="nav-links">
+      <a (click)="goToJobs()">Browse Jobs</a>
+      <button class="btn-outline" (click)="goToLogin()">Login</button>
+      <button class="btn-glow" (click)="goToRegister()">
+        <span>Get Started</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="badge-dot"></span>
+        AI-Powered Job Platform
+      </div>
+
+      <h1 class="hero-title">
+        Find Your Dream Job
+        <span class="gradient-text"> With AI Precision</span>
+      </h1>
+
+      <p class="hero-subtitle">
+        Upload your CV, apply to jobs, and let our AI score your match
+        in real-time. The smarter way to land your next opportunity.
+      </p>
+
+      <div class="hero-actions">
+        <button class="btn-glow btn-large" (click)="goToRegister()">
+          <span>🚀 Start For Free</span>
+        </button>
+        <button class="btn-ghost btn-large" (click)="goToJobs()">
+          <span>Browse Jobs →</span>
+        </button>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-row">
+        <div class="stat" *ngFor="let stat of stats">
+          <span class="stat-value">{{ stat.value }}</span>
+          <span class="stat-label">{{ stat.label }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Floating job cards UI -->
+    <div class="hero-visual">
+      <div class="visual-card card-1">
+        <div class="card-icon">💼</div>
+        <div class="card-info">
+          <strong>Senior .NET Developer</strong>
+          <span>Cairo, Egypt • $5K-$10K</span>
+        </div>
+        <div class="ai-score">
+          <span class="score-label">AI Match</span>
+          <span class="score-value">92%</span>
+        </div>
+      </div>
+
+      <div class="visual-card card-2">
+        <div class="card-icon">🎨</div>
+        <div class="card-info">
+          <strong>UI/UX Designer</strong>
+          <span>Remote • $3K-$6K</span>
+        </div>
+        <div class="ai-score">
+          <span class="score-label">AI Match</span>
+          <span class="score-value">85%</span>
+        </div>
+      </div>
+
+      <div class="visual-card card-3">
+        <div class="card-icon">📊</div>
+        <div class="card-info">
+          <strong>Data Analyst</strong>
+          <span>Hybrid • $4K-$8K</span>
+        </div>
+        <div class="ai-score">
+          <span class="score-label">AI Match</span>
+          <span class="score-value">78%</span>
+        </div>
+      </div>
+
+      <!-- Notification popup -->
+      <div class="notification-popup">
+        <span class="notif-icon">🎯</span>
+        <div>
+          <strong>Score Ready!</strong>
+          <p>Your CV scored 92% for .NET Dev</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="features">
+    <div class="section-header">
+      <h2>Why Choose <span class="gradient-text">Wazzuf Jobs?</span></h2>
+      <p>The most intelligent job platform in the region</p>
+    </div>
+
+    <div class="features-grid">
+      <div class="feature-card glass-card" *ngFor="let f of features">
+        <div class="feature-icon">{{ f.icon }}</div>
+        <h3>{{ f.title }}</h3>
+        <p>{{ f.description }}</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta">
+    <div class="cta-content glass-card">
+      <h2>Ready to Find Your <span class="gradient-text">Perfect Job?</span></h2>
+      <p>Join thousands of professionals already using Wazzuf Jobs</p>
+      <button class="btn-glow btn-large" (click)="goToRegister()">
+        <span>Create Free Account →</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-logo">
+      <span class="logo-icon">⚡</span>
+      <span>Wazzuf<span class="accent">Jobs</span></span>
+    </div>
+    <p>© 2026 WazzufJobs. Built with ❤️ for job seekers.</p>
+  </footer>
+
+</div>

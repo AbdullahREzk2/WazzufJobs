@@ -1,0 +1,35 @@
+/* src/styles/_variables.scss */
+:root {
+  // Primary colors — Deep Blue + Cyan (best for 3D dark theme)
+  --primary:        #0a0e27;      // deep space blue
+  --secondary:      #00d4ff;      // electric cyan
+  --accent:         #7c3aed;      // purple accent
+  --gold:           #ffd700;      // gold highlight
+
+  // Background
+  --bg-dark:        #050818;      // almost black
+  --bg-card:        #0d1b3e;      // dark blue card
+  --bg-glass:       rgba(13, 27, 62, 0.6);  // glassmorphism
+
+  // Text
+  --text-primary:   #ffffff;
+  --text-secondary: #94a3b8;
+  --text-muted:     #475569;
+
+  // Borders
+  --border:         rgba(0, 212, 255, 0.2);
+  --border-hover:   rgba(0, 212, 255, 0.6);
+
+  // Status colors
+  --success:        #10b981;
+  --warning:        #f59e0b;
+  --danger:         #ef4444;
+
+  // Fonts
+  --font-primary:   'Inter', sans-serif;
+  --font-display:   'Orbitron', sans-serif;  // futuristic font for headings
+
+  // Shadows
+  --shadow-glow:    0 0 30px rgba(0, 212, 255, 0.3);
+  --shadow-card:    0 8px 32px rgba(0, 0, 0, 0.4);
+}

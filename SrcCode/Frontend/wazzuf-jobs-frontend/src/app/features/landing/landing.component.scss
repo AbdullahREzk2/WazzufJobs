@@ -1,0 +1,441 @@
+// src/app/features/landing/landing.component.scss
+.landing {
+  min-height: 100vh;
+  background: var(--bg-dark);
+  position: relative;
+  overflow-x: hidden;
+}
+
+// ── Canvas ────────────────────────────────────────────
+.canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+// ── Navbar ────────────────────────────────────────────
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 60px;
+  background: rgba(5, 8, 24, 0.8);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  cursor: pointer;
+
+  .logo-icon { font-size: 24px; }
+  .accent    { color: var(--secondary); }
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+
+  a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color 0.3s;
+    &:hover { color: var(--secondary); }
+  }
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  padding: 10px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+  &:hover {
+    border-color: var(--secondary);
+    color: var(--secondary);
+  }
+}
+
+// ── Hero ──────────────────────────────────────────────
+.hero {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  padding: 120px 60px 60px;
+  gap: 60px;
+}
+
+.hero-content {
+  flex: 1;
+  max-width: 580px;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 212, 255, 0.1);
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  border-radius: 50px;
+  padding: 8px 18px;
+  font-size: 13px;
+  color: var(--secondary);
+  margin-bottom: 28px;
+
+  .badge-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--secondary);
+    border-radius: 50%;
+    animation: pulse-glow 2s infinite;
+  }
+}
+
+.hero-title {
+  font-family: var(--font-display);
+  font-size: clamp(36px, 5vw, 64px);
+  font-weight: 900;
+  line-height: 1.1;
+  color: var(--text-primary);
+  margin-bottom: 24px;
+}
+
+.hero-subtitle {
+  font-size: 17px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin-bottom: 40px;
+  max-width: 480px;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 52px;
+  flex-wrap: wrap;
+}
+
+.btn-large {
+  padding: 16px 36px !important;
+  font-size: 16px !important;
+  border-radius: 12px !important;
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  padding: 12px 28px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+  &:hover {
+    border-color: var(--secondary);
+    background: rgba(0,212,255,0.05);
+  }
+}
+
+// ── Stats ─────────────────────────────────────────────
+.stats-row {
+  display: flex;
+  gap: 40px;
+  flex-wrap: wrap;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  .stat-value {
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--secondary);
+  }
+
+  .stat-label {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+}
+
+// ── Hero Visual ───────────────────────────────────────
+.hero-visual {
+  flex: 1;
+  position: relative;
+  height: 500px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.visual-card {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 22px;
+  background: var(--bg-glass);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  min-width: 280px;
+  transition: all 0.3s;
+
+  &:hover {
+    border-color: var(--secondary);
+    box-shadow: var(--shadow-glow);
+    transform: translateY(-4px) scale(1.02);
+  }
+
+  .card-icon {
+    font-size: 32px;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,212,255,0.1);
+    border-radius: 12px;
+  }
+
+  .card-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    strong {
+      font-size: 14px;
+      color: var(--text-primary);
+    }
+    span {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+  }
+
+  .ai-score {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+
+    .score-label {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+    .score-value {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--success);
+    }
+  }
+}
+
+.card-1 {
+  top: 60px;
+  left: 0;
+  animation: float 4s ease-in-out infinite;
+}
+
+.card-2 {
+  top: 200px;
+  right: 0;
+  animation: float 4s ease-in-out infinite 1.3s;
+}
+
+.card-3 {
+  bottom: 80px;
+  left: 40px;
+  animation: float 4s ease-in-out infinite 2.6s;
+}
+
+// ── Notification Popup ────────────────────────────────
+.notification-popup {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  border-radius: 12px;
+  animation: float 3s ease-in-out infinite 0.5s;
+
+  .notif-icon { font-size: 24px; }
+
+  strong {
+    display: block;
+    font-size: 13px;
+    color: var(--success);
+  }
+  p {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin: 0;
+  }
+}
+
+// ── Features ──────────────────────────────────────────
+.features {
+  position: relative;
+  z-index: 1;
+  padding: 100px 60px;
+}
+
+.section-header {
+  text-align: center;
+  margin-bottom: 60px;
+
+  h2 {
+    font-family: var(--font-display);
+    font-size: clamp(28px, 4vw, 48px);
+    font-weight: 700;
+    margin-bottom: 16px;
+  }
+  p {
+    font-size: 16px;
+    color: var(--text-secondary);
+  }
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 24px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.feature-card {
+  padding: 36px 28px;
+  text-align: center;
+
+  .feature-icon {
+    font-size: 48px;
+    margin-bottom: 20px;
+    display: block;
+  }
+
+  h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+  }
+
+  p {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+}
+
+// ── CTA ───────────────────────────────────────────────
+.cta {
+  position: relative;
+  z-index: 1;
+  padding: 60px;
+  display: flex;
+  justify-content: center;
+}
+
+.cta-content {
+  text-align: center;
+  padding: 80px 60px;
+  max-width: 700px;
+  width: 100%;
+
+  h2 {
+    font-family: var(--font-display);
+    font-size: clamp(24px, 3vw, 40px);
+    font-weight: 700;
+    margin-bottom: 16px;
+  }
+
+  p {
+    font-size: 16px;
+    color: var(--text-secondary);
+    margin-bottom: 40px;
+  }
+}
+
+// ── Footer ────────────────────────────────────────────
+.footer {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 40px 60px;
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 14px;
+
+  .footer-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+
+    .accent { color: var(--secondary); }
+  }
+}
+
+// ── Responsive ────────────────────────────────────────
+@media (max-width: 900px) {
+  .hero {
+    flex-direction: column;
+    padding: 100px 24px 60px;
+    text-align: center;
+  }
+
+  .hero-visual { display: none; }
+
+  .stats-row    { justify-content: center; }
+  .hero-actions { justify-content: center; }
+
+  .navbar {
+    padding: 16px 24px;
+    .nav-links a { display: none; }
+  }
+
+  .features { padding: 60px 24px; }
+  .cta      { padding: 24px; }
+  .cta-content { padding: 40px 24px; }
+}
