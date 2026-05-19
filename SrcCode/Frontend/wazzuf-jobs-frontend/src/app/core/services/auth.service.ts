@@ -2,7 +2,7 @@
 import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { tap } from 'rxjs';
+import { map, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   AuthResponse,
@@ -20,6 +20,7 @@ export class AuthService {
   // reactive signals — components auto-update when these change
   isLoggedIn  = signal<boolean>(this.hasValidToken());
   currentUser = signal<AuthResponse | null>(this.getStoredUser());
+  userRoles   = signal<string[]>(this.readRolesFromStorage());
 
   constructor(private http: HttpClient, private router: Router) {}
 
@@ -38,20 +39,20 @@ export class AuthService {
 
   confirmEmail(userId: string, code: string) {
     return this.http
-      .get<void>(`${environment.apiUrl}/auth/confirm-email`, {
+      .get<void>(`${environment.apiUrl}/auth/Confirm-Email`, {
         params: { userId, code }
       });
   }
 
   forgetPassword(email: string) {
     return this.http
-      .post<void>(`${environment.apiUrl}/auth/forget-password`, { email });
+      .post<void>(`${environment.apiUrl}/auth/forget-Password`, { email });
   }
 
-  resetPassword(email: string, code: string, newPassword: string, confirmPassword: string) {
+  resetPassword(email: string, code: string, newPassword: string) {
     return this.http
-      .post<void>(`${environment.apiUrl}/auth/reset-password`, {
-        email, code, newPassword, confirmPassword
+      .post<void>(`${environment.apiUrl}/auth/Reset-Password`, {
+        email, code, newPassword
       });
   }
 
@@ -60,10 +61,27 @@ export class AuthService {
     const refreshToken = this.getRefreshToken();
 
     return this.http
-      .post<AuthResponse>(`${environment.apiUrl}/auth/refresh-token`, {
-        token, refreshToken
-      })
-      .pipe(tap(response => this.storeAuth(response)));
+      .post<AuthResponse | { value: AuthResponse }>(
+        `${environment.apiUrl}/auth/refresh`,
+        { token, refreshToken }
+      )
+      .pipe(
+        map(res => ('value' in res && res.value ? res.value : res as AuthResponse)),
+        tap(response => this.storeAuth(response))
+      );
+  }
+
+  /** Update cached user after profile changes (token unchanged). */
+  patchStoredUser(
+    partial: Partial<
+      Pick<AuthResponse, 'firstName' | 'lastName' | 'email' | 'userName'>
+    >
+  ) {
+    const u = this.currentUser();
+    if (!u) return;
+    const next = { ...u, ...partial };
+    localStorage.setItem(this.USER_KEY, JSON.stringify(next));
+    this.currentUser.set(next);
   }
 
   logout() {
@@ -72,6 +90,7 @@ export class AuthService {
     localStorage.removeItem(this.USER_KEY);
     this.isLoggedIn.set(false);
     this.currentUser.set(null);
+    this.userRoles.set([]);
     this.router.navigate(['/login']);
   }
 
@@ -85,22 +104,19 @@ export class AuthService {
     return localStorage.getItem(this.REFRESH_KEY);
   }
 
-  isAdmin(): boolean {
+  getRoles(): string[] {
     const payload = this.decodeToken();
-    if (!payload) return false;
-    const role = payload.role;
-    return Array.isArray(role)
-      ? role.includes('Admin')
-      : role === 'Admin';
+    if (!payload) return [];
+    return this.normalizeRoles(payload.roles ?? payload.role);
+  }
+
+  isAdmin(): boolean {
+    return this.getRoles().includes('Admin');
   }
 
   isUser(): boolean {
-    const payload = this.decodeToken();
-    if (!payload) return false;
-    const role = payload.role;
-    return Array.isArray(role)
-      ? role.includes('User')
-      : role === 'User';
+    const roles = this.getRoles();
+    return roles.includes('User') || roles.length === 0;
   }
 
   getUserId(): string | null {
@@ -126,6 +142,22 @@ export class AuthService {
     localStorage.setItem(this.USER_KEY,    JSON.stringify(response));
     this.isLoggedIn.set(true);
     this.currentUser.set(response);
+    this.userRoles.set(this.getRoles());
+  }
+
+  private readRolesFromStorage(): string[] {
+    return this.hasValidToken() ? this.getRoles() : [];
+  }
+
+  private normalizeRoles(raw: string | string[] | undefined): string[] {
+    if (!raw) return [];
+    if (Array.isArray(raw)) return raw;
+    try {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [String(parsed)];
+    } catch {
+      return [raw];
+    }
   }
 
   private hasValidToken(): boolean {

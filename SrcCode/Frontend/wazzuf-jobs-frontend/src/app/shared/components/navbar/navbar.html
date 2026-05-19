@@ -1,1 +1,41 @@
-<p>navbar works!</p>
+<nav class="navbar">
+  <div class="nav-logo" (click)="goHome()" role="button" tabindex="0">
+    <span class="logo-icon">⚡</span>
+    <span class="logo-text">Wazzuf<span class="accent">Jobs</span></span>
+  </div>
+
+  <button class="menu-toggle" (click)="toggleMenu()" [attr.aria-expanded]="menuOpen()" aria-label="Open menu">
+    <span class="bar"></span>
+    <span class="bar"></span>
+    <span class="bar"></span>
+  </button>
+
+  <div class="nav-links" [class.open]="menuOpen()">
+    @if (auth.isLoggedIn()) {
+      @if (auth.isAdmin()) {
+        <a routerLink="/admin" routerLinkActive="active" (click)="closeMenu()">Admin home</a>
+        <a routerLink="/admin/jobs" routerLinkActive="active" (click)="closeMenu()">Manage jobs</a>
+        <a routerLink="/admin/applications" routerLinkActive="active" (click)="closeMenu()">Applications</a>
+      } @else {
+        <a routerLink="/dashboard" routerLinkActive="active" (click)="closeMenu()">My dashboard</a>
+        <a routerLink="/jobs" routerLinkActive="active" (click)="closeMenu()">Find jobs</a>
+        <a routerLink="/saved-jobs" routerLinkActive="active" (click)="closeMenu()">Saved</a>
+        <a routerLink="/profile" routerLinkActive="active" (click)="closeMenu()">Profile & CV</a>
+      }
+
+      <div class="nav-user">
+        <div class="user-chip">
+          <span class="avatar">{{ initials() }}</span>
+          <span class="user-name">{{ auth.currentUser()?.firstName }}</span>
+          @if (auth.isAdmin()) {
+            <span class="role-pill admin">Admin</span>
+          }
+        </div>
+        <button type="button" class="btn-outline btn-sm" (click)="logout()">Sign out</button>
+      </div>
+    } @else {
+      <a routerLink="/login" class="nav-link-muted" (click)="closeMenu()">Sign in</a>
+      <a routerLink="/register" class="btn-glow" (click)="closeMenu()"><span>Get started — it's free</span></a>
+    }
+  </div>
+</nav>

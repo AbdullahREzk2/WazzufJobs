@@ -1,1 +1,144 @@
-<p>profile works!</p>
+<div class="app-page">
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+  <app-navbar />
+
+  <main class="page-main">
+    <header class="page-header">
+      <h1>My <span class="gradient-text">Profile</span></h1>
+      <p>Account settings, photo, password, and CV for applications</p>
+    </header>
+
+    @if (error) { <div class="alert error">{{ error }}</div> }
+    @if (success) { <div class="alert success">{{ success }}</div> }
+
+    @if (pageLoading) {
+      <app-loading-spinner message="Loading profile..." />
+    } @else {
+      <div class="profile-grid">
+        <div class="profile-stack">
+          <section class="glass-card profile-card">
+            <h2>Account</h2>
+            <div class="photo-row">
+              @if (profile?.profilePhotoUrl) {
+                <img [src]="profile!.profilePhotoUrl" alt="" class="profile-avatar" />
+              } @else {
+                <div class="profile-avatar placeholder">
+                  {{ (profileFirst || '?').charAt(0) | uppercase }}
+                </div>
+              }
+              <div class="photo-actions">
+                <label class="btn-outline btn-sm">
+                  {{ uploadingPhoto ? 'Uploading…' : 'Change photo' }}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    hidden
+                    [disabled]="uploadingPhoto"
+                    (change)="onPhotoSelected($event)" />
+                </label>
+                <p class="hint tiny">JPEG, PNG, WebP — server limits apply</p>
+              </div>
+            </div>
+            <div class="field">
+              <label>Email</label>
+              <input
+                class="input-field"
+                [value]="profile?.email || auth.currentUser()?.email"
+                disabled />
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label>First name</label>
+                <input class="input-field" [(ngModel)]="profileFirst" name="fn" />
+              </div>
+              <div class="field">
+                <label>Last name</label>
+                <input class="input-field" [(ngModel)]="profileLast" name="ln" />
+              </div>
+            </div>
+            <button type="button" class="btn-glow" (click)="saveProfile()">Save profile</button>
+          </section>
+
+          <section class="glass-card profile-card">
+            <h2>Change password</h2>
+            <div class="field">
+              <label>Current password</label>
+              <input
+                class="input-field"
+                type="password"
+                [(ngModel)]="pwdCurrent"
+                name="pc"
+                autocomplete="current-password" />
+            </div>
+            <div class="field">
+              <label>New password</label>
+              <input
+                class="input-field"
+                type="password"
+                [(ngModel)]="pwdNew"
+                name="pn"
+                autocomplete="new-password" />
+            </div>
+            <app-password-criteria [password]="pwdNew" />
+            <div class="field">
+              <label>Confirm new password</label>
+              <input
+                class="input-field"
+                type="password"
+                [(ngModel)]="pwdConfirm"
+                name="pnc"
+                autocomplete="new-password" />
+            </div>
+            <button type="button" class="btn-outline" (click)="changePassword()">
+              Update password
+            </button>
+          </section>
+        </div>
+
+        <section class="glass-card profile-card cv-card">
+          <h2>📄 Your CV</h2>
+          <p class="hint">Upload your CV — our AI uses it to score every application</p>
+
+          @if (cv) {
+            <div class="cv-info">
+              <span class="file-icon">📎</span>
+              <div>
+                <strong>{{ cv.fileName }}</strong>
+                <p>Uploaded {{ cv.uploadedAt | date:'medium' }}</p>
+              </div>
+              <a [href]="cv.url" target="_blank" rel="noopener" class="btn-outline">View CV</a>
+              <button class="btn-danger" (click)="deleteCv()">Delete</button>
+            </div>
+            <label class="btn-outline upload-label">
+              Replace CV
+              <input
+                type="file"
+                accept=".pdf,.doc,.docx"
+                hidden
+                (change)="onCvSelected($event)" />
+            </label>
+          } @else {
+            <label class="upload-zone">
+              <span class="upload-icon">⬆️</span>
+              <strong>Drop or click to upload CV</strong>
+              <p>PDF, DOC, DOCX — max 10MB</p>
+              <input
+                type="file"
+                accept=".pdf,.doc,.docx"
+                hidden
+                (change)="onCvSelected($event)"
+                [disabled]="uploadingCv" />
+            </label>
+          }
+
+          @if (uploadingCv) {
+            <p class="uploading-msg"><span class="spinner-inline"></span> Uploading...</p>
+          }
+        </section>
+      </div>
+    }
+  </main>
+
+  <app-footer />
+</div>

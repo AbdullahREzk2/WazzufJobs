@@ -1,0 +1,80 @@
+<div class="admin-page">
+  <header
+    class="page-header"
+    style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
+    <div>
+      <h1>Manage <span class="gradient-text">Roles</span></h1>
+      <p>Create roles and assign API permissions</p>
+    </div>
+    <button type="button" class="btn-glow" (click)="openCreate()"><span>+ New role</span></button>
+  </header>
+
+  @if (loading) {
+    <app-loading-spinner />
+  } @else {
+    <div class="table-wrap glass-card">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of roles; track r.id) {
+            <tr>
+              <td>{{ r.name }}</td>
+              <td>
+                <span class="status-badge" [class.inactive]="r.isDeleted">
+                  {{ r.isDeleted ? 'Disabled' : 'Active' }}
+                </span>
+              </td>
+              <td class="actions">
+                <button type="button" class="btn-outline" (click)="openEdit(r)">Edit</button>
+                <button type="button" class="btn-outline" (click)="toggleStatus(r)">Toggle</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  @if (showModal) {
+    <div class="modal-overlay" (click)="closeModal()">
+      <div class="modal-card modal-perms" (click)="$event.stopPropagation()">
+        <h2>{{ editingId ? 'Edit role' : 'New role' }}</h2>
+        @if (error) {
+          <div class="alert error">{{ error }}</div>
+        }
+        @if (modalLoading) {
+          <app-loading-spinner message="Loading role..." />
+        } @else {
+          <div class="field">
+            <label>Name</label>
+            <input class="input-field" [(ngModel)]="formName" />
+          </div>
+          <div class="field">
+            <label>Permissions</label>
+            <div class="perm-grid">
+              @for (p of permCatalog; track p.id) {
+                <label class="check-line">
+                  <input
+                    type="checkbox"
+                    [checked]="permChecked(p.id)"
+                    (change)="togglePerm(p.id)" />
+                  <span>{{ p.label }}</span>
+                </label>
+              }
+            </div>
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn-outline" (click)="closeModal()">Cancel</button>
+            <button type="button" class="btn-glow" (click)="save()">Save</button>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>

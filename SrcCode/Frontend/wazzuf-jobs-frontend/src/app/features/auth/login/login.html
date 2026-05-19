@@ -1,1 +1,115 @@
-<p>login works!</p>
+<!-- src/app/features/auth/login/login.html -->
+<div class="auth-page">
+
+  <!-- Background particles -->
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+  <div class="bg-orb orb-3"></div>
+
+  <!-- Back to home -->
+  <a routerLink="/" class="back-btn">← Back to Home</a>
+
+  <div class="auth-container">
+
+    <!-- Left side — branding -->
+    <div class="auth-left">
+      <div class="brand">
+        <span class="brand-icon">⚡</span>
+        <span class="brand-name">Wazzuf<span class="accent">Jobs</span></span>
+      </div>
+      <h2>Welcome back to the future of job hunting</h2>
+      <p>AI-powered matching gets you hired faster</p>
+
+      <div class="left-stats">
+        <div class="left-stat">
+          <span class="ls-value">92%</span>
+          <span class="ls-label">Average AI match accuracy</span>
+        </div>
+        <div class="left-stat">
+          <span class="ls-value">3x</span>
+          <span class="ls-label">Faster hiring process</span>
+        </div>
+      </div>
+
+      <!-- Floating card decoration -->
+      <div class="deco-card">
+        <span>🎯</span>
+        <div>
+          <strong>AI Score: 94%</strong>
+          <p>Perfect match found!</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right side — form -->
+    <div class="auth-right">
+      <div class="form-card glass-card">
+
+        <div class="form-header">
+          <h1>Sign In</h1>
+          <p>Don't have an account?
+            <a routerLink="/register" class="link">Create one free</a>
+          </p>
+        </div>
+
+        <!-- Error -->
+        <div class="error-box" *ngIf="error">
+          <span>⚠️</span> {{ error }}
+        </div>
+
+        <div class="form-body">
+
+          <!-- Email -->
+          <div class="field">
+            <label>Email Address</label>
+            <div class="input-wrap">
+              <span class="input-icon">📧</span>
+              <input
+                type="email"
+                [(ngModel)]="email"
+                placeholder="you@example.com"
+                class="input-field"
+                (keyup.enter)="login()"
+              />
+            </div>
+          </div>
+
+          <!-- Password -->
+          <div class="field">
+            <label>Password</label>
+            <div class="input-wrap">
+              <span class="input-icon">🔒</span>
+              <input
+                [type]="showPass ? 'text' : 'password'"
+                [(ngModel)]="password"
+                placeholder="Your password"
+                class="input-field"
+                (keyup.enter)="login()"
+              />
+              <span class="toggle-pass" (click)="showPass = !showPass">
+                {{ showPass ? '🙈' : '👁️' }}
+              </span>
+            </div>
+            <a routerLink="/forget-password" class="forgot-link">
+              Forgot password?
+            </a>
+          </div>
+
+          <!-- Submit -->
+          <button
+            class="btn-glow submit-btn"
+            (click)="login()"
+            [disabled]="loading">
+            <span *ngIf="!loading">Sign In →</span>
+            <span *ngIf="loading" class="spinner"></span>
+          </button>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+

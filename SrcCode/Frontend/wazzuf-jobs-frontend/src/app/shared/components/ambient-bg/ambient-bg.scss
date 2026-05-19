@@ -1,0 +1,63 @@
+.ambient {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.35;
+  animation: drift 18s ease-in-out infinite;
+}
+
+.orb-a {
+  width: 420px;
+  height: 420px;
+  background: var(--secondary);
+  top: -120px;
+  left: -80px;
+}
+
+.orb-b {
+  width: 360px;
+  height: 360px;
+  background: var(--accent-deep);
+  bottom: -80px;
+  right: -60px;
+  animation-delay: -6s;
+}
+
+.orb-c {
+  width: 240px;
+  height: 240px;
+  background: var(--secondary-soft);
+  top: 40%;
+  left: 55%;
+  opacity: 0.2;
+  animation-delay: -12s;
+}
+
+.particle-field {
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.25) 0, transparent 100%),
+    radial-gradient(1px 1px at 60% 70%, rgba(34,211,238,0.3) 0, transparent 100%),
+    radial-gradient(1px 1px at 80% 20%, rgba(167,139,250,0.25) 0, transparent 100%);
+  background-size: 200% 200%;
+  animation: shimmer 25s linear infinite;
+}
+
+@keyframes drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(24px, -16px) scale(1.05); }
+}
+
+@keyframes shimmer {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 100% 100%; }
+}

@@ -1,1 +1,138 @@
-<p>onboarding works!</p>
+<div class="app-page">
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+  <app-navbar />
+
+  <main class="page-main onboarding-main">
+    <header class="page-header">
+      <h1>Complete Your <span class="gradient-text">Profile</span></h1>
+      <p>Help our AI find the perfect jobs for you</p>
+    </header>
+
+    <div class="steps-indicator">
+      @for (s of [1,2,3]; track s) {
+        <span class="step-dot" [class.active]="step >= s" [class.current]="step === s">{{ s }}</span>
+      }
+    </div>
+
+    @if (loading) {
+      <app-loading-spinner message="Loading..." />
+    } @else {
+      <div class="onboard-card glass-card">
+        @if (error) { <div class="alert error">{{ error }}</div> }
+
+        @if (step === 1) {
+          <h2>Experience</h2>
+          <div class="form-grid">
+            <div class="field">
+              <label>Years of experience</label>
+              <input type="number" class="input-field" min="0" max="50" [(ngModel)]="experienceYears" />
+            </div>
+            <div class="field">
+              <label>Career level</label>
+              <select class="input-field" [(ngModel)]="careerLevel">
+                @for (l of careerLevels; track l.value) {
+                  <option [ngValue]="l.value">{{ l.label }}</option>
+                }
+              </select>
+            </div>
+          </div>
+        }
+
+        @if (step === 2) {
+          <h2>Preferences</h2>
+          <div class="field">
+            <label>Preferred job types</label>
+            <div class="chip-group">
+              @for (t of jobTypes; track t.value) {
+                <button
+                  type="button"
+                  class="chip"
+                  [class.selected]="isSelected(preferredJobTypes, t.value)"
+                  (click)="toggleJobType(t.value)">
+                  {{ t.label }}
+                </button>
+              }
+            </div>
+          </div>
+          <div class="field">
+            <label>Workplace preference</label>
+            <div class="chip-group">
+              @for (w of workplaceTypes; track w.value) {
+                <button
+                  type="button"
+                  class="chip"
+                  [class.selected]="isSelected(preferredWorkplaceTypes, w.value)"
+                  (click)="toggleWorkplace(w.value)">
+                  {{ w.label }}
+                </button>
+              }
+            </div>
+          </div>
+          <div class="field">
+            <label>Interested categories</label>
+            <div class="chip-group">
+              @for (c of categories; track c.id) {
+                <button
+                  type="button"
+                  class="chip"
+                  [class.selected]="isSelected(interestedCategoryIds, c.id)"
+                  (click)="toggleCategory(c.id)">
+                  {{ c.name }}
+                </button>
+              }
+            </div>
+          </div>
+        }
+
+        @if (step === 3) {
+          <h2>Job interests & salary</h2>
+          <div class="field">
+            <label>Target job titles</label>
+            <div class="title-input-row">
+              <input class="input-field" [(ngModel)]="jobTitleInput" placeholder="e.g. .NET Developer" (keyup.enter)="addJobTitle()" />
+              <button type="button" class="btn-outline" (click)="addJobTitle()">Add</button>
+            </div>
+            <div class="chip-group">
+              @for (title of interestedJobTitles; track title) {
+                <span class="chip selected removable" (click)="removeTitle(title)">{{ title }} ×</span>
+              }
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label>Minimum salary (optional)</label>
+              <input type="number" class="input-field" [(ngModel)]="minSalary" placeholder="e.g. 5000" />
+            </div>
+            <div class="field checkbox-field">
+              <label>
+                <input type="checkbox" [(ngModel)]="showSalary" />
+                Show salary on profile
+              </label>
+            </div>
+          </div>
+        }
+
+        <div class="step-actions">
+          @if (step > 1) {
+            <button type="button" class="btn-outline" (click)="back()">← Back</button>
+          }
+          @if (step < 3) {
+            <button type="button" class="btn-glow" (click)="next()"><span>Next →</span></button>
+          } @else {
+            <button type="button" class="btn-glow" (click)="submit()" [disabled]="saving">
+              <span *ngIf="!saving">Finish & Go to Dashboard</span>
+              <span *ngIf="saving" class="spinner-inline"></span>
+            </button>
+          }
+        </div>
+      </div>
+    }
+  </main>
+
+  <app-footer />
+</div>
+
+
+
+

@@ -2,7 +2,12 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
-import { MyApplication, ApplicationResponse } from '../models/application.models';
+import {
+  MyApplication,
+  ApplicationResponse,
+  ApplicationDetail
+} from '../models/application.models';
+import { ApplicationStatus } from '../models/enums';
 import { PaginatedResponse } from '../models/job.models';
 
 @Injectable({ providedIn: 'root' })
@@ -29,7 +34,11 @@ export class ApplicationService {
     );
   }
 
-  updateStatus(id: number, status: number) {
+  getDetail(id: number) {
+    return this.http.get<ApplicationDetail>(`${this.api}/${id}`);
+  }
+
+  updateStatus(id: number, status: ApplicationStatus) {
     return this.http.put<void>(`${this.api}/${id}/status`, { status });
   }
 }

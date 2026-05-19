@@ -6,7 +6,8 @@ import { SavedJob } from '../models/application.models';
 
 @Injectable({ providedIn: 'root' })
 export class SavedJobsService {
-  private api = `${environment.apiUrl}/saved-jobs`;
+  /** ASP.NET route is `api/SavedJobs` — kebab-case `saved-jobs` does not match. */
+  private api = `${environment.apiUrl}/SavedJobs`;
 
   constructor(private http: HttpClient) {}
 

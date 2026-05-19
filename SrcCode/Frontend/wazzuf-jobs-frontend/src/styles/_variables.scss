@@ -1,35 +1,40 @@
-/* src/styles/_variables.scss */
+/* Design tokens — friendly job-seeker UI with 3D accents */
 :root {
-  // Primary colors — Deep Blue + Cyan (best for 3D dark theme)
-  --primary:        #0a0e27;      // deep space blue
-  --secondary:      #00d4ff;      // electric cyan
-  --accent:         #7c3aed;      // purple accent
-  --gold:           #ffd700;      // gold highlight
+  --primary:        #0a0e27;
+  --secondary:      #22d3ee;
+  --secondary-soft: #67e8f9;
+  --accent:         #a78bfa;
+  --accent-deep:    #7c3aed;
+  --gold:           #fbbf24;
 
-  // Background
-  --bg-dark:        #050818;      // almost black
-  --bg-card:        #0d1b3e;      // dark blue card
-  --bg-glass:       rgba(13, 27, 62, 0.6);  // glassmorphism
+  --bg-dark:        #070b1a;
+  --bg-card:        #0f1729;
+  --bg-elevated:    rgba(255, 255, 255, 0.04);
+  --bg-glass:       rgba(15, 23, 41, 0.72);
 
-  // Text
-  --text-primary:   #ffffff;
-  --text-secondary: #94a3b8;
-  --text-muted:     #475569;
+  --text-primary:   #f8fafc;
+  --text-secondary: #b8c5d6;
+  --text-muted:     #7a8ba3;
 
-  // Borders
-  --border:         rgba(0, 212, 255, 0.2);
-  --border-hover:   rgba(0, 212, 255, 0.6);
+  --border:         rgba(34, 211, 238, 0.22);
+  --border-soft:    rgba(255, 255, 255, 0.08);
+  --border-hover:   rgba(34, 211, 238, 0.45);
 
-  // Status colors
-  --success:        #10b981;
-  --warning:        #f59e0b;
-  --danger:         #ef4444;
+  --success:        #34d399;
+  --warning:        #fbbf24;
+  --danger:         #f87171;
 
-  // Fonts
-  --font-primary:   'Inter', sans-serif;
-  --font-display:   'Orbitron', sans-serif;  // futuristic font for headings
+  --font-primary:   'Inter', system-ui, sans-serif;
+  --font-display:   'Orbitron', sans-serif;
 
-  // Shadows
-  --shadow-glow:    0 0 30px rgba(0, 212, 255, 0.3);
-  --shadow-card:    0 8px 32px rgba(0, 0, 0, 0.4);
+  --radius-sm:      8px;
+  --radius-md:      12px;
+  --radius-lg:      16px;
+  --radius-xl:      20px;
+
+  --shadow-glow:    0 0 40px rgba(34, 211, 238, 0.15);
+  --shadow-card:    0 12px 40px rgba(0, 0, 0, 0.35);
+  --shadow-soft:    0 4px 20px rgba(0, 0, 0, 0.2);
+
+  --space-page-top: 88px;
 }

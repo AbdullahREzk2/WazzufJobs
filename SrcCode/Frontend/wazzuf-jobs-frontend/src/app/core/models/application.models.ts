@@ -22,6 +22,19 @@ export interface ApplicationResponse {
   appliedAt: string;
 }
 
+export interface ApplicationDetail {
+  id: number;
+  applicantName: string;
+  applicantEmail: string;
+  cvUrl: string;
+  jobTitle: string;
+  status: string;
+  aiScore: number | null;
+  aiFeedback: string | null;
+  isAIScored: boolean;
+  appliedAt: string;
+}
+
 export interface CVResponse {
   id: number;
   url: string;

@@ -1,1 +1,77 @@
-<p>job-detail works!</p>
+<div class="app-page">
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+  <app-navbar />
+
+  <main class="page-main">
+  @if (loading) {
+    <app-loading-spinner message="Loading job..." />
+  } @else if (job) {
+    <a routerLink="/jobs" class="back-link">← Back to jobs</a>
+
+    @if (error) { <div class="alert error">{{ error }}</div> }
+    @if (success) { <div class="alert success">{{ success }}</div> }
+
+    <article class="detail-card glass-card">
+      <div class="detail-header">
+        <div>
+          <h1>{{ job.title }}</h1>
+          <div class="detail-meta">
+            <span>📍 {{ job.location }}</span>
+            <span>💼 {{ job.jobType }}</span>
+            <span>🏢 {{ job.workplaceType }}</span>
+            <span class="status-badge" [class]="job.status.toLowerCase()">{{ job.status }}</span>
+          </div>
+        </div>
+        <button class="save-btn large" (click)="toggleSave()">
+          {{ isSaved ? '★ Saved' : '☆ Save job' }}
+        </button>
+      </div>
+
+      <p class="salary">{{ formatSalary(job.salaryMin, job.salaryMax) }}</p>
+      <p class="category-tag">{{ job.categoryName }} · Posted by {{ job.postedBy }}</p>
+
+      <section class="detail-section">
+        <h2>Description</h2>
+        <p class="description">{{ job.description }}</p>
+      </section>
+
+      @if (job.skills.length) {
+        <section class="detail-section">
+          <h2>Skills</h2>
+          <div class="skills-list">
+            @for (skill of job.skills; track skill) {
+              <span class="skill-tag">{{ skill }}</span>
+            }
+          </div>
+        </section>
+      }
+
+      <div class="apply-row">
+        @if (!hasCv) {
+          <p class="cv-hint">⚠️ <a routerLink="/profile">Upload your CV</a> to apply</p>
+        }
+        <button
+          class="btn-glow btn-large"
+          (click)="apply()"
+          [disabled]="applying || applied">
+          <span *ngIf="!applying && !applied">🚀 Apply Now — AI Will Score Your CV</span>
+          <span *ngIf="applying" class="spinner-inline"></span>
+          <span *ngIf="applied">✓ Applied</span>
+        </button>
+      </div>
+    </article>
+  } @else {
+    <div class="empty-state glass-card">
+      <h3>Job not found</h3>
+      <a routerLink="/jobs" class="btn-glow"><span>Browse jobs</span></a>
+    </div>
+  }
+  </main>
+
+  <app-footer />
+</div>
+
+
+
+

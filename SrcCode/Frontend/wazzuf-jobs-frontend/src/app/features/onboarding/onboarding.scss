@@ -1,0 +1,94 @@
+.onboarding-main { max-width: 720px; }
+
+.steps-indicator {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 32px;
+  justify-content: center;
+}
+
+.step-dot {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+  border: 2px solid var(--border);
+  color: var(--text-muted);
+
+  &.active {
+    border-color: var(--secondary);
+    color: var(--secondary);
+  }
+
+  &.current {
+    background: linear-gradient(135deg, var(--secondary), var(--accent));
+    color: white;
+    border-color: transparent;
+  }
+}
+
+.onboard-card {
+  padding: 32px;
+
+  h2 {
+    font-family: var(--font-display);
+    font-size: 20px;
+    margin-bottom: 24px;
+  }
+}
+
+.chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.chip {
+  padding: 8px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &.selected {
+    border-color: var(--secondary);
+    background: rgba(0, 212, 255, 0.15);
+    color: var(--secondary);
+  }
+
+  &.removable { cursor: pointer; }
+}
+
+.title-input-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+
+  .input-field { flex: 1; }
+}
+
+.checkbox-field label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-top: 28px;
+}
+
+.step-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}

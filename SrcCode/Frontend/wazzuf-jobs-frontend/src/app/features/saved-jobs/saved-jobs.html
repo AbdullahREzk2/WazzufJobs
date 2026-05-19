@@ -1,1 +1,44 @@
-<p>saved-jobs works!</p>
+<div class="app-page">
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+  <app-navbar />
+
+  <main class="page-main">
+    <header class="page-header">
+      <h1>Saved <span class="gradient-text">Jobs</span></h1>
+      <p>Jobs you've bookmarked for later</p>
+    </header>
+
+    @if (loading) {
+      <app-loading-spinner message="Loading saved jobs..." />
+    } @else if (jobs.length === 0) {
+      <div class="empty-state glass-card">
+        <div class="empty-icon">⭐</div>
+        <h3>No saved jobs yet</h3>
+        <p>Save jobs while browsing to review them here</p>
+      </div>
+    } @else {
+      <div class="jobs-grid">
+        @for (job of jobs; track job.jobId) {
+          <article class="job-card glass-card" (click)="openJob(job.jobId)">
+            <div class="job-card-top">
+              <h3>{{ job.title }}</h3>
+              <button class="save-btn" (click)="remove($event, job.jobId)">★</button>
+            </div>
+            <div class="job-meta">
+              <span>📍 {{ job.location }}</span>
+              <span>💼 {{ job.jobType }}</span>
+            </div>
+            <span class="job-salary">{{ formatSalary(job.salaryMin, job.salaryMax) }}</span>
+          </article>
+        }
+      </div>
+    }
+  </main>
+
+  <app-footer />
+</div>
+
+
+
+

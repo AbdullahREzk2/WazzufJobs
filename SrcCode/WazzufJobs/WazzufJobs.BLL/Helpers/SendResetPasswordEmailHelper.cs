@@ -14,7 +14,7 @@ public class SendResetPasswordEmailHelper(IBackgroundJobClient backgroundJob, IO
             new Dictionary<string, string>
             {
             { "{{UserName}}", user.FirstName },
-            { "{{ResetLink}}", $"{_appurl.BaseUrl}/reset-password?email={user.Email}&code={code}" }
+            { "{{ResetLink}}", $"{_appurl.GetFrontendBase()}/reset-password?email={Uri.EscapeDataString(user.Email!)}&code={Uri.EscapeDataString(code)}" }
             });
         _backgroundjob.Enqueue<IEmailSender>(x =>
             x.SendEmailAsync(user.Email!, "🔑 Wazzuf Jobs : Reset Password Email", emailBody));

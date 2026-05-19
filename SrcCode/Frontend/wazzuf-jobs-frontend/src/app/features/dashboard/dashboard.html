@@ -1,1 +1,101 @@
-<p>dashboard works!</p>
+<div class="app-page seeker-page">
+  <app-ambient-bg />
+  <app-navbar />
+
+  <main class="page-main">
+    <header class="page-header">
+      <span class="eyebrow">Your career hub</span>
+      <h1>Welcome back, <span class="gradient-text">{{ userName }}</span></h1>
+      <p>Track applications, see how well your CV matches each role, and find your next opportunity.</p>
+    </header>
+
+    @if (needsOnboarding) {
+      <div class="tip-banner glass-card interactive">
+        <div class="tip-icon">✨</div>
+        <div class="tip-body">
+          <strong>Complete your profile</strong>
+          <p>Tell us what you're looking for — our AI will suggest better matches.</p>
+        </div>
+        <a routerLink="/onboarding" class="btn-glow"><span>Complete profile</span></a>
+      </div>
+    }
+
+    <div class="quick-actions">
+      <a routerLink="/jobs" class="action-card glass-card interactive">
+        <span class="action-icon">🔍</span>
+        <strong>Find jobs</strong>
+        <p>Browse openings matched to you</p>
+      </a>
+      <a routerLink="/profile" class="action-card glass-card interactive">
+        <span class="action-icon">📄</span>
+        <strong>Update CV</strong>
+        <p>Keep your resume ready to apply</p>
+      </a>
+      <a routerLink="/saved-jobs" class="action-card glass-card interactive">
+        <span class="action-icon">⭐</span>
+        <strong>Saved jobs</strong>
+        <p>Jobs you want to revisit</p>
+      </a>
+    </div>
+
+    <div class="stats-row grid-3">
+      <div class="stat-card glass-card">
+        <span class="stat-value">{{ applications.length }}</span>
+        <span class="stat-label">Applications sent</span>
+      </div>
+      <div class="stat-card glass-card">
+        <span class="stat-value">{{ avgScore() }}</span>
+        <span class="stat-label">Average AI match</span>
+      </div>
+      <div class="stat-card glass-card highlight-stat">
+        <span class="stat-label">Tip</span>
+        <p class="stat-tip">Apply with an updated CV for the best AI score</p>
+      </div>
+    </div>
+
+    <section class="apps-section">
+      <div class="section-title">
+        <h2>Your applications</h2>
+        <a routerLink="/jobs" class="link">Explore more jobs →</a>
+      </div>
+
+      @if (loading) {
+        <app-loading-spinner message="Loading your applications..." />
+      } @else if (applications.length === 0) {
+        <div class="empty-state glass-card friendly-empty">
+          <div class="empty-icon">🚀</div>
+          <h3>Ready to take the next step?</h3>
+          <p>You haven't applied yet. Pick a job you like — we'll score your CV in seconds.</p>
+          <a routerLink="/jobs" class="btn-glow btn-large"><span>Browse open roles</span></a>
+        </div>
+      } @else {
+        <div class="apps-list">
+          @for (app of applications; track app.id) {
+            <article class="app-row glass-card interactive">
+              <div class="app-info">
+                <h3>{{ app.jobTitle }}</h3>
+                <p class="app-sub">{{ app.jobLocation }} · {{ app.categoryName }}</p>
+                <span class="status-badge" [class]="statusCss(app.status)">{{ app.status }}</span>
+              </div>
+              <div class="score-panel" [class.scored]="app.isAIScored">
+                @if (app.isAIScored && app.aiScore != null) {
+                  <div class="score-ring" [class.high]="app.aiScore >= 80" [class.mid]="app.aiScore >= 50 && app.aiScore < 80">
+                    <span class="score-num">{{ app.aiScore | number:'1.0-0' }}%</span>
+                  </div>
+                  <span class="score-label">Match score</span>
+                } @else {
+                  <span class="score-wait">⏳ AI is reviewing your CV…</span>
+                }
+              </div>
+            </article>
+            @if (app.aiFeedback) {
+              <p class="ai-feedback glass-card soft-feedback">💡 {{ app.aiFeedback }}</p>
+            }
+          }
+        </div>
+      }
+    </section>
+  </main>
+
+  <app-footer />
+</div>

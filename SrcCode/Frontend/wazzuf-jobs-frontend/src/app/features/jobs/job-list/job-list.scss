@@ -1,0 +1,118 @@
+.search-hero {
+  padding: 24px;
+  margin-bottom: 28px;
+}
+
+.search-row {
+  display: grid;
+  gap: 16px;
+
+  @media (min-width: 768px) {
+    grid-template-columns: 1fr 1fr auto;
+    align-items: end;
+  }
+}
+
+.search-field {
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+  }
+}
+
+.search-btn {
+  height: fit-content;
+  white-space: nowrap;
+}
+
+.filters-toggle {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-soft);
+
+  summary {
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--secondary);
+    list-style: none;
+
+    &::-webkit-details-marker { display: none; }
+  }
+
+  .filters-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 16px;
+
+    select {
+      flex: 1;
+      min-width: 140px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      padding: 12px 14px;
+      font-size: 14px;
+    }
+  }
+}
+
+.results-count {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+.jobs-grid {
+  display: grid;
+  gap: 20px;
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.category-pill {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+  background: rgba(167, 139, 250, 0.12);
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.save-btn {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-soft);
+  border-radius: 20px;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+
+  &.saved {
+    color: var(--gold);
+    border-color: rgba(251, 191, 36, 0.4);
+  }
+}
+
+.friendly-empty {
+  padding: 48px 24px;
+  text-align: center;
+
+  .empty-icon { font-size: 48px; margin-bottom: 12px; }
+  h3 { margin-bottom: 8px; }
+  p { color: var(--text-secondary); margin-bottom: 20px; }
+}

@@ -1,0 +1,17 @@
+.admin-link-card {
+  display: block;
+  padding: 28px;
+  text-decoration: none;
+  color: inherit;
+  border-color: rgba(124, 58, 237, 0.2) !important;
+
+  .card-icon { font-size: 36px; display: block; margin-bottom: 12px; }
+  h3 {
+    font-family: var(--font-display);
+    font-size: 18px;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+  }
+  p { font-size: 13px; color: var(--text-secondary); margin: 0 0 16px; }
+  .card-arrow { font-size: 13px; font-weight: 600; color: #c4b5fd; }
+}

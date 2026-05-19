@@ -1,0 +1,13 @@
+{
+  "/api": {
+    "target": "https://wazzufjobs.runasp.net",
+    "secure": true,
+    "changeOrigin": true
+  },
+  "/hubs": {
+    "target": "https://wazzufjobs.runasp.net",
+    "secure": true,
+    "changeOrigin": true,
+    "ws": true
+  }
+}

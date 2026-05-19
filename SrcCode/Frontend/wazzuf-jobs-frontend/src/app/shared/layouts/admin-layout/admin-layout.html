@@ -1,0 +1,43 @@
+<div class="admin-shell">
+  <div class="admin-bg">
+    <div class="grid-glow"></div>
+    <div class="float-shape s1"></div>
+    <div class="float-shape s2"></div>
+  </div>
+
+  <aside class="admin-sidebar">
+    <div class="sidebar-brand" (click)="goHome()" role="button" tabindex="0">
+      <span class="brand-icon">⚡</span>
+      <div>
+        <span class="brand-name">Wazzuf<span class="accent">Jobs</span></span>
+        <span class="admin-badge">Admin Panel</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      @for (item of nav; track item.path) {
+        <a
+          [routerLink]="item.path"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: item.exact }"
+          class="nav-item">
+          <span class="nav-icon">{{ item.icon }}</span>
+          <span>{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+
+    <div class="sidebar-user">
+      <div class="user-avatar admin-avatar">{{ auth.currentUser()?.firstName?.charAt(0) || 'A' }}</div>
+      <div class="user-meta">
+        <strong>{{ auth.currentUser()?.firstName }} {{ auth.currentUser()?.lastName }}</strong>
+        <span>Administrator</span>
+      </div>
+      <button type="button" class="btn-outline btn-sm" (click)="logout()">Sign out</button>
+    </div>
+  </aside>
+
+  <div class="admin-main">
+    <router-outlet />
+  </div>
+</div>

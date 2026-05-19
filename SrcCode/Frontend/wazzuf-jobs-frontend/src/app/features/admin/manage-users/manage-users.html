@@ -1,0 +1,88 @@
+<div class="admin-page">
+  <header class="page-header">
+    <div>
+      <h1>Manage <span class="gradient-text">Users</span></h1>
+      <p>Edit accounts, roles, lock status, and sign-in lockout</p>
+    </div>
+  </header>
+
+  @if (loading) {
+    <app-loading-spinner />
+  } @else {
+    <div class="table-wrap glass-card">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Roles</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (u of users; track u.id) {
+            <tr>
+              <td>{{ u.firstName }} {{ u.lastName }}</td>
+              <td>{{ u.email }}</td>
+              <td>{{ (u.roles || []).join(', ') }}</td>
+              <td>
+                <span class="status-badge" [class.inactive]="u.isDisabled">
+                  {{ u.isDisabled ? 'Disabled' : 'Active' }}
+                </span>
+              </td>
+              <td class="actions">
+                <button type="button" class="btn-outline" (click)="openEdit(u)">Edit</button>
+                <button type="button" class="btn-outline" (click)="toggleStatus(u)">Toggle</button>
+                <button type="button" class="btn-outline" (click)="unlock(u)">Unlock</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  @if (showModal) {
+    <div class="modal-overlay" (click)="closeModal()">
+      <div class="modal-card modal-wide" (click)="$event.stopPropagation()">
+        <h2>Edit user</h2>
+        @if (error) {
+          <div class="alert error">{{ error }}</div>
+        }
+        <div class="field-row">
+          <div class="field">
+            <label>First name</label>
+            <input class="input-field" [(ngModel)]="formFirst" />
+          </div>
+          <div class="field">
+            <label>Last name</label>
+            <input class="input-field" [(ngModel)]="formLast" />
+          </div>
+        </div>
+        <div class="field">
+          <label>Email</label>
+          <input class="input-field" type="email" [(ngModel)]="formEmail" />
+        </div>
+        <div class="field">
+          <label>Roles</label>
+          <div class="roles-checkboxes">
+            @for (r of roleOptions; track r.id) {
+              <label class="check-line">
+                <input
+                  type="checkbox"
+                  [checked]="roleChecked(r.name)"
+                  (change)="toggleRole(r.name)" />
+                <span>{{ r.name }}</span>
+              </label>
+            }
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-outline" (click)="closeModal()">Cancel</button>
+          <button type="button" class="btn-glow" (click)="save()">Save</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

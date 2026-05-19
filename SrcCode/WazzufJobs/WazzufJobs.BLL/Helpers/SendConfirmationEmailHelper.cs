@@ -14,7 +14,7 @@ public class SendConfirmationEmailHelper(IBackgroundJobClient backgroundJob, IOp
             new Dictionary<string, string>
             {
             { "{name}", user.FirstName },
-            { "{action_url}", $"{_appurl.BaseUrl}/api/auth/confirm-email?userId={user.Id}&code={Uri.EscapeDataString(code)}" }
+            { "{action_url}", $"{_appurl.GetFrontendBase()}/confirm-email?userId={user.Id}&code={Uri.EscapeDataString(code)}" }
             });
         _backgroundjob.Enqueue<IEmailSender>(x =>
             x.SendEmailAsync(user.Email!, "✅ Wazzuf Jobs : Email Confirmation", emailBody));

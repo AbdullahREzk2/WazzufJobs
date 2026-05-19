@@ -1,6 +1,7 @@
 // src/environments/environment.ts
+// Uses dev-server proxy (proxy.conf.json) → https://wazzufjobs.runasp.net
 export const environment = {
   production: false,
-  apiUrl: 'https://localhost:7000/api',
-  hubUrl: 'https://localhost:7000/hubs'
+  apiUrl: '/api',
+  hubUrl: '/hubs'
 };

@@ -29,7 +29,10 @@ export interface JwtPayload {
   email: string;
   given_name: string;
   family_name: string;
-  role: string | string[];
-  permissions: string[];
+  /** Backend claim name (JSON array in token) */
+  roles?: string | string[];
+  /** Legacy / alternate claim */
+  role?: string | string[];
+  permissions?: string | string[];
   exp: number;
 }

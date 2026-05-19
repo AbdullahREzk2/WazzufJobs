@@ -1,4 +1,6 @@
 /* src/styles.scss */
+@use 'styles/variables';
+@use 'styles/page-layout';
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&display=swap');
 @import '@fortawesome/fontawesome-free/css/all.min.css';
 
@@ -25,19 +27,21 @@ html, body {
   border-radius: 3px;
 }
 
-// Glassmorphism card
+// Glassmorphism card — subtle hover (friendlier, less jumpy)
 .glass-card {
   background: var(--bg-glass);
-  backdrop-filter: blur(20px);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  transition: all 0.3s ease;
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+}
 
-  &:hover {
-    border-color: var(--border-hover);
-    box-shadow: var(--shadow-glow);
-    transform: translateY(-4px);
-  }
+.glass-card.interactive:hover,
+a.glass-card:hover,
+button.glass-card:hover {
+  border-color: var(--border-hover);
+  box-shadow: var(--shadow-soft);
+  transform: translateY(-2px);
 }
 
 // Gradient text

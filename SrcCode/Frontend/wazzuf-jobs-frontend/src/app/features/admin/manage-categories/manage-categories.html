@@ -1,1 +1,55 @@
-<p>manage-categories works!</p>
+<div class="admin-page">
+    <header class="page-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
+      <div>
+        <h1>Manage <span class="gradient-text">Categories</span></h1>
+        <p>Organize jobs by category</p>
+      </div>
+      <button class="btn-glow" (click)="openCreate()"><span>+ New Category</span></button>
+    </header>
+
+    @if (loading) {
+      <app-loading-spinner />
+    } @else {
+      <div class="grid-3">
+        @for (cat of categories; track cat.id) {
+          <div class="glass-card category-card">
+            @if (cat.iconUrl) {
+              <img [src]="cat.iconUrl" [alt]="cat.name" class="cat-icon" />
+            } @else {
+              <span class="cat-emoji">📂</span>
+            }
+            <h3>{{ cat.name }}</h3>
+            <p class="slug">{{ cat.slug }}</p>
+            <div class="actions">
+              <button class="btn-outline" (click)="openEdit(cat)">Edit</button>
+              <button class="btn-danger" (click)="deleteCat(cat.id)">Delete</button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  @if (showModal) {
+    <div class="modal-overlay" (click)="closeModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <h2>{{ editingId ? 'Edit Category' : 'New Category' }}</h2>
+        @if (error) { <div class="alert error">{{ error }}</div> }
+        <div class="form-grid">
+          <div class="field">
+            <label>Name *</label>
+            <input class="input-field" [(ngModel)]="name" />
+          </div>
+          <div class="field">
+            <label>Icon (optional)</label>
+            <input type="file" accept="image/*" (change)="onIconSelected($event)" />
+          </div>
+        </div>
+        <div class="step-actions">
+          <button class="btn-outline" (click)="closeModal()">Cancel</button>
+          <button class="btn-glow" (click)="save()"><span>Save</span></button>
+        </div>
+      </div>
+    </div>
+  }
+
+  </div>
+

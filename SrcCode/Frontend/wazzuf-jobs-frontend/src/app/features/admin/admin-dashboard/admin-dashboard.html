@@ -1,1 +1,18 @@
-<p>admin-dashboard works!</p>
+<div class="admin-page">
+  <header class="page-header">
+    <span class="eyebrow" style="color:#c4b5fd">Administration</span>
+    <h1>Dashboard <span class="gradient-text" style="background:linear-gradient(135deg,#a78bfa,#6366f1);-webkit-background-clip:text;background-clip:text;">overview</span></h1>
+    <p>Manage postings, categories, and review applicant AI scores.</p>
+  </header>
+
+  <div class="grid-3">
+    @for (link of links; track link.route) {
+      <a [routerLink]="link.route" class="admin-link-card glass-card interactive">
+        <span class="card-icon">{{ link.icon }}</span>
+        <h3>{{ link.title }}</h3>
+        <p>{{ link.desc }}</p>
+        <span class="card-arrow">Open →</span>
+      </a>
+    }
+  </div>
+</div>

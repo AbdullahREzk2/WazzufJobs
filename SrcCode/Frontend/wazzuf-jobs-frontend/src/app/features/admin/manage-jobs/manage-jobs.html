@@ -1,1 +1,111 @@
-<p>manage-jobs works!</p>
+<div class="admin-page">
+    <header class="page-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
+      <div>
+        <h1>Manage <span class="gradient-text">Jobs</span></h1>
+        <p>Create and manage job postings</p>
+      </div>
+      <button class="btn-glow" (click)="openCreate()"><span>+ New Job</span></button>
+    </header>
+
+    @if (loading) {
+      <app-loading-spinner />
+    } @else {
+      <div class="table-wrap glass-card">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Location</th>
+              <th>Category</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (job of jobs; track job.id) {
+              <tr>
+                <td>{{ job.title }}</td>
+                <td>{{ job.location }}</td>
+                <td>{{ job.categoryName }}</td>
+                <td><span class="status-badge" [class]="job.status.toLowerCase()">{{ job.status }}</span></td>
+                <td class="actions">
+                  <button class="btn-outline" (click)="openEdit(job)">Edit</button>
+                  <button class="btn-outline" (click)="toggleStatus(job.id)">Toggle</button>
+                  <button class="btn-danger" (click)="deleteJob(job.id)">Delete</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+  @if (showModal) {
+    <div class="modal-overlay" (click)="closeModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <h2>{{ editingId ? 'Edit Job' : 'New Job' }}</h2>
+        @if (error) { <div class="alert error">{{ error }}</div> }
+        <div class="form-grid">
+          <div class="field">
+            <label>Title *</label>
+            <input class="input-field" [(ngModel)]="form.title" />
+          </div>
+          <div class="field">
+            <label>Location *</label>
+            <input class="input-field" [(ngModel)]="form.location" />
+          </div>
+          <div class="field">
+            <label>Category *</label>
+            <select class="input-field" [(ngModel)]="form.categoryId">
+              @for (c of categories; track c.id) {
+                <option [ngValue]="c.id">{{ c.name }}</option>
+              }
+            </select>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label>Job Type</label>
+              <select class="input-field" [(ngModel)]="form.jobType">
+                @for (t of jobTypes; track t.value) {
+                  <option [ngValue]="t.value">{{ t.label }}</option>
+                }
+              </select>
+            </div>
+            <div class="field">
+              <label>Workplace</label>
+              <select class="input-field" [(ngModel)]="form.workplaceType">
+                @for (w of workplaceTypes; track w.value) {
+                  <option [ngValue]="w.value">{{ w.label }}</option>
+                }
+              </select>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label>Salary Min</label>
+              <input type="number" class="input-field" [(ngModel)]="form.salaryMin" />
+            </div>
+            <div class="field">
+              <label>Salary Max</label>
+              <input type="number" class="input-field" [(ngModel)]="form.salaryMax" />
+            </div>
+          </div>
+          <div class="field">
+            <label>Skills (comma-separated)</label>
+            <input class="input-field" [(ngModel)]="skillsInput" placeholder="C#, Angular, SQL" />
+          </div>
+          <div class="field">
+            <label>Description *</label>
+            <textarea class="input-field" rows="5" [(ngModel)]="form.description"></textarea>
+          </div>
+        </div>
+        <div class="step-actions">
+          <button class="btn-outline" (click)="closeModal()">Cancel</button>
+          <button class="btn-glow" (click)="save()"><span>Save</span></button>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>
+

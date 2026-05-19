@@ -1,1 +1,175 @@
-<p>register works!</p>
+<!-- src/app/features/auth/register/register.html -->
+<div class="auth-page">
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+
+  <a routerLink="/" class="back-btn">← Back to Home</a>
+
+  <div class="auth-container">
+
+    <!-- Left branding -->
+    <div class="auth-left">
+      <div class="brand">
+        <span class="brand-icon">⚡</span>
+        <span class="brand-name">Wazzuf<span class="accent">Jobs</span></span>
+      </div>
+      <h2>Start your AI-powered job journey today</h2>
+      <p>Upload your CV, get matched, get hired.</p>
+
+      <div class="steps">
+        <div class="step">
+          <span class="step-num">01</span>
+          <div>
+            <strong>Create your account</strong>
+            <p>Free forever — no credit card needed</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-num">02</span>
+          <div>
+            <strong>Upload your CV</strong>
+            <p>PDF format, text-based</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-num">03</span>
+          <div>
+            <strong>Apply & get AI scored</strong>
+            <p>Know your match before they call you</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form -->
+    <div class="auth-right">
+      <div class="form-card glass-card">
+
+        <!-- Success state -->
+        <div class="success-state" *ngIf="success">
+          <div class="success-icon">✅</div>
+          <h2>Account Created!</h2>
+          <p>
+            We sent a confirmation email to <strong>{{ email }}</strong>.
+            Please check your inbox and confirm your email to activate your account.
+          </p>
+          <button class="btn-glow" routerLink="/login">
+            <span>Go to Login</span>
+          </button>
+        </div>
+
+        <!-- Form state -->
+        <ng-container *ngIf="!success">
+          <div class="form-header">
+            <h1>Create Account</h1>
+            <p>Already have one?
+              <a routerLink="/login" class="link">Sign in</a>
+            </p>
+          </div>
+
+          <div class="error-box" *ngIf="error">
+            <span>⚠️</span> {{ error }}
+          </div>
+
+          <div class="form-body">
+
+            <!-- Name row -->
+            <div class="field-row">
+              <div class="field">
+                <label>First Name</label>
+                <div class="input-wrap">
+                  <span class="input-icon">👤</span>
+                  <input
+                    type="text"
+                    [(ngModel)]="firstName"
+                    placeholder="John"
+                    class="input-field"
+                  />
+                </div>
+              </div>
+              <div class="field">
+                <label>Last Name</label>
+                <div class="input-wrap">
+                  <span class="input-icon">👤</span>
+                  <input
+                    type="text"
+                    [(ngModel)]="lastName"
+                    placeholder="Doe"
+                    class="input-field"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Email -->
+            <div class="field">
+              <label>Email Address</label>
+              <div class="input-wrap">
+                <span class="input-icon">📧</span>
+                <input
+                  type="email"
+                  [(ngModel)]="email"
+                  placeholder="you@example.com"
+                  class="input-field"
+                />
+              </div>
+            </div>
+
+            <!-- Password -->
+            <div class="field">
+              <label>Password</label>
+              <div class="input-wrap">
+                <span class="input-icon">🔒</span>
+                <input
+                  [type]="showPass ? 'text' : 'password'"
+                  [(ngModel)]="password"
+                  placeholder="Create a strong password"
+                  class="input-field"
+                />
+                <span class="toggle-pass" (click)="showPass = !showPass">
+                  {{ showPass ? '🙈' : '👁️' }}
+                </span>
+              </div>
+              <app-password-criteria [password]="password" [showWhenEmpty]="true" />
+            </div>
+
+            <!-- Confirm Password -->
+            <div class="field">
+              <label>Confirm Password</label>
+              <div class="input-wrap">
+                <span class="input-icon">🔒</span>
+                <input
+                  [type]="showPass ? 'text' : 'password'"
+                  [(ngModel)]="confirmPassword"
+                  placeholder="Repeat password"
+                  class="input-field"
+                  (keyup.enter)="register()"
+                />
+              </div>
+            </div>
+
+            <!-- Submit -->
+            <button
+              class="btn-glow submit-btn"
+              (click)="register()"
+              [disabled]="loading">
+              <span *ngIf="!loading">Create Account →</span>
+              <span *ngIf="loading" class="spinner"></span>
+            </button>
+
+            <p class="terms">
+              By creating an account you agree to our
+              <a href="#" class="link">Terms of Service</a>
+            </p>
+
+          </div>
+        </ng-container>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+

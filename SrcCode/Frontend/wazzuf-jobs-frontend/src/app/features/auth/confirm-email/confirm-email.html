@@ -1,1 +1,26 @@
-<p>confirm-email works!</p>
+<div class="auth-page">
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+  <a routerLink="/" class="back-btn">&larr; Back to Home</a>
+
+  <div class="auth-container confirm-only">
+    <div class="form-card glass-card status-card">
+      @if (loading) {
+        <div class="spinner"></div>
+        <p class="status-text">Confirming your email...</p>
+        <p class="status-sub">This only takes a moment.</p>
+      } @else if (success) {
+        <div class="status-icon success">&#10003;</div>
+        <h1>Email confirmed!</h1>
+        <p class="status-text">Your account is active. Sign in and start applying for jobs.</p>
+        <a routerLink="/login" class="btn-glow submit-btn"><span>Sign in</span></a>
+      } @else {
+        <div class="status-icon warn">!</div>
+        <h1>Could not confirm</h1>
+        <div class="error-box">{{ error }}</div>
+        <p class="status-sub">Open the latest email from Wazzuf Jobs or register again.</p>
+        <a routerLink="/register" class="link">Create a new account</a>
+      }
+    </div>
+  </div>
+</div>

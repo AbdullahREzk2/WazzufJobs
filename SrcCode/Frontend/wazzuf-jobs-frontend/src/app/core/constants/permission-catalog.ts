@@ -1,0 +1,27 @@
+/** Mirrors WazzufJobs.DAL.Persistence.Seeders.Permissions.GetAllPermissions() */
+export const ALL_PERMISSION_KEYS: { id: string; label: string }[] = [
+  { id: 'jobs:read', label: 'Jobs — Read' },
+  { id: 'jobs:create', label: 'Jobs — Create' },
+  { id: 'jobs:update', label: 'Jobs — Update' },
+  { id: 'jobs:delete', label: 'Jobs — Delete' },
+  { id: 'applications:read', label: 'Applications — Read' },
+  { id: 'applications:create', label: 'Applications — Create' },
+  { id: 'applications:update', label: 'Applications — Update' },
+  { id: 'categories:read', label: 'Categories — Read' },
+  { id: 'categories:create', label: 'Categories — Create' },
+  { id: 'categories:update', label: 'Categories — Update' },
+  { id: 'categories:delete', label: 'Categories — Delete' },
+  { id: 'users:read', label: 'Users — Read' },
+  { id: 'users:create', label: 'Users — Create' },
+  { id: 'users:update', label: 'Users — Update' },
+  { id: 'users:delete', label: 'Users — Delete' },
+  { id: 'roles:read', label: 'Roles — Read' },
+  { id: 'roles:create', label: 'Roles — Create' },
+  { id: 'roles:update', label: 'Roles — Update' },
+  { id: 'roles:delete', label: 'Roles — Delete' },
+  { id: 'cv:upload', label: 'CV — Upload' },
+  { id: 'cv:delete', label: 'CV — Delete' },
+  { id: 'savedjobs:read', label: 'Saved jobs — Read' },
+  { id: 'savedjobs:create', label: 'Saved jobs — Create' },
+  { id: 'savedjobs:delete', label: 'Saved jobs — Delete' }
+];

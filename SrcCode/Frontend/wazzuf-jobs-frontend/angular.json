@@ -67,7 +67,8 @@
               "buildTarget": "wazzuf-jobs-frontend:build:production"
             },
             "development": {
-              "buildTarget": "wazzuf-jobs-frontend:build:development"
+              "buildTarget": "wazzuf-jobs-frontend:build:development",
+              "proxyConfig": "proxy.conf.json"
             }
           },
           "defaultConfiguration": "development"
