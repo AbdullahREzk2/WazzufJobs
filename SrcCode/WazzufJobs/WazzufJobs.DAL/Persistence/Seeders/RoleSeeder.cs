@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿// WazzufJobs.DAL/Persistence/Seeders/RoleSeeder.cs
+using Microsoft.AspNetCore.Identity;
 using WazzufJobs.DAL.Entities;
 
 namespace WazzufJobs.DAL.Persistence.Seeders;
@@ -7,7 +8,9 @@ public static class RoleSeeder
 {
     public static async Task SeedAsync(RoleManager<ApplicationRole> roleManager)
     {
-        if (!await roleManager.RoleExistsAsync(AppRoles.Admin.Name))
+        var adminExists = await roleManager.FindByIdAsync(AppRoles.Admin.RoleId);
+        if (adminExists is null)
+        {
             await roleManager.CreateAsync(new ApplicationRole
             {
                 Id = AppRoles.Admin.RoleId,
@@ -17,8 +20,11 @@ public static class RoleSeeder
                 IsDefault = false,
                 IsDeleted = false
             });
+        }
 
-        if (!await roleManager.RoleExistsAsync(AppRoles.User.Name))
+        var userExists = await roleManager.FindByIdAsync(AppRoles.User.RoleId);
+        if (userExists is null)
+        {
             await roleManager.CreateAsync(new ApplicationRole
             {
                 Id = AppRoles.User.RoleId,
@@ -27,7 +33,7 @@ public static class RoleSeeder
                 ConcurrencyStamp = AppRoles.User.RoleConcurrencyStamp,
                 IsDefault = true,
                 IsDeleted = false
-
             });
+        }
     }
 }

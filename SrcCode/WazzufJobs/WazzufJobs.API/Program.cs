@@ -115,12 +115,21 @@ public class Program
     {
         using var scope = app.Services.CreateScope();
 
-        var roleManager = scope.ServiceProvider
-            .GetRequiredService<RoleManager<ApplicationRole>>();
-        var userManager = scope.ServiceProvider
-            .GetRequiredService<UserManager<AppUser>>();
+        try
+        {
+            var roleManager = scope.ServiceProvider
+                .GetRequiredService<RoleManager<ApplicationRole>>();
+            var userManager = scope.ServiceProvider
+                .GetRequiredService<UserManager<AppUser>>();
 
-        await RoleSeeder.SeedAsync(roleManager);
-        await AdminSeeder.SeedAsync(userManager);
+            await RoleSeeder.SeedAsync(roleManager);
+            await AdminSeeder.SeedAsync(userManager);
+        }
+        catch (Exception ex)
+        {
+            var logger = scope.ServiceProvider
+                .GetRequiredService<ILogger<Program>>();
+            logger.LogError(ex, "An error occurred during seeding.");
+        }
     }
 }
