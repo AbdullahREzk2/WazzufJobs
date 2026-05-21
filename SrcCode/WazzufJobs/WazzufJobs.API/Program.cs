@@ -33,6 +33,20 @@ public class Program
         builder.Services.AddAIServices(builder.Configuration);
         builder.Services.AddSignalRServices();
 
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("AllowFrontend", policy =>
+            {
+                policy
+                    .WithOrigins(
+                        "http://localhost:4200",
+                        "https://wazzuf-jobs.vercel.app"
+                    )
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials();
+            });
+        });
         // ─────────────────────────────────────────────────
 
         builder.Services.AddSwaggerGen(c =>
@@ -84,6 +98,7 @@ public class Program
         
         app.UseHangfireDashboard("/hangfire");
         app.UseExceptionHandler();
+        app.UseCors("AllowFrontend");
         app.UseHttpsRedirection();
         app.UseAuthentication();
         app.UseAuthorization();

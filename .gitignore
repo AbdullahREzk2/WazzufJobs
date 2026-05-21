@@ -361,3 +361,15 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# User Secrets
+**/appsettings.Development.json
+secrets.json
+
+# Angular
+dist/
+.angular/
+wazzuf-jobs-frontend/node_modules/
+
+# Environment files with secrets
+**/environment.development.ts

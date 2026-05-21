@@ -1,5 +1,4 @@
 ﻿// WazzufJobs.BLL/Services/AIScoringService.cs
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
@@ -24,9 +23,7 @@ public class AIScoringService(
     private readonly IHubContext<ScoringHub> _hubContext = hubContext;
     private readonly ILogger _logger = logger;
 
-    public async Task ScoreApplicationAsync(
-        int applicationId,
-        CancellationToken cancellationToken)
+    public async Task ScoreApplicationAsync(int applicationId,CancellationToken cancellationToken)
     {
         _logger.LogInformation("AI Scoring: Starting for application {Id}.", applicationId);
 
@@ -47,7 +44,6 @@ public class AIScoringService(
             return;
         }
 
-        // use stored extracted text — no download from Cloudinary needed
         var cvText = application.User.CV.ExtractedText;
 
         _logger.LogInformation("AI Scoring: CV text length = {Length}.", cvText?.Length ?? 0);
@@ -85,7 +81,7 @@ public class AIScoringService(
             _logger.LogInformation(
                 "AI Scoring: Application {Id} scored {Score}/100.", applicationId, score);
 
-            // notify user via SignalR
+            // notify via SignalR
             await _hubContext.Clients
                 .User(application.UserId)
                 .SendAsync("ApplicationScored", new
@@ -104,32 +100,29 @@ public class AIScoringService(
             _logger.LogError(ex,
                 "AI Scoring: Exception for application {Id}: {Message}",
                 applicationId, ex.Message);
-
-            throw; // rethrow so Hangfire retries automatically
+            throw;
         }
     }
 
-    private async Task SendScoreEmailAsync(
-        DAL.Entities.Application application,
-        float score,
-        string feedback,
-        CancellationToken cancellationToken)
+    private async Task SendScoreEmailAsync(DAL.Entities.Application application,float score,string feedback,CancellationToken cancellationToken)
     {
         try
         {
             var emailBody = EmailBodyBuilder.GenerateEmailBody("ApplicationScore",
                 new Dictionary<string, string>
                 {
-                    { "{name}",     application.User.FirstName },
-                    { "{jobTitle}", application.Job.Title      },
-                    { "{score}",    score.ToString("F1")       },
-                    { "{feedback}", feedback                   },
-                    { "{status}",   GetScoreStatus(score)      }
+                    { "{name}",       application.User.FirstName       },
+                    { "{jobTitle}",   application.Job.Title            },
+                    { "{score}",      ((int)score).ToString()          },
+                    { "{feedback}",   feedback                         },
+                    { "{status}",     GetScoreStatus(score)            },
+                    { "{scoreClass}", GetScoreClass(score)             },
+                    { "{appUrl}",     "https://wazzuf-jobs.vercel.app" }
                 });
 
             await _emailSender.SendEmailAsync(
                 application.User.Email!,
-                $"🎯 Your Application Score for {application.Job.Title}",
+                $"🎯 Your AI Match Score for {application.Job.Title} — Wazzuf Jobs",
                 emailBody);
 
             _logger.LogInformation(
@@ -137,11 +130,12 @@ public class AIScoringService(
         }
         catch (Exception ex)
         {
-            // don't fail the whole scoring if email fails
             _logger.LogError(ex,
                 "AI Scoring: Failed to send score email for application {Id}.", application.Id);
         }
     }
+
+    // ── Static helpers ───────────────────────────────────
 
     private static string GetScoreStatus(float score) => score switch
     {
@@ -149,6 +143,14 @@ public class AIScoringService(
         >= 60 => "Good match! ✅",
         >= 40 => "Fair match 📊",
         _ => "Low match ⚠️"
+    };
+
+    private static string GetScoreClass(float score) => score switch
+    {
+        >= 80 => "excellent",
+        >= 60 => "good",
+        >= 40 => "fair",
+        _ => "low"
     };
 
     private static string BuildScoringPrompt(string cvText, DAL.Entities.Job job) =>

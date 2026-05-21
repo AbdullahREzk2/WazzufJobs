@@ -1,0 +1,413 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your AI Match Score — Wazzuf Jobs</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #050818;
+            color: #ffffff;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #0d1b3e;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #0a0e27, #1a1f4e);
+            padding: 40px 40px 30px;
+            text-align: center;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+        }
+
+            .logo span {
+                color: #00d4ff;
+            }
+
+        .header-subtitle {
+            font-size: 14px;
+            color: #94a3b8;
+        }
+
+        /* Body */
+        .body {
+            padding: 40px;
+        }
+
+        .greeting {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #ffffff;
+        }
+
+        .intro {
+            font-size: 15px;
+            color: #94a3b8;
+            line-height: 1.7;
+            margin-bottom: 32px;
+        }
+
+        .job-title-box {
+            background: rgba(0, 212, 255, 0.08);
+            border: 1px solid rgba(0, 212, 255, 0.25);
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 32px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+            .job-title-box .icon {
+                font-size: 24px;
+            }
+
+            .job-title-box .job-name {
+                font-size: 16px;
+                font-weight: 600;
+                color: #ffffff;
+            }
+
+            .job-title-box .job-label {
+                font-size: 12px;
+                color: #94a3b8;
+                margin-top: 2px;
+            }
+
+        /* Score circle */
+        .score-section {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .score-label-top {
+            font-size: 13px;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+        }
+
+        .score-circle {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+            .score-circle.excellent {
+                background: radial-gradient(circle, rgba(16,185,129,0.2), rgba(16,185,129,0.05));
+                border: 4px solid #10b981;
+                box-shadow: 0 0 40px rgba(16,185,129,0.3);
+            }
+
+            .score-circle.good {
+                background: radial-gradient(circle, rgba(0,212,255,0.2), rgba(0,212,255,0.05));
+                border: 4px solid #00d4ff;
+                box-shadow: 0 0 40px rgba(0,212,255,0.3);
+            }
+
+            .score-circle.fair {
+                background: radial-gradient(circle, rgba(245,158,11,0.2), rgba(245,158,11,0.05));
+                border: 4px solid #f59e0b;
+                box-shadow: 0 0 40px rgba(245,158,11,0.3);
+            }
+
+            .score-circle.low {
+                background: radial-gradient(circle, rgba(239,68,68,0.2), rgba(239,68,68,0.05));
+                border: 4px solid #ef4444;
+                box-shadow: 0 0 40px rgba(239,68,68,0.3);
+            }
+
+        .score-number {
+            font-size: 52px;
+            font-weight: 900;
+            line-height: 1;
+            color: #ffffff;
+        }
+
+        .score-out-of {
+            font-size: 13px;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+
+        .score-status {
+            font-size: 18px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        /* Feedback box */
+        .feedback-box {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 32px;
+        }
+
+        .feedback-title {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #00d4ff;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .feedback-text {
+            font-size: 15px;
+            color: #cbd5e1;
+            line-height: 1.8;
+        }
+
+        /* Score breakdown */
+        .breakdown {
+            margin-bottom: 32px;
+        }
+
+        .breakdown-title {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #94a3b8;
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        .breakdown-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .breakdown-label {
+            font-size: 13px;
+            color: #94a3b8;
+            min-width: 180px;
+        }
+
+        .breakdown-bar-bg {
+            flex: 1;
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+            margin: 0 12px;
+            overflow: hidden;
+        }
+
+        .breakdown-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00d4ff, #7c3aed);
+            border-radius: 3px;
+        }
+
+        .breakdown-pct {
+            font-size: 12px;
+            color: #94a3b8;
+            min-width: 30px;
+            text-align: right;
+        }
+
+        /* CTA */
+        .cta-section {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .cta-text {
+            font-size: 15px;
+            color: #94a3b8;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #00d4ff, #7c3aed);
+            color: #ffffff;
+            text-decoration: none;
+            padding: 16px 40px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        /* Footer */
+        .footer {
+            background: #050818;
+            padding: 24px 40px;
+            text-align: center;
+            border-top: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .footer-logo {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #ffffff;
+        }
+
+            .footer-logo span {
+                color: #00d4ff;
+            }
+
+        .footer-text {
+            font-size: 12px;
+            color: #475569;
+            line-height: 1.6;
+        }
+
+            .footer-text a {
+                color: #00d4ff;
+                text-decoration: none;
+            }
+
+        /* Divider */
+        .divider {
+            height: 1px;
+            background: rgba(255,255,255,0.06);
+            margin: 24px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">⚡ Wazzuf<span>Jobs</span></div>
+            <div class="header-subtitle">AI-Powered Job Matching Platform</div>
+        </div>
+
+        <!-- Body -->
+        <div class="body">
+
+            <div class="greeting">Hey {name}! 👋</div>
+            <div class="intro">
+                Your application has been reviewed by our AI engine.
+                Here's how well your CV matches the job you applied for.
+            </div>
+
+            <!-- Job title -->
+            <div class="job-title-box">
+                <div class="icon">💼</div>
+                <div>
+                    <div class="job-name">{jobTitle}</div>
+                    <div class="job-label">Position you applied for</div>
+                </div>
+            </div>
+
+            <!-- Score circle -->
+            <div class="score-section">
+                <div class="score-label-top">Your AI Match Score</div>
+                <div class="score-circle {scoreClass}">
+                    <div class="score-number">{score}</div>
+                    <div class="score-out-of">out of 100</div>
+                </div>
+                <div class="score-status">{status}</div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Feedback -->
+            <div class="feedback-box">
+                <div class="feedback-title">🤖 AI Feedback</div>
+                <div class="feedback-text">{feedback}</div>
+            </div>
+
+            <!-- Score breakdown -->
+            <div class="breakdown">
+                <div class="breakdown-title">Scoring Criteria</div>
+
+                <div class="breakdown-item">
+                    <div class="breakdown-label">🎯 Skills Match</div>
+                    <div class="breakdown-bar-bg">
+                        <div class="breakdown-bar-fill" style="width: 40%"></div>
+                    </div>
+                    <div class="breakdown-pct">40%</div>
+                </div>
+
+                <div class="breakdown-item">
+                    <div class="breakdown-label">📋 Experience Relevance</div>
+                    <div class="breakdown-bar-bg">
+                        <div class="breakdown-bar-fill" style="width: 30%"></div>
+                    </div>
+                    <div class="breakdown-pct">30%</div>
+                </div>
+
+                <div class="breakdown-item">
+                    <div class="breakdown-label">🎓 Education Fit</div>
+                    <div class="breakdown-bar-bg">
+                        <div class="breakdown-bar-fill" style="width: 20%"></div>
+                    </div>
+                    <div class="breakdown-pct">20%</div>
+                </div>
+
+                <div class="breakdown-item">
+                    <div class="breakdown-label">📍 Location & Work Type</div>
+                    <div class="breakdown-bar-bg">
+                        <div class="breakdown-bar-fill" style="width: 10%"></div>
+                    </div>
+                    <div class="breakdown-pct">10%</div>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- CTA -->
+            <div class="cta-section">
+                <div class="cta-text">
+                    Log in to your dashboard to view your full application status
+                    and explore more matching jobs.
+                </div>
+                <a href="{appUrl}/dashboard" class="cta-button">
+                    View My Dashboard →
+                </a>
+            </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="footer-logo">⚡ Wazzuf<span>Jobs</span></div>
+            <div class="footer-text">
+                You received this email because you applied for a job on Wazzuf Jobs.<br>
+                <a href="{appUrl}">Visit our platform</a>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>
