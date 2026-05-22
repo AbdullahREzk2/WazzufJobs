@@ -10,7 +10,7 @@
 
 **A full-stack AI-powered job platform where users upload their CV, apply for jobs, and receive an instant AI match score powered by Groq LLaMA 3.**
 
-[🌐 Live Demo](https://wazzuf-jobs.vercel.app) • [📡 API](https://wazzufjobs.runasp.net) • [📖 API Docs](https://wazzufjobs.runasp.net/swagger)
+[🌐 Live Demo](https://wazzuf-jobs.vercel.app)  • [📖 API Docs](https://wazzufjobs.runasp.net/index.html)
 
 </div>
 
