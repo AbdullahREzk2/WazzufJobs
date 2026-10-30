@@ -125,7 +125,7 @@ No existing work was discarded. The pre-C0 snapshot and archive are unchanged. T
 - [ ] **G9**: prepare two test candidate accounts with applications
 - [ ] Run the Cloudinary `inventory` (read-only) and `spike` (synthetic) with credentials entered in your own terminal; share summaries only
 - [ ] Do **not** change the admin email before deployment (G4)
-- [ ] **G11**: confirm the release content (whether the 44 earlier uncommitted changes are already live: look for `POST /api/Auth/google` in production Swagger)
+- [ ] **G11 / D24**: decide the release content. Verified: the 44 earlier uncommitted changes are **not** in production (production API spec has no `POST /api/auth/google`), so this release would ship them for the first time. Options: ship together (recommended; security-relevant paths reviewed and tested) or a C0-only rebuild on `master`.
 - [ ] **G12**: tell me whether `Google:ClientId` is set on the server
 - [ ] Push the prepared branch only after D20 (pushing may trigger a Vercel preview build)
 
@@ -143,7 +143,7 @@ No existing work was discarded. The pre-C0 snapshot and archive are unchanged. T
 | Candidate status emails fail in production (template not published, B3) | Out of C0 scope |
 | CV uploads unavailable, so new users cannot apply | Accepted for demo until D21b |
 | The release ships the 44 earlier uncommitted changes, which I only reviewed for security-relevant paths (Google sign-in hardened; admin views covered by the leak sweep) | Owner confirmation G11 |
-| Production API comparison not done: this machine lost network access during the session | Owner check G11 |
+| Earlier uncommitted features go live for the first time with this release (production runs `master`) | Decision D24 |
 | Dev-only npm advisories (22, tooling) | Phase 02 |
 
 ### Approvals required
@@ -156,4 +156,5 @@ No existing work was discarded. The pre-C0 snapshot and archive are unchanged. T
 | D21b | Enable CV uploads after the spike passes |
 | D23 | Publish the prepared Vercel preview probe |
 | D-push | Push `security/c0-emergency-containment` to GitHub (and open a PR) |
+| **D24** | Release content: ship C0 together with the earlier uncommitted features, or rebuild C0-only on `master` |
 | Next phase | Start Phase 00 after C0 is completed |

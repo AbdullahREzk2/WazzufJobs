@@ -15,7 +15,7 @@
 | ☐ | G7 | Server config does not enable `Features:CvUploadsEnabled` |
 | ☐ | G8 | Vercel deploy method known; current production deployment id noted |
 | ☐ | G9 | Two test candidates with applications; ids noted |
-| ☐ | G11 | Release content confirmed (C0 + 44 earlier uncommitted changes) |
+| ☐ | G11 | D24 decided: ship C0 together with the earlier uncommitted features (not yet live) or C0-only |
 | ☐ | G12 | `Google:ClientId` on server known (empty means Google sign-in is disabled) |
 | ☐ | D21 inventory | Cloudinary `inventory` + `spike` run; summaries shared |
 | ☐ | G10 | D20 approval received |
