@@ -1,6 +1,6 @@
 # Phase C0: Emergency Containment Report
 
-Status: **release ready, awaiting final deployment approval (D20). NOT deployed.**
+Status: **DEPLOYED AND VERIFIED IN PRODUCTION (2026-10-30/31).** All gates and all production security checks passed. Branch not yet published to GitHub (awaiting approval).
 Revision 4 (2026-10-30): owner decisions applied (no administrator seeding, database backup waived, Cloudinary configuration and storage abstraction, manual Vercel deployments).
 
 | Item | Location |
@@ -136,7 +136,50 @@ No existing work was discarded. The pre-C0 snapshot and archive are unchanged. T
 | Owner confirmations | D24 approved; admin password changed; DB disposable; environment Production; Cloudinary configured; Google stays disabled; CV uploads stay disabled; manual deployment; banner wording approved; disabled test account kept until the DB reset |
 | Remaining before deployment | D20 approval; on the day: A1 site-file backup (G6), A2 Vercel rollback point, A3 test ids (G9) |
 
-## 4. Final C0 release-readiness checklist
+## 3b. Production deployment and verification (2026-10-30/31)
+
+### Deployment references
+| Item | Value |
+|---|---|
+| D20 approval | Owner, 2026-10-30 |
+| Backend (MonsterASP, `wazzufjobs.runasp.net`) | `WazzufJobs.API-C0-win-x86.zip`, SHA-256 `afaa79026432e86e5c2d79e4e542f9eb80a17a842154d439d92e7ce5c9e7f09e`, built from commit `d1d27d9` (embedded `1.0.0+d1d27d9…`). Deployed by the owner via File Manager per the go-live document (maintenance page, extract-and-overwrite, no deletions, server configuration preserved). |
+| Frontend (Vercel, project `wazzuf-jobs`, team `abdullahrezk2s-projects`) | Deployment `https://wazzuf-jobs-dyjyoank4-abdullahrezk2s-projects.vercel.app`, **Ready** (≈1 min), aliased to `https://wazzuf-jobs.vercel.app`. Deployed with `npx vercel --prod` from branch `security/c0-emergency-containment` (HEAD `64221c7`; frontend code identical to `d1d27d9`). |
+| Frontend rollback point | Previous production deployment `https://wazzuf-jobs-ft0mo1g3a-abdullahrezk2s-projects.vercel.app` (Vercel → Deployments → *Promote to Production*) |
+| Backend rollback point | Owner's site-file zip from step A1 (pre-C0 build) **plus** the restricted-rollback rules (`tools/c0/deploy/restricted-rollback.web.config.snippet.xml`). Plain restoration of the pre-C0 build requires separate approval. |
+| Database | No changes by C0. No backup exists (G1 waived; accepted risk). |
+
+### Production verification results
+| Area | Check | Result |
+|---|---|---|
+| Health | `GET /health` | ✅ 200 `Healthy` |
+| API docs | `/swagger/v1/swagger.json`, `/index.html` | ✅ 404, 404 (were 200 before C0). This also proves the server runs outside Development. |
+| Hangfire | `/hangfire`, `/hangfire?u=admin&p=2003` | ✅ 404, 404 |
+| Google sign-in | `POST /api/Auth/google` (synthetic token) | ✅ 503 `Google.Disabled` |
+| Anonymous access | CV upload, own CV, applicant CV, application detail, job applicants, user list | ✅ 401 ×6 |
+| Configuration exposure | `/appsettings.json`, `/appsettings.Production.json`, `/web.config` | ✅ 404 ×3 |
+| Rate limiting | 25 logins with non-existent e-mails | ✅ 401 ×20, then 429 from request 21 (per-client limit: the host does not collapse client IPs) |
+| Authenticated (owner-run `post-deploy-checks.ps1`, test candidate) | **12/12 PASS**: anonymous six + S1 ×3 (403: other applicant's application, job applicants, other applicant's CV), S4 (no AI fields), S3 (CV metadata without URL), **CV upload 503 `CV.UploadsDisabled`** | ✅ |
+| Frontend (live bundle, 28 files) | Production API URL, no `localhost`, `googleClientId:""`, demo banner present, no candidate AI-score copy, `aiScore` only in the admin view; SPA routes 200; CORS preflight from `https://wazzuf-jobs.vercel.app` allowed | ✅ |
+| Manual (owner) | Candidate: login, Jobs, Applications, Profile. Admin: Dashboard, Users, Applications, Account Security, "CV unavailable" handling. Google sign-in and CV uploads disabled. | ✅ |
+| Verification script | Fixed for Windows PowerShell 5.1 (`70e00d5`): System.Net.Http loaded explicitly, errors stop the script (exit 2) instead of reporting HTTP 0 | ✅ |
+
+### Gate status (final)
+| Gate | Status |
+|---|---|
+| G1 backup | Waived by owner (accepted risk) |
+| G2 data classification | ✅ Owner: disposable test data |
+| G3 admin password | ✅ Changed by owner |
+| G4 admin email unchanged | ✅ Unchanged (change allowed after 7 stable days) |
+| G5 configuration / environment | ✅ Production; verified by Swagger 404 and Google/upload behaviour |
+| G6 site-file backup | Owner step A1 (keep until 2026-11-07) |
+| G7 CV uploads disabled | ✅ Verified (503 `CV.UploadsDisabled`) |
+| G8 Vercel / GitHub | ✅ Manual deployment; rollback point recorded |
+| G9 test data | ✅ Used for the authenticated checks |
+| G10 D20 | ✅ Approved and executed |
+| G11 / D24 | ✅ Earlier uncommitted features shipped with C0 |
+| G12 Google disabled | ✅ Verified (503 `Google.Disabled`, no button) |
+
+## 4. Release-readiness checklist (pre-deployment record)
 
 ### Completed (local)
 - [x] Backups of all prior work (git ref + archive); isolated branch; nothing committed or pushed
@@ -201,3 +244,44 @@ No existing work was discarded. The pre-C0 snapshot and archive are unchanged. T
 | D-bootstrap | Any use of the admin bootstrap script against a shared or production database |
 | ~~D24~~ | **Approved:** ship the earlier uncommitted features together with C0 |
 | Next phase | Start Phase 00 after C0 is completed |
+
+## 5. C0 closure (2026-10-31)
+
+**Outcome:** containment objectives met and verified in production.
+- S1, S2, S3, S4, S5, S7, S8 and S13 are fixed.
+- Legacy public CVs are deleted.
+- No default credentials remain.
+- AI data stays internal.
+- Uploads and Google sign-in are disabled until approved.
+
+**C0 is closed** subject to the time-bound follow-ups below; none blocks closure.
+
+### Time-bound follow-ups (C0 aftercare)
+| # | Item | Due |
+|---|---|---|
+| 1 | Monitor `/health` and `App_Data/lifecycle.log`; share the `started …` and `first-request …` lines (VER-03 data: remote address class, restarts) | 2026-10-31 → 2026-11-07 |
+| 2 | Keep the step A1 site-file zip (restricted-rollback source) | until 2026-11-07 |
+| 3 | **.NET 9 reaches end of support on 2026-11-10.** Production keeps running but receives no security patches afterwards. The .NET 10 upgrade is the first task of Phase 02, so start Phase 00 promptly. | before / around 2026-11-10 |
+
+### Deferred items (each needs separate approval)
+- **D21b:** enable private CV uploads (the spike passed).
+- Configure Google sign-in.
+- Change the admin e-mail (after 7 stable days).
+- Obsolete server-file cleanup (runbook §6).
+- **D-bootstrap:** any use of the admin bootstrap script.
+- **Database reset:** remove the disabled test account and the CV rows that point to deleted files.
+- **D-push:** GitHub publication of this branch.
+
+### Known issues carried into the modernization phases (pre-existing, not introduced by C0)
+- Refresh-token flow probably always fails (Phase 03).
+- The admin "Edit user" form rejects accounts holding the default "User" role (fails safely; Phase 03).
+- Candidate status-update e-mail template is not published (B3).
+- The dashboard status filter compares labels with enum names.
+- The auto-generated frontend specs need providers (only `login.spec.ts` is maintained).
+- Dev-only npm advisories (tooling, not shipped).
+- MediatR 12.x licence pin to confirm (VER-13).
+
+### Repository / publication notes
+- The branch history contains the pre-existing work commit, the C0 commits and documentation. The former default password appears in older history (README since 2026-05-21 and early C0 docs); it was rotated, so publishing that history exposes no valid credential.
+- `README.md` corrected for C0 (accurate features, no AI scores for candidates, Swagger in Development only, Angular 21, secure configuration pointer). **Owner to-do:** the LinkedIn badge still links to a placeholder (`linkedin.com/in/your-profile`).
+

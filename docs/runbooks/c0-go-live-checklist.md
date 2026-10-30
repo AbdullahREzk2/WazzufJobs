@@ -1,6 +1,6 @@
 # C0 deployment instructions (deployment day)
 
-> **Status: ready, awaiting final deployment approval (D20).** Final revision, 2026-10-30.
+> **Status: EXECUTED 2026-10-30/31: deployed and verified; all checks PASS.** Results and references: `docs/audit/c0-containment-report.md` §3b.
 > Full background, rollback details and rationale: `c0-emergency-deployment.md`.
 > Default reaction to any problem: **upload `app_offline.htm`** (API offline; no vulnerable code running).
 
@@ -104,3 +104,13 @@ All PASS means C0 is deployed. Record the results (copy the script output) for t
 - With your approval: push `security/c0-emergency-containment` and merge to `master` (pushing does not deploy).
 - Monitor `/health` and `lifecycle.log` for 7 days.
 - Still gated, each needing separate approval: enabling CV uploads (D21b), configuring Google sign-in, admin email change (after 7 stable days), obsolete-file cleanup, Phase 00.
+
+## G. Execution record (2026-10-30/31)
+| Step | Result |
+|---|---|
+| A4 checksum | ✅ `AFAA7902…5C9E7F09E` matched |
+| A2 Vercel rollback point | `https://wazzuf-jobs-ft0mo1g3a-abdullahrezk2s-projects.vercel.app` |
+| B backend | ✅ Deployed by owner; `/health` Healthy |
+| C frontend | ✅ `https://wazzuf-jobs-dyjyoank4-abdullahrezk2s-projects.vercel.app`, Ready, aliased to `wazzuf-jobs.vercel.app` |
+| D verification | ✅ Anonymous checks, rate limit (429 from request 21), authenticated 12/12, frontend bundle and CORS, owner manual checks: all PASS |
+| E failure handling | Not needed |

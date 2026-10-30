@@ -1,6 +1,6 @@
 # Runbook: Phase C0 emergency deployment
 
-> **Production deployment is NOT authorized.** Execute only after D20 final approval. Revision 5 (final), 2026-10-30. All owner confirmations received; only the deployment-day steps (G6, G9) and D20 remain. Exact steps: `c0-go-live-checklist.md`.
+> **Executed 2026-10-30/31 (D20 approved): deployed and verified.** Kept as the reference procedure for rollback and future releases. Revision 5 (final), 2026-10-30. All owner confirmations received; only the deployment-day steps (G6, G9) and D20 remain. Exact steps: `c0-go-live-checklist.md`.
 > Condensed version for deployment day: `c0-go-live-checklist.md`.
 > Golden rule: **a failed deployment must never silently restore the known vulnerabilities.** On failure, the default action is to take the API **offline** (§5).
 
