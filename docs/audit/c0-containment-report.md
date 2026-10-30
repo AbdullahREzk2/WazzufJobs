@@ -1,6 +1,6 @@
 # Phase C0: Emergency Containment Report
 
-Status: **implemented, tested locally, release artifacts prepared. NOT deployed.** Production deployment requires final approval (D20).
+Status: **release ready, awaiting final deployment approval (D20). NOT deployed.**
 Revision 4 (2026-10-30): owner decisions applied (no administrator seeding, database backup waived, Cloudinary configuration and storage abstraction, manual Vercel deployments).
 
 | Item | Location |
@@ -119,9 +119,22 @@ No existing work was discarded. The pre-C0 snapshot and archive are unchanged. T
 | Frontend production build | Success on Angular 21.2.25 (463 kB initial) |
 | SQL assessment script | Validated without errors on a throwaway database built from the project's EF migrations (same schema as production) with synthetic data, with and without a Hangfire schema; database dropped. Made portable (no `STRING_AGG`); needs `sqlcmd -I` or SSMS. |
 | Cloudinary tool | Verified end to end against a local fake Cloudinary (`tools/c0/verification`): inventory sent 0 mutating requests and joined correctly; spike passed all 10 checks and touched only its own synthetic assets. Real-account behaviour still needs your run. |
-| Release artifacts | Zip SHA-256 `6d6cc460…0a68ea76` matches the 94-file manifest; no config, `.pdb` or test files; runtime, `web.config` and file set identical to pre-C0; no legacy credential strings in the C0 DLLs; frontend bundle has the production API URL, no localhost, and the demo notice; `aiScore` only in the admin chunk. |
+| Release artifacts | Zip SHA-256 `afaa7902…5c9e7f09e` matches the 94-file manifest; no config, `.pdb` or test files; runtime, `web.config` and file set identical to pre-C0; no legacy credential strings in the C0 DLLs; frontend bundle has the production API URL, no localhost, and the demo notice; `aiScore` only in the admin chunk. |
 | Frontend unit tests | Pre-existing breakage unchanged (does not compile at baseline); planned for Phase 02/04 |
 | Script syntax | 3 PowerShell scripts parse OK; IIS snippet is well-formed XML |
+
+## 3a. Final release checks (2026-10-30)
+| Check | Result |
+|---|---|
+| Branch state | `security/c0-emergency-containment`, clean, not pushed; `master` unchanged (`4aa438c`) |
+| Backend tests | **58/58** |
+| Frontend tests | `login.spec.ts` **6/6**; production build OK (463 kB initial) |
+| Dependency scans | NuGet **0** vulnerable (all projects); npm (shipped) **0** |
+| Secret scan (all tracked files) | No credentials, keys or account identifiers. The old default password appears only in tests that assert its absence. |
+| Release artifact | Rebuilt from committed code `d1d27d9` (embedded version `1.0.0+d1d27d9…`); **reproducible**: a second build gives 0 of 94 files different; SHA-256 `afaa7902…5c9e7f09e`; runtime, `web.config` and file set identical to the pre-C0 build; no credential or identifier strings |
+| Production baseline (read-only) | `/health` 404 · `/swagger/v1/swagger.json` **200 (public)** · `/index.html` **200 (public)** · `/hangfire` 401 · `/api/Jobs` 401 · `POST /api/Auth/google` 404 · frontend 200 |
+| Owner confirmations | D24 approved; admin password changed; DB disposable; environment Production; Cloudinary configured; Google stays disabled; CV uploads stay disabled; manual deployment; banner wording approved; disabled test account kept until the DB reset |
+| Remaining before deployment | D20 approval; on the day: A1 site-file backup (G6), A2 Vercel rollback point, A3 test ids (G9) |
 
 ## 4. Final C0 release-readiness checklist
 
@@ -143,18 +156,18 @@ No existing work was discarded. The pre-C0 snapshot and archive are unchanged. T
 ### Owner actions (before D20)
 - [x] ~~G1~~ backup gate **waived** by the owner (accepted risk: data loss would be permanent)
 - [x] G2 owner confirmed disposable test data
-- [ ] **G3**: rotate the production admin password **now** (it was public in the README) and review all Admin-role accounts
-- [ ] **G5**: confirm the production secrets location and `ASPNETCORE_ENVIRONMENT`
-- [ ] **G6**: download a copy of the current site files
-- [ ] **G7**: confirm the server config does not enable CV uploads
+- [x] G3 production admin password changed (owner confirmed)
+- [x] G5 `ASPNETCORE_ENVIRONMENT=Production`; Cloudinary and other secrets configured server-side
+- [ ] G6 deployment-day step A1: download a copy of the current site files
+- [x] G7 CV uploads stay disabled
 - [x] G8 GitHub ↔ Vercel not connected; manual Vercel CLI deployment (note the current deployment id on deployment day)
-- [ ] Enter Cloudinary credentials with user secrets (`configuration-and-secrets.md` §2)
-- [ ] **G9**: prepare two test candidate accounts with applications
-- [ ] Run the Cloudinary `inventory` (read-only) and `spike` (synthetic) with credentials entered in your own terminal; share summaries only
+- [x] Cloudinary credentials configured (owner)
+- [ ] G9 deployment-day step A3: one test candidate login plus another user's application id and job id
+- [x] Cloudinary inventory and spike run (10/10 PASS); 13 legacy test assets deleted (D21)
 - [ ] Do **not** change the admin email before deployment (G4)
-- [ ] **G11 / D24**: decide the release content. Verified: the 44 earlier uncommitted changes are **not** in production (production API spec has no `POST /api/auth/google`), so this release would ship them for the first time. Options: ship together (recommended; security-relevant paths reviewed and tested) or a C0-only rebuild on `master`.
+- [x] G11/D24 approved: the earlier uncommitted features ship with C0
 - [x] G12 Google sign-in not configured on MonsterASP, so it is disabled (backend 503, no frontend button), with tests
-- [ ] Push the prepared branch only after the phase is approved (pushing does not deploy)
+- [ ] After a successful deployment and your approval: push the branch and merge to `master` (pushing does not deploy)
 
 ### Unresolved risks (accepted or tracked)
 | Risk | Status |
@@ -179,12 +192,12 @@ No existing work was discarded. The pre-C0 snapshot and archive are unchanged. T
 | ID | Decision |
 |---|---|
 | **D20** | Final approval to deploy C0 (after gates G3–G9, G11, G12; G1 waived) |
-| D20-copy | Demo banner wording |
+| ~~D20-copy~~ | Demo banner wording: **approved** |
 | D20-cleanup | Later: deletion of reviewed obsolete server files (runbook §6) |
 | ~~D21~~ | **Done 2026-10-30:** owner confirmed all 13 assets as own test files and authorized deletion; deleted and verified. |
 | D21b | Enable CV uploads after the spike passes |
 | D23 | Publish the prepared Vercel preview probe |
 | D-push | Push `security/c0-emergency-containment` to GitHub after C0 approval (no deployment is triggered) |
 | D-bootstrap | Any use of the admin bootstrap script against a shared or production database |
-| **D24** | Release content: ship C0 together with the earlier uncommitted features, or rebuild C0-only on `master` |
+| ~~D24~~ | **Approved:** ship the earlier uncommitted features together with C0 |
 | Next phase | Start Phase 00 after C0 is completed |

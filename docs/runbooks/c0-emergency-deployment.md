@@ -1,6 +1,6 @@
 # Runbook: Phase C0 emergency deployment
 
-> **Production deployment is NOT authorized.** Execute only after D20 final approval. Revision 4, 2026-10-30 (owner decisions: no admin seeding, DB backup waived, manual Vercel deploys).
+> **Production deployment is NOT authorized.** Execute only after D20 final approval. Revision 5 (final), 2026-10-30. All owner confirmations received; only the deployment-day steps (G6, G9) and D20 remain. Exact steps: `c0-go-live-checklist.md`.
 > Condensed version for deployment day: `c0-go-live-checklist.md`.
 > Golden rule: **a failed deployment must never silently restore the known vulnerabilities.** On failure, the default action is to take the API **offline** (§5).
 
@@ -9,7 +9,7 @@ Location: `F:\.NET study\Projects\WazzufJobs_release\C0-2026-10-30\`
 
 | Artifact | Content |
 |---|---|
-| `WazzufJobs.API-C0-win-x86.zip` | Release build. SHA-256 `6d6cc4609fa34dd97922a08eb390b844f4c1925af4d87a57a32df9040a68ea76` (also in `.sha256`). Verify before uploading: `certutil -hashfile WazzufJobs.API-C0-win-x86.zip SHA256`. |
+| `WazzufJobs.API-C0-win-x86.zip` | Release build. SHA-256 `afaa79026432e86e5c2d79e4e542f9eb80a17a842154d439d92e7ce5c9e7f09e` (also in `.sha256`). Verify before uploading: `certutil -hashfile WazzufJobs.API-C0-win-x86.zip SHA256`. |
 | `backend-package\` | Same content unzipped: 94 files. **Excludes** `appsettings*.json`, `web.config` and `*.pdb`. |
 | `backend-package-manifest.txt` | SHA-256 + path of every package file (input for §6) |
 | `frontend-dist\browser\` | Angular production build, Angular 21.2.25 (API base `https://wazzufjobs.runasp.net/api`). Reference only: Vercel builds from source. |
@@ -36,14 +36,14 @@ Location: `F:\.NET study\Projects\WazzufJobs_release\C0-2026-10-30\`
 |---|---|---|
 | ~~G1~~ | **Waived by the owner (2026-10-30).** The production database holds disposable test data and no backup is required for preservation. **Accepted risk:** without a backup, any loss or corruption of the existing data is permanent. C0 itself does not touch the database. A control-panel backup remains a 1-minute optional precaution. | Waiver recorded |
 | G2 | **Satisfied (2026-10-30):** the owner confirmed the production data is disposable test data | Owner statement |
-| G3 | Production admin password **rotated**. The original the former default password was published in the public README from 2026-05-21 until C0, so treat it as compromised. **All accounts holding the Admin role reviewed** (Admin → Users after login, or `01_readonly_production_assessment.sql` sections 4–5 run read-only); unknown admins reported, not deleted. | Date; review outcome |
+| G3 | **Done (owner, 2026-10-30):** production admin password changed. Accounts and data are disposable test data; the disabled test account stays until the future database reset. | Owner confirmation |
 | G4 | **Do not change the admin email before deployment** (see §5.4 hazard) | n/a |
-| G5 | Location of production secrets confirmed (server `appsettings.json` / `appsettings.Production.json` / `web.config` env vars), and the server `ASPNETCORE_ENVIRONMENT` value known. The repository `appsettings.json` no longer carries the cloud name or mail address, so production must keep them in **server-side** configuration (see `configuration-and-secrets.md` §3). | Your note |
-| G6 | Downloaded copy of the **current site files** (zip of the site root), used for §5 and §6 | Zip name and size |
-| G7 | Server `appsettings.json` does **not** set `Features:CvUploadsEnabled=true` | Checked |
+| G5 | **Done (owner, 2026-10-30):** `ASPNETCORE_ENVIRONMENT=Production`; Cloudinary credentials and the other secrets are configured server-side. The package never overwrites server configuration. | Owner confirmation |
+| G6 | **Deployment-day step A1:** download the current site files before deploying (needed for the restricted rollback). | Zip saved |
+| G7 | **Done (owner):** CV uploads stay disabled. The code default is `false`; startup and lifecycle log confirm it. | Owner confirmation + M5 |
 | G8 | **Resolved (2026-10-30):** GitHub and Vercel are not connected, so pushing to GitHub deploys nothing. The frontend is deployed manually with the Vercel CLI. Note the current production deployment id for rollback. | Deployment id |
-| G9 | Two test accounts on production: a candidate with an application, and a second candidate with an application whose id you note | Ids noted (no passwords recorded) |
-| G11 | **Release content decision (D24).** Verified 2026-10-30 by comparing the public production API spec (47 endpoints): production runs the **committed** code, so the 44 previously uncommitted changes (Google sign-in, profile photo, admin user/application details, status-update email template) are **not live**. This release would ship them for the first time, together with C0. New endpoints: `POST /api/auth/google`, `GET /api/cv/file`, `GET /api/applications/{id}/cv`, `GET /health`. Choose: (a) ship together, as built and tested (recommended); or (b) a C0-only rebuild on top of `master` (extra work and retest). | Your choice |
+| G9 | **Deployment-day step A3:** one test candidate login, plus the id of another user's application and its job id (read-only SQL in the go-live document). | Ids noted |
+| G11 | **D24 approved (owner, 2026-10-30):** ship the earlier uncommitted features together with C0. | Owner approval |
 | G12 | **Resolved (2026-10-30): Google sign-in is not configured on MonsterASP**, so it is disabled. The backend returns 503 `Google.Disabled` before any call to Google and creates no account; the frontend hides the button and never loads Google's script (production bundle has `googleClientId:""`). Email/password sign-in is unaffected. The implementation is kept and hardened for a later phase. Tests: 2 backend, 6 frontend. | Owner statement |
 | G10 | D20 final approval given | Approval message |
 

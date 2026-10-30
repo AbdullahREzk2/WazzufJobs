@@ -1,57 +1,106 @@
-# C0 go-live checklist (print this)
+# C0 deployment instructions (deployment day)
 
-> Condensed from `c0-emergency-deployment.md` (the full procedure). **Not authorized until D20.**
+> **Status: ready, awaiting final deployment approval (D20).** Final revision, 2026-10-30.
+> Full background, rollback details and rationale: `c0-emergency-deployment.md`.
 > Default reaction to any problem: **upload `app_offline.htm`** (API offline; no vulnerable code running).
 
-## A. Before deployment day: gates
-| ✔ | Gate | Owner check |
+## Release
+| Item | Value |
+|---|---|
+| Source | Branch `security/c0-emergency-containment`. Code commit `d1d27d9` (later commits change docs only). |
+| Backend package | `F:\.NET study\Projects\WazzufJobs_release\C0-2026-10-30\WazzufJobs.API-C0-win-x86.zip` |
+| SHA-256 | `afaa79026432e86e5c2d79e4e542f9eb80a17a842154d439d92e7ce5c9e7f09e` |
+| Contents | 94 files; no `appsettings*.json`, `web.config` or `.pdb` (server configuration is never overwritten). Reproducible build (2 builds: 0 differences). Same runtime, dependency set and file set as the current production build. |
+| Scope | All C0 security fixes **plus** the earlier uncommitted features (D24 approved): profile photo, admin user/application details, status-update e-mail template. Google sign-in is included but disabled. |
+| Settings in force | CV uploads **disabled**, Google sign-in **disabled** (no `Google:ClientId`), no admin seeding, rate limit 20/min on `/api/Auth/*` |
+
+## Owner decisions and confirmations (2026-10-30)
+| ✔ | Item |
+|---|---|
+| ✔ | D24: ship the earlier uncommitted features with C0 |
+| ✔ | G3: production admin password changed |
+| ✔ | G1/G2: database is disposable test data; no backup required (accepted risk: loss would be permanent); no database changes in C0 |
+| ✔ | G5: `ASPNETCORE_ENVIRONMENT=Production` on MonsterASP; Cloudinary credentials configured on the server |
+| ✔ | G7: CV uploads stay disabled until separately approved |
+| ✔ | G8: GitHub and Vercel are not connected; deployment is manual |
+| ✔ | G12: Google sign-in stays disabled |
+| ✔ | D21: 13 old test CV files deleted; Cloudinary raw inventory empty; private-storage spike 10/10 |
+| ✔ | Demo banner wording approved |
+| ✔ | The disabled test account stays until the future database reset |
+
+## A. Preparation (before the maintenance window, ≈15 min)
+1. **G6: back up the current site files** (needed for the restricted rollback). In MonsterASP → File Manager, select all files in the site root → *Compress* → download the zip. Alternatively download via FTP. Keep it until C0 has been stable for 7 days.
+2. **Vercel rollback point:** Vercel dashboard → project `wazzuf-jobs` → Deployments → note the current **Production** deployment.
+3. **G9: test data for the security checks.** You need:
+   - one **test candidate** you can log in as (not the admin);
+   - the **id of an application that belongs to a different user**, and its **job id**.
+
+   Find the ids read-only (MonsterASP → Databases → your database → query tool):
+   ```sql
+   SELECT TOP 10 a.Id AS ApplicationId, a.JobId, u.Email FROM dbo.Applications a JOIN dbo.AspNetUsers u ON u.Id = a.UserId ORDER BY a.Id DESC;
+   ```
+   **Do not upload CVs on the current (pre-C0) site**: it would store them publicly.
+4. Verify the package checksum (PowerShell):
+   ```powershell
+   (Get-FileHash "F:\.NET study\Projects\WazzufJobs_release\C0-2026-10-30\WazzufJobs.API-C0-win-x86.zip" -Algorithm SHA256).Hash
+   # must equal AFAA79026432E86E5C2D79E4E542F9EB80A17A842154D439D92E7CE5C9E7F09E
+   ```
+
+## B. Deploy the backend (≈10 min, brief downtime)
+1. File Manager → upload `F:\.NET study\Projects\WazzufJobs\tools\c0\deploy\app_offline.htm` to the **site root**. The API now shows the maintenance page.
+2. Upload `WazzufJobs.API-C0-win-x86.zip` to the site root and **extract it there, overwriting existing files**. Alternatively upload the contents of the `backend-package\` folder via FTP. **Delete nothing.** `web.config`, `appsettings*.json`, `App_Data`, `logs` and `.well-known` stay as they are. Do **not** use the Visual Studio publish profile. Remove the uploaded zip from the server afterwards.
+3. Delete `app_offline.htm` from the site root.
+4. Within 2 minutes, `https://wazzufjobs.runasp.net/health` must show **`Healthy`**. If not, go to **E**.
+
+## C. Deploy the frontend (≈5 min, after B4 is healthy)
+```powershell
+cd "F:\.NET study\Projects\WazzufJobs"
+git status                     # must be clean, on branch security/c0-emergency-containment
+cd "SrcCode\Frontend\wazzuf-jobs-frontend"
+npx vercel --prod              # project is already linked (.vercel/project.json)
+```
+
+## D. Verification (≈15 min)
+From `F:\.NET study\Projects\WazzufJobs` in PowerShell:
+```powershell
+powershell -ExecutionPolicy Bypass -File tools\c0\deploy\post-deploy-checks.ps1 -OtherApplicationId <id from A3> -JobId <job id from A3>
+powershell -ExecutionPolicy Bypass -File tools\c0\deploy\verify-rate-limit.ps1     # then wait 60 s before logging in
+```
+
+| Check | Before (baseline 2026-10-30) | Expected after |
 |---|---|---|
-| ✔ | G1 | **Waived by owner:** disposable test data; no backup required (accepted risk: loss would be permanent) |
-| ✔ | G2 | Owner confirmed: disposable test data |
-| ☐ | G3 | Admin password rotated (the old one was public in README); all Admin-role accounts reviewed, unknown ones reported (not deleted) |
-| ☐ | G4 | Admin email **unchanged** (rollback hazard) |
-| ☐ | G5 | Secrets location and `ASPNETCORE_ENVIRONMENT` known |
-| ☐ | G6 | Current site files downloaded (zip) |
-| ☐ | G7 | Server config does not enable `Features:CvUploadsEnabled` |
-| ✔ | G8 | GitHub ↔ Vercel not connected; manual `npx vercel --prod`. Note the current deployment id for rollback ☐ |
-| ☐ | G9 | Two test candidates with applications; ids noted |
-| ☐ | G11 | D24 decided: ship C0 together with the earlier uncommitted features (not yet live) or C0-only |
-| ✔ | G12 | Google sign-in **not configured on MonsterASP**, so disabled (backend 503, no button, no Google script) |
-| ✔ | Cloudinary | Credentials in user secrets; spike 10/10 PASS; the 13 legacy test CV assets deleted (D21) and verified (0 raw assets) |
-| ☐ | G10 | D20 approval received |
+| `GET /health` | 404 | **200 `Healthy`** |
+| `GET /swagger/v1/swagger.json` | **200 (public)** | **404** |
+| `GET /index.html` (Swagger UI) | **200 (public)** | **404** |
+| `GET /hangfire` | 401 | **404** |
+| `POST /api/Auth/google` | 404 | **503** (disabled) |
+| Candidate → other applicant's application / job applicants / CV | 200 (S1 leak) | **403** ×3 |
+| Candidate `my-applications` | AI score visible | **no AI fields** |
+| Candidate `GET /api/CV` | contains URL | **no URL** |
+| Candidate CV upload | public upload | **503** (disabled) |
+| Rate limit (non-existent e-mails only) | none | **429 after 20** |
 
-## B. Deployment (≈15 min)
-1. ☐ `certutil -hashfile WazzufJobs.API-C0-win-x86.zip SHA256` gives `6d6cc4609fa34dd97922a08eb390b844f4c1925af4d87a57a32df9040a68ea76`
-2. ☐ Upload `app_offline.htm` to the site root
-3. ☐ Upload the **contents** of `backend-package\`, overwriting; delete nothing (`web.config`, `appsettings*.json`, `App_Data`, `logs`, `.well-known` stay). **Never** use the VS publish profile for this release.
-4. ☐ Delete `app_offline.htm`
-5. ☐ `https://wazzufjobs.runasp.net/health` returns `Healthy` within 2 min. If not, go to **D**.
-6. ☐ Frontend: `npx vercel --prod` (or the approved Git route)
-
-## C. Security verification (≈15 min)
+Manual checks:
 | ✔ | Check | Expected |
 |---|---|---|
-| ☐ | `post-deploy-checks.ps1` anonymous part | Swagger 404, `/index.html` 404, `/hangfire` 404, `/health` Healthy, `POST /api/Auth/google` 503 |
-| ☐ | `post-deploy-checks.ps1 -OtherApplicationId … -JobId …` (test candidate) | 403 ×3; no AI fields; CV metadata without URL; upload returns 503 |
-| ☐ | `verify-rate-limit.ps1` (non-existent emails only) | First 429 after request 20; wait 60 s before logging in |
-| ☐ | Admin → Applications → Download CV | PDF or a clear "unavailable" message |
-| ☐ | Admin → Account security → change password → sign in again | Works |
-| ☐ | `App_Data/lifecycle.log` | `started  cvUploadsEnabled=False  googleSignInEnabled=False` and a `first-request` line (note `remoteAddressClass`) |
-| ☐ | Frontend | Demo notice visible; no score anywhere; **no Google button** on the login page; email/password login works; core flows work |
+| ☐ | Admin login → Admin → **Account security** page opens | Works (do not change credentials now) |
+| ☐ | Admin → Applications → applicant → Download CV | "unavailable" message (the old test files were deleted, which is expected) |
+| ☐ | `App_Data/lifecycle.log` (File Manager) | `started  cvUploadsEnabled=False  googleSignInEnabled=False` + `first-request` line |
+| ☐ | `https://wazzuf-jobs.vercel.app` | Demo notice; no Google button; no AI score anywhere; email/password login, job browsing and applying with an existing CV work |
 
-## D. Failure / rollback
+All PASS means C0 is deployed. Record the results (copy the script output) for the containment report.
+
+## E. If something fails
 | Situation | Action |
 |---|---|
-| Anything fails | **1. Upload `app_offline.htm` immediately.** 2. Diagnose (`lifecycle.log`, `logs\`). 3. Fix forward with the C0 package. |
-| Service must return before a fix | **Restricted rollback** (runbook §5.2): confirm `admin@wazzuf.com` still exists → restore the pre-C0 site files except `web.config` → merge `restricted-rollback.web.config.snippet.xml` into the server `web.config` → remove `app_offline.htm` → curl checks return **404** for `/api/Applications/1`, `/api/applications/job/1`, `/api/CV`, `/swagger/v1/swagger.json`, `/index.html`, `/hubs/scoring`. If any is not 404, go back offline. |
-| Admin email already changed | **Never** restore the pre-C0 build (it would re-create `admin@wazzuf.com` with the former default password). Stay offline and fix forward. |
-| Frontend only | Vercel → previous deployment → *Promote to Production*. Safe: it does not re-expose data. |
-| Unrestricted rollback | Only with the owner's explicit written acceptance of re-exposing S1/S3/S4/S13 |
-| Database | No C0 schema or data changes, so nothing to roll back. No backup exists (G1 waived): unrelated data loss would be permanent. |
+| Anything fails | **1. Upload `app_offline.htm` immediately.** 2. Diagnose (`App_Data/lifecycle.log`, `logs\`, MonsterASP logs). 3. Fix forward with the C0 package. |
+| Service must return before a fix | **Restricted rollback** (`c0-emergency-deployment.md` §5.2): confirm `admin@wazzuf.com` still exists → restore the A1 site files except `web.config` → merge `tools\c0\deploy\restricted-rollback.web.config.snippet.xml` into the server `web.config` → remove `app_offline.htm` → `/api/Applications/1`, `/api/applications/job/1`, `/api/CV`, `/swagger/v1/swagger.json`, `/index.html`, `/hubs/scoring` must all return **404**, otherwise go back offline. |
+| Frontend only | Vercel → Deployments → the deployment noted in A2 → *Promote to Production* (safe; it does not re-expose data). |
+| Unrestricted rollback | Only with your explicit written acceptance of re-exposing S1/S3/S4/S13 |
+| Database | Nothing to roll back (C0 makes no database changes) |
 
-## E. After go-live
-- ☐ Record results in `docs/audit/c0-containment-report.md` (Production verification)
-- ☐ Monitor `/health` + `lifecycle.log` for 7 days
-- ☐ Keep CV uploads disabled until spike PASS + D21b
-- ✔ D21 remediation of existing public CVs (done 2026-10-30)
-- ☐ After 7 stable days: admin email change (runbook §7); obsolete-file review (runbook §6)
+## F. After deployment
+- Share the verification output, then I record it in `docs/audit/c0-containment-report.md`.
+- With your approval: push `security/c0-emergency-containment` and merge to `master` (pushing does not deploy).
+- Monitor `/health` and `lifecycle.log` for 7 days.
+- Still gated, each needing separate approval: enabling CV uploads (D21b), configuring Google sign-in, admin email change (after 7 stable days), obsolete-file cleanup, Phase 00.
