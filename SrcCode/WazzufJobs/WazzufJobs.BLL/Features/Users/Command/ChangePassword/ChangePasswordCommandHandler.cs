@@ -14,7 +14,11 @@ public class ChangePasswordCommandHandler(IUserRepository userRepository) : IReq
         var result = await _userrepository.ChangePasswordAsync(user, request.Passrequest.CurrentPassword, request.Passrequest.NewPassword);
 
         if (result.Succeeded)
+        {
+            // sign out other sessions: a rotated password must not leave old refresh tokens usable
+            await _userrepository.RevokeAllRefreshTokensAsync(user.Id, cancellationToken);
             return Result.Success();
+        }
 
         var error = result.Errors.First();
         return Result.Failure(new Error(error.Code, error.Description, StatusCodes.Status400BadRequest));

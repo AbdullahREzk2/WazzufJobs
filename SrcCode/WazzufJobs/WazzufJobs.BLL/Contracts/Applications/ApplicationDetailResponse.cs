@@ -5,7 +5,7 @@ public record ApplicationDetailResponse(
     string ApplicantName,
     string ApplicantEmail,
     string? ApplicantProfilePhotoUrl,
-    string CVUrl,
+    bool HasCv,
     string JobTitle,
     string Status,
     float? AIScore,

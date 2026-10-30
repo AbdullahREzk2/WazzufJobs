@@ -15,7 +15,6 @@ public class GetCVQueryHandler(ICVRepository cvRepository): IRequestHandler<GetC
 
         return Result.Success(new CVResponse(
             cv.Id,
-            cv.Url,
             cv.FileName,
             cv.UploadedAt));
     }

@@ -7,7 +7,7 @@ public record UserResponse(
     bool isDisabled,
     IEnumerable<string> Roles,
     string? ProfilePhotoUrl = null,
-    string? CvUrl = null,
+    bool? HasCv = null,
     decimal? DesiredSalary = null,
     bool? ShowSalary = null
 );

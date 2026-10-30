@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using System.Threading.RateLimiting;
 using FluentValidation;
 using Hangfire;
 using Mapster;
@@ -6,6 +7,7 @@ using MapsterMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using WazzufJobs.API.Services;
@@ -166,7 +168,8 @@ public static class DependencyInjection
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
-        services.AddScoped<ICloudinaryService, CloudinaryService>();  // ← add this
+        services.AddHttpClient(nameof(CloudinaryService), client => client.Timeout = TimeSpan.FromSeconds(30));
+        services.AddScoped<ICloudinaryService, CloudinaryService>();
 
         return services;
     }
@@ -221,6 +224,47 @@ public static class DependencyInjection
     public static IServiceCollection AddSignalRServices(this IServiceCollection services)
     {
         services.AddSignalR();
+        return services;
+    }
+
+    public static IServiceCollection AddFeatureFlags(this IServiceCollection services)
+    {
+        services.AddOptions<FeatureSettings>()
+            .BindConfiguration(FeatureSettings.SectionName);
+
+        return services;
+    }
+
+    public const string AuthRateLimitPolicy = "ipLimit";
+
+    public static IServiceCollection AddRateLimitingServices(this IServiceCollection services, IConfiguration configuration)
+    {
+        var permitLimit = configuration.GetValue("RateLimiting:AuthPermitLimitPerMinute", 20);
+
+        services.AddRateLimiter(options =>
+        {
+            options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+            // Per-client-IP fixed window for anonymous authentication endpoints (login, register, reset, ...).
+            options.AddPolicy(AuthRateLimitPolicy, httpContext =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = permitLimit,
+                        Window = TimeSpan.FromMinutes(1),
+                        QueueLimit = 0
+                    }));
+        });
+
+        return services;
+    }
+
+    public static IServiceCollection AddHealthCheckServices(this IServiceCollection services)
+    {
+        services.AddHealthChecks()
+            .AddCheck<DatabaseHealthCheck>("database");
+
         return services;
     }
 }

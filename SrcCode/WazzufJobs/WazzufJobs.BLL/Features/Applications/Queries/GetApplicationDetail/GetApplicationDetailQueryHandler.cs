@@ -20,7 +20,7 @@ public class GetApplicationDetailQueryHandler(IApplicationRepository application
             $"{application.User.FirstName} {application.User.LastName}",
             application.User.Email!,
             application.User.ProfilePhotoUrl,
-            application.User.CV?.Url ?? string.Empty,
+            application.User.CV is not null,
             application.Job.Title,
             application.Status.ToString(),
             application.AIScore,

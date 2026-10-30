@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Configuration;
@@ -31,7 +32,17 @@ public class GoogleLoginCommandHandler(
         if (!string.Equals(payload.Audience, clientId, StringComparison.Ordinal))
             return Result.Failure<loginResponseDTO>(UserErrors.InvalidCredentials);
 
+        // S8: only accept addresses Google has verified
+        if (!payload.IsEmailVerified || string.IsNullOrWhiteSpace(payload.Email))
+            return Result.Failure<loginResponseDTO>(UserErrors.InvalidCredentials);
+
         var user = await _userRepository.FindByEmailAsync(payload.Email);
+
+        // S8: never link Google sign-in to a local account whose email was never confirmed
+        // (someone else may have registered it to pre-hijack the account)
+        if (user is not null && !user.EmailConfirmed)
+            return Result.Failure<loginResponseDTO>(UserErrors.GoogleAccountNotLinkable);
+
         if (user is null)
         {
             user = new AppUser
@@ -116,5 +127,14 @@ public class GoogleLoginCommandHandler(
 
         [JsonPropertyName("aud")]
         public string Audience { get; set; } = string.Empty;
+
+        // tokeninfo returns this claim as the string "true"/"false"; a JSON boolean is accepted too
+        [JsonPropertyName("email_verified")]
+        public JsonElement EmailVerified { get; set; }
+
+        public bool IsEmailVerified =>
+            EmailVerified.ValueKind == JsonValueKind.True ||
+            (EmailVerified.ValueKind == JsonValueKind.String &&
+             string.Equals(EmailVerified.GetString(), "true", StringComparison.OrdinalIgnoreCase));
     }
 }

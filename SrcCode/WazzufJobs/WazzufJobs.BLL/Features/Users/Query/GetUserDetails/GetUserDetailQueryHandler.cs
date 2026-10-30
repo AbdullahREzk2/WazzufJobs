@@ -18,7 +18,7 @@ public class GetUserDetailQueryHandler(IUserRepository userRepository) : IReques
             user.IsDisabled,
             userRoles,
             user.ProfilePhotoUrl,
-            user.CV?.Url,
+            user.CV is not null,
             user.Preference?.MinSalary,
             user.ShowSalary);
 

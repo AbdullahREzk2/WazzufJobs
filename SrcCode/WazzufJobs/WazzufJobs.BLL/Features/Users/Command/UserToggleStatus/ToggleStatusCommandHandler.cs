@@ -9,6 +9,12 @@ public class ToggleStatusCommandHandler(IUserRepository userRepository) : IReque
         if (user is null)
             return Result.Failure(UserErrors.UserNotFound);
 
+        var disabling = !user.IsDisabled;
+        if (disabling
+            && (await _userrepository.GetRolesAsync(user)).Contains(AppRoles.Admin.Name, StringComparer.OrdinalIgnoreCase)
+            && await _userrepository.CountActiveUsersInRoleAsync(AppRoles.Admin.Name, cancellationToken) <= 1)
+            return Result.Failure(UserErrors.LastAdministrator);
+
         user.IsDisabled = !user.IsDisabled;
         var result = await _userrepository.UpdateAsync(user);
 

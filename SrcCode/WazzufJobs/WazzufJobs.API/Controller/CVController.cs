@@ -2,7 +2,7 @@
 using WazzufJobs.BLL.Features.UserCV.Commands.DeleteCV;
 using WazzufJobs.BLL.Features.UserCV.Commands.UploadCV;
 using WazzufJobs.BLL.Features.UserCV.Queries.GetCV;
-using WazzufJobs.BLL.Services;
+using WazzufJobs.BLL.Features.UserCV.Queries.GetCvFile;
 using WazzufJobs.DAL.Persistence.Seeders;
 
 namespace WazzufJobs.API.Controllers;
@@ -10,10 +10,9 @@ namespace WazzufJobs.API.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 [Authorize]
-public class CVController(IMediator mediator,ICloudinaryService cloudinaryService) : ControllerBase
+public class CVController(IMediator mediator) : ControllerBase
 {
     private readonly IMediator _mediator = mediator;
-    private readonly ICloudinaryService _cloudinaryservice = cloudinaryService;
 
     [HttpGet]
     [HasPermission(Permissions.CVUpload)]
@@ -22,6 +21,16 @@ public class CVController(IMediator mediator,ICloudinaryService cloudinaryServic
         var userId = User.GetUserId()!;
         var result = await _mediator.Send(new GetCVQuery(userId), cancellationToken);
         return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
+    }
+
+    // Streams the caller's own CV. The storage URL is never returned to clients.
+    [HttpGet("file")]
+    [HasPermission(Permissions.CVUpload)]
+    public async Task<IActionResult> GetMyCVFile(CancellationToken cancellationToken)
+    {
+        var userId = User.GetUserId()!;
+        var result = await _mediator.Send(new GetCvFileQuery(userId), cancellationToken);
+        return this.ToCvFileResult(result);
     }
 
     [HttpPost]

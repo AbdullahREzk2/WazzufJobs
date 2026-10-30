@@ -4,15 +4,28 @@ using WazzufJobs.DAL.Enums;
 
 namespace WazzufJobs.DAL.Persistence.Seeders;
 
+public enum AdminSeedOutcome
+{
+    SkippedNotConfigured,
+    SkippedAlreadyExists,
+    Created,
+    Failed
+}
+
 public static class AdminSeeder
 {
-    public static async Task SeedAsync(UserManager<AppUser> userManager)
+    /// <summary>
+    /// One-time bootstrap of the first administrator from configuration (AdminBootstrap:Email / AdminBootstrap:Password),
+    /// supplied through host environment variables or user-secrets. There is no default password.
+    /// An existing account is never modified, so this can never reset a rotated password.
+    /// </summary>
+    public static async Task<AdminSeedOutcome> SeedAsync(UserManager<AppUser> userManager, string? adminEmail, string? adminPassword)
     {
-        const string adminEmail = "admin@wazzuf.com";
-        const string adminPassword = "Admin@123456";
+        if (string.IsNullOrWhiteSpace(adminEmail) || string.IsNullOrWhiteSpace(adminPassword))
+            return AdminSeedOutcome.SkippedNotConfigured;
 
         if (await userManager.FindByEmailAsync(adminEmail) is not null)
-            return;
+            return AdminSeedOutcome.SkippedAlreadyExists;
 
         var admin = new AppUser
         {
@@ -28,8 +41,10 @@ public static class AdminSeeder
         };
 
         var result = await userManager.CreateAsync(admin, adminPassword);
+        if (!result.Succeeded)
+            return AdminSeedOutcome.Failed;
 
-        if (result.Succeeded)
-            await userManager.AddToRoleAsync(admin, "Admin");
+        await userManager.AddToRoleAsync(admin, AppRoles.Admin.Name);
+        return AdminSeedOutcome.Created;
     }
 }
