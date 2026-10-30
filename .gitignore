@@ -373,3 +373,15 @@ wazzuf-jobs-frontend/node_modules/
 
 # Environment files with secrets
 **/environment.development.ts
+
+# Secrets and environment-specific configuration (never commit credentials)
+**/appsettings.Production.json
+**/appsettings.Staging.json
+**/appsettings.*.local.json
+**/*.secrets.json
+**/.env
+**/.env.*
+# C0 operator outputs (may contain personal data)
+**/cloudinary-cv-manifest-*.csv
+**/cloudinary-spike-report-*.json
+**/assessment-results*.txt

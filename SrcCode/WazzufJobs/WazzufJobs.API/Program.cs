@@ -133,13 +133,14 @@ public class Program
 
             await RoleSeeder.SeedAsync(roleManager);
 
-            // Admin bootstrap credentials come only from host configuration (never from source control).
-            var outcome = await AdminSeeder.SeedAsync(
-                userManager,
-                app.Configuration["AdminBootstrap:Email"],
-                app.Configuration["AdminBootstrap:Password"]);
-
-            logger.LogInformation("Admin bootstrap: {Outcome}.", outcome);
+            // No administrator account is ever created automatically (no default credentials).
+            // The first administrator is created through the controlled bootstrap procedure.
+            // Without one, administrative endpoints stay unreachable (no account holds the permissions).
+            var administrators = (await userManager.GetUsersInRoleAsync(AppRoles.Admin.Name)).Count(u => !u.IsDisabled);
+            if (administrators == 0)
+                logger.LogWarning("No active administrator exists. Administrative features are unavailable until the controlled bootstrap is performed.");
+            else
+                logger.LogInformation("Active administrators: {Count}.", administrators);
         }
         catch (Exception ex)
         {

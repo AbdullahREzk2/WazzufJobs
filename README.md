@@ -199,14 +199,11 @@ Frontend runs at `http://localhost:4200`
 
 ---
 
-## 🔑 Default Admin Credentials
+## 🔑 Administrator Accounts
 
-```
-Email:    admin@wazzuf.com
-Password: Admin@123456
-```
-
-> ⚠️ Change these immediately in production via the `AdminSeeder.cs` file.
+There are **no default administrator credentials**, and no administrator account is created automatically.
+The first administrator is created through a controlled bootstrap procedure (see `docs/runbooks/configuration-and-secrets.md`).
+Credentials and API keys are never stored in this repository; see the same document for local and production configuration.
 
 ---
 

@@ -46,32 +46,69 @@ public class PlatformHardeningTests(C0WebApplicationFactory factory) : IClassFix
     }
 
     [Fact]
-    public async Task No_administrator_is_seeded_from_hardcoded_credentials()
+    public async Task No_administrator_is_ever_created_automatically()
     {
         using var scope = factory.Services.CreateScope();
         var users = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
 
         Assert.Null(await users.FindByEmailAsync("admin@wazzuf.com"));
+        // the former bootstrap settings are configured in this host and must be ignored
+        Assert.Null(await users.FindByEmailAsync(C0WebApplicationFactory.IgnoredBootstrapEmail));
+        Assert.Empty(await users.GetUsersInRoleAsync(AppRoles.Admin.Name));
     }
 
     [Fact]
-    public async Task Admin_seeder_requires_configuration_and_never_modifies_an_existing_account()
+    public async Task Without_an_administrator_admin_endpoints_fail_closed()
     {
+        using (var scope = factory.Services.CreateScope())
+            Assert.Empty(await scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>().GetUsersInRoleAsync(AppRoles.Admin.Name));
+
+        var s = await TestData.SeedAsync(factory.Services);
+        var candidate = factory.CreateClient().AsCandidate(factory.Services, s.CandidateA);
+        var anonymous = factory.CreateClient();
+
+        foreach (var url in new[] { "/api/users", $"/api/users/{s.CandidateB.Id}", "/api/roles", $"/api/applications/job/{s.Job.Id}" })
+        {
+            Assert.Equal(HttpStatusCode.Unauthorized, (await anonymous.GetAsync(url)).StatusCode);
+            Assert.Equal(HttpStatusCode.Forbidden, (await candidate.GetAsync(url)).StatusCode);
+        }
+        Assert.Equal(HttpStatusCode.Forbidden, (await candidate.PostAsJsonAsync("/api/users",
+            new { firstName = "x", lastName = "y", email = "self-made-admin@example.test", password = "Self#Made1!", roles = new[] { "Admin" } })).StatusCode);
+    }
+
+    [Fact]
+    public async Task Self_registration_never_grants_administrator_rights()
+    {
+        var email = $"register-{Guid.NewGuid():N}@example.test";
+        var response = await factory.CreateClient().PostAsJsonAsync("/api/auth/register",
+            new { email, password = "Register#Passw0rd1", firstName = "New", lastName = "User" });
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         using var scope = factory.Services.CreateScope();
         var users = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
-        var email = $"bootstrap-{Guid.NewGuid():N}@example.test";
+        var user = await users.FindByEmailAsync(email);
+        Assert.NotNull(user);
+        Assert.False(await users.IsInRoleAsync(user!, AppRoles.Admin.Name));
+    }
 
-        Assert.Equal(AdminSeedOutcome.SkippedNotConfigured, await AdminSeeder.SeedAsync(users, null, null));
-        Assert.Equal(AdminSeedOutcome.SkippedNotConfigured, await AdminSeeder.SeedAsync(users, email, ""));
+    [Fact]
+    public void Shipped_assemblies_contain_no_default_administrator_credentials()
+    {
+        var assemblies = new[] { typeof(WazzufJobs.API.Program), typeof(WazzufJobs.BLL.Abstractions.Result), typeof(AppUser) }
+            .Select(t => t.Assembly.Location);
 
-        Assert.Equal(AdminSeedOutcome.Created, await AdminSeeder.SeedAsync(users, email, "Bootstrap#Passw0rd!"));
-        var admin = await users.FindByEmailAsync(email);
-        Assert.NotNull(admin);
-        Assert.True(await users.IsInRoleAsync(admin!, AppRoles.Admin.Name));
+        foreach (var path in assemblies)
+        {
+            var bytes = File.ReadAllBytes(path);
+            foreach (var secret in new[] { "Admin@123456", "admin@wazzuf.com" })
+            {
+                Assert.False(Contains(bytes, System.Text.Encoding.Unicode.GetBytes(secret)), $"{Path.GetFileName(path)} contains '{secret}' (UTF-16)");
+                Assert.False(Contains(bytes, System.Text.Encoding.UTF8.GetBytes(secret)), $"{Path.GetFileName(path)} contains '{secret}' (UTF-8)");
+            }
+        }
 
-        // a second start with different configured credentials must not reset the password
-        Assert.Equal(AdminSeedOutcome.SkippedAlreadyExists, await AdminSeeder.SeedAsync(users, email, "Another#Passw0rd!"));
-        Assert.True(await users.CheckPasswordAsync((await users.FindByEmailAsync(email))!, "Bootstrap#Passw0rd!"));
+        static bool Contains(byte[] haystack, byte[] needle) =>
+            haystack.AsSpan().IndexOf(needle) >= 0;
     }
 
     [Fact]
