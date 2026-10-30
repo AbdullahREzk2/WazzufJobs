@@ -8,6 +8,7 @@ Nothing here is deployed or referenced by the application. All tools are run man
 | `sql/02_bootstrap_promote_confirmed_user_to_admin.sql` | Interim controlled administrator bootstrap: promotes one existing, email-confirmed account (dry run by default) | **Yes, only with `@Apply = 1`** and only with explicit approval |
 | `CloudinaryC0Tool inventory` | Lists raw (CV) assets; optionally joins with the CVs table of a **local restore** | **No** (Cloudinary list API only) |
 | `CloudinaryC0Tool spike` | Synthetic test of authenticated storage and rename remediation | Creates and then deletes **synthetic** PDFs in `wazzuf-jobs/c0-spike/` only |
+| `CloudinaryC0Tool delete-confirmed` | Deletes ONLY the raw/upload assets of an owner-reviewed manifest after verifying ID/type/size against a fresh listing; dry run unless `--apply`; requires `--expect <count>` | **Yes, only with `--apply`** and owner approval (used once for D21 on 2026-10-30: 13/13 deleted) |
 | `deploy/post-deploy-checks.ps1` | Post-deployment security checks (anonymous + test-candidate) | **No** |
 | `deploy/verify-rate-limit.ps1` | Safe rate-limit probe using non-existent e-mails (no account lockout possible) | **No** (throttles only the caller's IP for ≤ 60 s) |
 | `deploy/compare-server-files.ps1` | Classifies a downloaded server copy against the package manifest | **No** |

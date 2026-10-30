@@ -21,3 +21,4 @@ Results recorded 2026-10-30:
 - **Safety behaviours observed:** an upload that does not come back `authenticated` is reported as FAIL; cleanup refuses to delete any ID outside the spike folder; listing errors abort with exit code 3 before any further action.
 
 The fake proves the tool's request logic. It cannot prove real Cloudinary free-tier behaviour (the PDF delivery block, real CDN invalidation timing), which is why the owner still runs the real spike.
+- **delete-confirmed** (2026-10-30): a size mismatch, a missing ID and a wrong `--expect` count each aborted with 0 destroy calls. The dry run made 0 destroy calls. `--apply` destroyed exactly the 3 approved IDs (`raw`, `upload`, `invalidate=true`); all other seeded assets were untouched.

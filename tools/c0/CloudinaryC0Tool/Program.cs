@@ -28,12 +28,13 @@ var cloudName = config["CLOUDINARY_CLOUD_NAME"] ?? config["CloudinarySettings:Cl
 var apiKey = config["CLOUDINARY_API_KEY"] ?? config["CloudinarySettings:ApiKey"];
 var apiSecret = config["CLOUDINARY_API_SECRET"] ?? config["CloudinarySettings:ApiSecret"];
 
-if (command is not ("inventory" or "spike"))
+if (command is not ("inventory" or "spike" or "delete-confirmed"))
 {
     Console.WriteLine("""
         Usage:
           dotnet run -- inventory [--db "<connection string to LOCAL restored backup>"] [--out <folder>] [--probe-public]
           dotnet run -- spike [--out <folder>]
+          dotnet run -- delete-confirmed --manifest <reviewed manifest.csv> --expect <count> [--apply] [--out <folder>]
         """);
     return 1;
 }
@@ -64,9 +65,12 @@ var outDir = options.GetValueOrDefault("out")
 Directory.CreateDirectory(outDir);
 using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
 
-return command == "inventory"
-    ? await RunInventoryAsync()
-    : await RunSpikeAsync();
+return command switch
+{
+    "inventory" => await RunInventoryAsync(),
+    "spike" => await RunSpikeAsync(),
+    _ => await RunDeleteConfirmedAsync()
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
 async Task<int> RunInventoryAsync()
@@ -259,6 +263,104 @@ async Task<int> RunSpikeAsync()
     Console.WriteLine($"[spike] report: {reportPath}");
 
     return results.All(r => r.Pass) ? 0 : 4;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Deletes ONLY the raw/upload assets listed in an owner-reviewed manifest, after verifying every id against a
+// fresh read-only listing. Dry run unless --apply. Never touches images or any id not in the manifest.
+async Task<int> RunDeleteConfirmedAsync()
+{
+    if (!options.TryGetValue("manifest", out var manifestPath) || !File.Exists(manifestPath)
+        || !options.TryGetValue("expect", out var expectText) || !int.TryParse(expectText, out var expected))
+    {
+        Console.Error.WriteLine("[delete] --manifest <existing file> and --expect <count> are required. Nothing was done.");
+        return 5;
+    }
+    var apply = options.ContainsKey("apply");
+
+    // 1. approved ids from the reviewed manifest (raw assets of delivery type "upload" only)
+    var approved = new List<(string PublicId, long Bytes)>();
+    foreach (var line in File.ReadLines(manifestPath).Skip(1).Where(l => !string.IsNullOrWhiteSpace(l)))
+    {
+        var cols = line.Split(',');
+        if (cols.Length < 4 || cols[1] != "upload" || !long.TryParse(cols[3], out var bytes))
+        {
+            Console.Error.WriteLine($"[delete] MISMATCH: unexpected manifest row '{line}'. Nothing was done.");
+            return 6;
+        }
+        approved.Add((cols[0], bytes));
+    }
+    if (approved.Count != expected || approved.Select(a => a.PublicId).Distinct().Count() != expected)
+    {
+        Console.Error.WriteLine($"[delete] MISMATCH: manifest has {approved.Count} rows, --expect is {expected}. Nothing was done.");
+        return 6;
+    }
+
+    // 2. fresh read-only listing of ALL raw assets
+    var current = new List<Resource>();
+    foreach (var type in new[] { "upload", "authenticated", "private" })
+    {
+        string? cursor = null;
+        do
+        {
+            var page = await cloudinary.ListResourcesAsync(new ListResourcesParams
+            { ResourceType = ResourceType.Raw, Type = type, MaxResults = 500, NextCursor = cursor });
+            if (page.Error is not null) { Console.Error.WriteLine($"[delete] listing failed: {page.Error.Message}. Nothing was done."); return 3; }
+            current.AddRange(page.Resources);
+            cursor = page.NextCursor;
+        } while (!string.IsNullOrEmpty(cursor));
+    }
+
+    // 3. every approved id must exist exactly once as raw/upload with the same size; report anything else
+    var problems = new List<string>();
+    foreach (var (publicId, bytes) in approved)
+    {
+        var matches = current.Where(r => r.PublicId == publicId).ToList();
+        if (matches.Count != 1) problems.Add($"{publicId}: found {matches.Count} times in fresh listing");
+        else if (matches[0].Type != "upload") problems.Add($"{publicId}: delivery type is '{matches[0].Type}', expected 'upload'");
+        else if (matches[0].Bytes != bytes) problems.Add($"{publicId}: size {matches[0].Bytes} != manifest {bytes}");
+    }
+    var notApproved = current.Where(r => approved.All(a => a.PublicId != r.PublicId)).ToList();
+    Console.WriteLine($"[delete] fresh listing: {current.Count} raw assets; approved for deletion: {approved.Count}; other raw assets (kept): {notApproved.Count}");
+    foreach (var r in notApproved) Console.WriteLine($"         kept (not approved): {r.PublicId} [{r.Type}]");
+    if (problems.Count > 0)
+    {
+        foreach (var p in problems) Console.Error.WriteLine($"[delete] MISMATCH: {p}");
+        Console.Error.WriteLine("[delete] Nothing was deleted.");
+        return 6;
+    }
+
+    if (!apply)
+    {
+        Console.WriteLine("[delete] DRY RUN - verified, would delete (resource_type=raw, type=upload, invalidate=true):");
+        foreach (var (publicId, _) in approved) Console.WriteLine($"         {publicId}");
+        Console.WriteLine("[delete] Re-run with --apply to delete exactly these assets.");
+        return 0;
+    }
+
+    // 4. delete one by one; stop at the first unexpected result
+    var results = new List<object>();
+    var deletedCount = 0;
+    foreach (var (publicId, _) in approved)
+    {
+        var result = await cloudinary.DestroyAsync(new DeletionParams(publicId)
+        { ResourceType = ResourceType.Raw, Type = "upload", Invalidate = true });
+        var ok = result.Result == "ok";
+        if (ok) deletedCount++;
+        results.Add(new { publicId, result = result.Result, error = result.Error?.Message });
+        Console.WriteLine($"  [{(ok ? "DELETED" : "FAILED")}] {publicId} - {result.Result}{(result.Error is null ? "" : " " + result.Error.Message)}");
+        if (!ok)
+        {
+            Console.Error.WriteLine("[delete] Unexpected result - stopping. Remaining assets were NOT deleted.");
+            break;
+        }
+    }
+
+    var reportPath = Path.Combine(outDir, $"cloudinary-delete-report-{DateTime.UtcNow:yyyyMMdd-HHmmss}.json");
+    await File.WriteAllTextAsync(reportPath, JsonSerializer.Serialize(results, new JsonSerializerOptions { WriteIndented = true }));
+    Console.WriteLine($"[delete] report: {reportPath}");
+    Console.WriteLine($"[delete] deleted {deletedCount} of {approved.Count}.");
+    return deletedCount == approved.Count ? 0 : 7;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

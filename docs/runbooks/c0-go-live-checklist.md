@@ -17,7 +17,7 @@
 | ☐ | G9 | Two test candidates with applications; ids noted |
 | ☐ | G11 | D24 decided: ship C0 together with the earlier uncommitted features (not yet live) or C0-only |
 | ☐ | G12 | `Google:ClientId` on server known (empty means Google sign-in is disabled) |
-| ☐ | Cloudinary | Credentials entered via user-secrets (`configuration-and-secrets.md` §2); `inventory` + `spike` run; summaries shared |
+| ✔ | Cloudinary | Credentials in user secrets; spike 10/10 PASS; the 13 legacy test CV assets deleted (D21) and verified (0 raw assets) |
 | ☐ | G10 | D20 approval received |
 
 ## B. Deployment (≈15 min)
@@ -53,5 +53,5 @@
 - ☐ Record results in `docs/audit/c0-containment-report.md` (Production verification)
 - ☐ Monitor `/health` + `lifecycle.log` for 7 days
 - ☐ Keep CV uploads disabled until spike PASS + D21b
-- ☐ D21 remediation of existing public CVs (next priority)
+- ✔ D21 remediation of existing public CVs (done 2026-10-30)
 - ☐ After 7 stable days: admin email change (runbook §7); obsolete-file review (runbook §6)

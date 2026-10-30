@@ -24,7 +24,7 @@ Revision 4 (2026-10-30): owner decisions applied (no administrator seeding, data
 | Storage | CV storage code was tied to Cloudinary | n/a | Provider-neutral `IDocumentStorage` (Cloudinary implementation; `Storage:DocumentProvider`; unknown provider stops startup). Images keep `ICloudinaryService`. |
 | S2c | **New:** the admin "Edit user" path deleted all roles before re-adding them, with no transaction and no last-admin protection, so production could be left without an administrator | Code-verified | Roles change by difference only, atomically on SQL Server; the **last active admin cannot lose the Admin role or be disabled** |
 | S5 | Hangfire dashboard query-string credentials | Live: 401 (shadowed by an earlier default-protected mapping) | Dashboard mappings and hardcoded filter removed |
-| S3 / B15 | Public CV uploads; URLs returned to clients; deletes probably never removed raw files | Code-verified; inventory pending | No public upload path; new uploads `authenticated`-only and **disabled by default**; URLs removed from every DTO; files served via authorized API (60 s signed server-side download); legacy assets untouched until D21 |
+| S3 / B15 | Public CV uploads; URLs returned to clients; deletes probably never removed raw files | Code-verified; inventory 2026-10-30: 13 raw/upload test assets (owner's own); anonymous access to public raw PDFs returns 401 on this account (free-tier PDF block) | No public upload path; new uploads `authenticated`-only and **disabled by default**; URLs removed from every DTO; files served via authorized API (60 s signed server-side download); legacy assets untouched until D21 **Remediated 2026-10-30: all 13 legacy assets deleted (D21); 0 raw assets remain.** |
 | S13 | Swagger publicly served | Live: `/swagger/v1/swagger.json` returns 200 | Swagger mapped only in Development |
 | S7 | Rate limiting not configured | Code-verified | 20 req/min per client IP on `/api/Auth/*` |
 | S8 | Google sign-in (part of the previously uncommitted work shipped with this release) accepted unverified Google emails and linked to unconfirmed local accounts (pre-hijack) | Code-verified; active only if `Google:ClientId` is set on the server | Requires `email_verified`; refuses to link to unconfirmed accounts (409); audience check kept |
@@ -95,6 +95,19 @@ Verified on a throwaway **real SQL Server** database (`WazzufJobs_C0Test_*`, cre
 ### 2.9 Preservation (item 9)
 No existing work was discarded. The pre-C0 snapshot and archive are unchanged. The C0 state is additionally saved as `refs/backups/c0-ready-2026-10-30`. No configuration file on any server or in `appsettings.Development.json` was changed. The local dev database `WazzufJobsDB` was not touched.
 
+### 2.10 Cloudinary remediation (2026-10-30)
+| Step | Result |
+|---|---|
+| Private-storage spike (real account) | **10/10 PASS**: authenticated upload, anonymous access refused (401), signed download, legacy signed download, rename to authenticated, old public URL 404, cleanup of the synthetic assets. Public raw PDFs return 401 anonymously on this account (free-tier PDF block). |
+| Read-only inventory | 13 raw assets, all `type=upload` (12 in `wazzuf-jobs/cvs/`, 1 in `wazzuf-jobs/debug/`); no other raw assets |
+| Owner decision (D21) | All 13 confirmed as own disposable test files; deletion of exactly these 13 authorized |
+| Safeguards | New `delete-confirmed` command (dry run by default, `--expect` count, exact IDs from the reviewed manifest, verified against a fresh listing for ID/type/size, raw+upload only, invalidate, stop on first failure). Verified first on the local fake: size mismatch, missing ID and wrong count each aborted with 0 deletions. |
+| Fresh inventory vs reviewed manifest | Identical (13 IDs, types, sizes); dry run verified |
+| Deletion | **13/13 `ok`** |
+| Verification inventory | **0 raw assets** |
+| Not touched | Images (profile photos, category icons), all database records, application configuration; CV uploads remain **disabled** |
+| Next | D21b: enable private uploads (`Features:CvUploadsEnabled=true`) is unblocked technically (spike passed) but still needs your approval; recommended after C0 is deployed and verified |
+
 ## 3. Tests
 
 | Suite | Result |
@@ -146,7 +159,7 @@ No existing work was discarded. The pre-C0 snapshot and archive are unchanged. T
 ### Unresolved risks (accepted or tracked)
 | Risk | Status |
 |---|---|
-| Existing public CVs remain public until D21 remediation | Highest priority after deployment; depends on the inventory |
+| ~~Existing public CVs~~ | **Closed 2026-10-30:** all 13 owner test assets deleted and verified (0 raw assets). DB rows still reference them; downloads show "unavailable" until re-upload. |
 | Whether public CV URLs were actually reachable (free-tier PDF block) | Unknown until spike/probe |
 | Host may sit behind a proxy, making the per-IP rate limit effectively global | Detected by `first-request` telemetry; mitigated by probe timing |
 | Server `ASPNETCORE_ENVIRONMENT=Development` would keep Swagger exposed | Detected by post-deploy check 1; fix via host setting |
@@ -168,7 +181,7 @@ No existing work was discarded. The pre-C0 snapshot and archive are unchanged. T
 | **D20** | Final approval to deploy C0 (after gates G3–G9, G11, G12; G1 waived) |
 | D20-copy | Demo banner wording |
 | D20-cleanup | Later: deletion of reviewed obsolete server files (runbook §6) |
-| **D21** | Per-class action for existing public CV assets, after the inventory; breach assessment outcome |
+| ~~D21~~ | **Done 2026-10-30:** owner confirmed all 13 assets as own test files and authorized deletion; deleted and verified. |
 | D21b | Enable CV uploads after the spike passes |
 | D23 | Publish the prepared Vercel preview probe |
 | D-push | Push `security/c0-emergency-containment` to GitHub after C0 approval (no deployment is triggered) |
