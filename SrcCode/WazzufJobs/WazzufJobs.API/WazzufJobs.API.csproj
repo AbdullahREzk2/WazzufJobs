@@ -34,6 +34,8 @@
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+		<!-- C0: pins the transitive MimeKit dependency to the patched version (GHSA-846f-f764-76mx / CVE-2026-84008) -->
+		<PackageReference Include="System.Security.Cryptography.Pkcs" Version="8.0.2" />
 	</ItemGroup>
 
 	<ItemGroup>
