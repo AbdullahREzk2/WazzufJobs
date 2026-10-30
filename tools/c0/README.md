@@ -5,6 +5,7 @@ Nothing here is deployed or referenced by the application. All tools are run man
 | Tool | Purpose | Modifies anything? |
 |---|---|---|
 | `sql/01_readonly_production_assessment.sql` | VER-01 production data classification, admin login review, VER-03 Hangfire latency | **No** (SELECT only) |
+| `sql/02_bootstrap_promote_confirmed_user_to_admin.sql` | Interim controlled administrator bootstrap: promotes one existing, email-confirmed account (dry run by default) | **Yes, only with `@Apply = 1`** and only with explicit approval |
 | `CloudinaryC0Tool inventory` | Lists raw (CV) assets; optionally joins with the CVs table of a **local restore** | **No** (Cloudinary list API only) |
 | `CloudinaryC0Tool spike` | Synthetic test of authenticated storage and rename remediation | Creates and then deletes **synthetic** PDFs in `wazzuf-jobs/c0-spike/` only |
 | `deploy/post-deploy-checks.ps1` | Post-deployment security checks (anonymous + test-candidate) | **No** |
@@ -15,16 +16,7 @@ Nothing here is deployed or referenced by the application. All tools are run man
 | `verification/fake_cloudinary.py` | Local fake Cloudinary to verify the tool without an account (localhost only) | No (local process) |
 
 ## Supplying Cloudinary credentials securely
-Never paste secrets into chats, tickets or committed files. In **your own** PowerShell window:
-
-```powershell
-$env:CLOUDINARY_CLOUD_NAME = Read-Host "Cloud name"
-$env:CLOUDINARY_API_KEY    = Read-Host "API key"
-$sec = Read-Host "API secret" -AsSecureString
-$env:CLOUDINARY_API_SECRET = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($sec))
-```
-
-The variables live only in that window. Close it when finished.
+Use .NET User Secrets as described in `docs/runbooks/configuration-and-secrets.md` §2. The tool reads the API project's user secrets. Environment variables (`CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`) also work. Never paste secrets into chats, tickets or committed files.
 
 ## Running
 ```powershell

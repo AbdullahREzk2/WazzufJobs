@@ -1,7 +1,7 @@
 # Phase C0: Emergency Containment Report
 
 Status: **implemented, tested locally, release artifacts prepared. NOT deployed.** Production deployment requires final approval (D20).
-Revision 3 (2026-10-30): final readiness pass (dependency scans, validated tools, Google sign-in hardening, local branch prepared).
+Revision 4 (2026-10-30): owner decisions applied (no administrator seeding, database backup waived, Cloudinary configuration and storage abstraction, manual Vercel deployments).
 
 | Item | Location |
 |---|---|
@@ -17,8 +17,11 @@ Revision 3 (2026-10-30): final readiness pass (dependency scans, validated tools
 |---|---|---|---|
 | S1 | Any job seeker could read every application (name, email, CV link, AI score, salary) | Code-verified; live exploitation not tested | Admin application endpoints require `applications:update` (Admin only); temporary until Phase 03 |
 | S4 | AI score/feedback shown to candidates (API, dashboard, SignalR, email, copy) | Code-verified | Removed from the candidate DTO and UI; email and push removed; copy rewritten; fabricated metrics removed |
-| S2 | Hardcoded seeded admin `admin@wazzuf.com` / `Admin@123456` | Code-verified; production password status unknown | Seeder reads `AdminBootstrap:*` from host config; no default; never modifies an existing account. **Rotation is an owner action.** |
+| S2 | Hardcoded seeded admin `admin@wazzuf.com` with the former default password | Code-verified; production password status unknown | **Automatic administrator seeding removed entirely.** No account is ever created at startup; the former `AdminBootstrap:*` settings are ignored; `AdminSeeder` is disabled at compile level. Without an administrator the system fails closed. The first administrator comes from the controlled bootstrap (`configuration-and-secrets.md` §4). |
 | S2b | `wazzuf.com` is a third-party registered domain (NS `dyna-ns.net`, no MX today) | DNS-verified | Owner changes the admin email **after** deployment (runbook §7) |
+| S2d | **The default admin credentials were published in the public README** (`README.md`, "Default Admin Credentials") from commit `7815df6` (2026-05-21) until C0 | Verified in git history | Section removed and replaced by the no-default-credentials policy. **The production admin account must be treated as compromised:** rotate its password and review all Admin-role accounts (G3). The text remains in git history, which is acceptable because the password is rotated. |
+| Config | Account identifiers committed in `appsettings.json` (Cloudinary cloud name, personal Gmail address) | Code-verified | Blanked; supplied via user secrets / server-side configuration. `.gitignore` now blocks `appsettings.Production.json`, `.env*`, `*.secrets.json` and C0 operator outputs. |
+| Storage | CV storage code was tied to Cloudinary | n/a | Provider-neutral `IDocumentStorage` (Cloudinary implementation; `Storage:DocumentProvider`; unknown provider stops startup). Images keep `ICloudinaryService`. |
 | S2c | **New:** the admin "Edit user" path deleted all roles before re-adding them, with no transaction and no last-admin protection, so production could be left without an administrator | Code-verified | Roles change by difference only, atomically on SQL Server; the **last active admin cannot lose the Admin role or be disabled** |
 | S5 | Hangfire dashboard query-string credentials | Live: 401 (shadowed by an earlier default-protected mapping) | Dashboard mappings and hardcoded filter removed |
 | S3 / B15 | Public CV uploads; URLs returned to clients; deletes probably never removed raw files | Code-verified; inventory pending | No public upload path; new uploads `authenticated`-only and **disabled by default**; URLs removed from every DTO; files served via authorized API (60 s signed server-side download); legacy assets untouched until D21 |
@@ -50,7 +53,7 @@ The package adds no files and removes none relative to the current build, so dep
 - Default failure action: **take the API offline** (`app_offline.htm` maintenance page).
 - If service must return before a fix: **restricted rollback**, meaning the pre-C0 build plus IIS request-filtering rules that return 404 for `/api/Applications*`, `/api/CV*`, `/swagger*`, `/index.html`, `/hangfire`, `/hubs/scoring`. The rules must be verified with curl, falling back to offline if the host ignores them.
 - Unrestricted rollback only with your explicit written acceptance.
-- **Hazard found:** the pre-C0 seeder re-creates `admin@wazzuf.com` / `Admin@123456` if that email no longer exists, so the admin email must not change until rollback is no longer expected.
+- **Hazard found:** the pre-C0 seeder re-creates `admin@wazzuf.com` with the former default password if that email no longer exists, so the admin email must not change until rollback is no longer expected.
 
 ### 2.4 Safe rate-limit verification (item 4)
 `verify-rate-limit.ps1` uses random non-existent `@example.invalid` emails. Unknown emails are rejected before any password check, so **no account lockout counter can change**; an automated test proves this. The caller's IP is throttled for ≤ 60 s; instructions cover that, plus the proxy case.
@@ -64,7 +67,17 @@ Verified on a throwaway **real SQL Server** database (`WazzufJobs_C0Test_*`, cre
 **Pre-existing limitation found:** the existing role validation rejects the default "User" role, so the admin form cannot save any account that holds it. In practice, admins cannot edit candidates. It fails safely, before any change. If the admin account also holds "User" (SQL result 3), the email change returns "Invalid Roles" without modifying anything. Fix planned for Phase 03.
 
 ### 2.6 Backup gate (item 6)
-Gate **G1** requires a backup downloaded **and restored successfully** locally, with the assessment script run on the restore, before deployment.
+**Waived by the owner on 2026-10-30.** The production database contains disposable test data and no backup is required for preservation. **Accepted risk:** without a backup, any loss or corruption of the existing data is permanent. C0 makes no database changes, and any reset, deletion or migration still requires separate approval. The new SQL Server schema is designed in the modernization phases according to the approved architecture.
+
+### 2.6a Administrator policy (owner decision 2026-10-30)
+- **No automatic account creation** and **no default credentials** anywhere: code, configuration, README and tests. Tests prove that startup creates no administrator even when the old bootstrap settings are present, and that the shipped DLLs contain no default credentials.
+- **Fail-safe without an administrator.** Admin endpoints return 401/403 for everyone, self-registration never grants Admin, and startup logs a warning. Tests cover all three.
+- **Does deferring administrator creation block anything? No, for C0.**
+  - Production verification uses the **existing** production administrator (left untouched, as you instructed; password rotation G3).
+  - Automated tests create their own administrators in isolated databases.
+  - Moderation features do not exist yet; they arrive in later phases.
+  - Only a **new or reset** environment would have no administrator. For that, the interim **controlled bootstrap** promotes an existing, email-confirmed account through a guarded, dry-run-first SQL script (`tools/c0/sql/02_bootstrap_promote_confirmed_user_to_admin.sql`, validated on a throwaway database). Phase 03 replaces it with an in-application, one-time, audited bootstrap.
+- **Rollback hazard unchanged:** the pre-C0 build re-creates `admin@wazzuf.com` with the former default password if that email is missing. Keeping the production admin record, as you instructed, keeps the restricted rollback viable.
 
 ### 2.7 Leak audit (item 7)
 - **Contracts:** AI fields exist only in `ApplicationResponse` / `ApplicationDetailResponse`, which are reachable only through the two admin-gated endpoints. `CV.Url` is now read only internally, to determine the delivery type. No DTO, mapping (Mapster), email, SignalR send, header or log carries a CV URL.
@@ -87,13 +100,13 @@ No existing work was discarded. The pre-C0 snapshot and archive are unchanged. T
 | Suite | Result |
 |---|---|
 | Backend build | Success. 0 errors; only the 6 pre-existing `NU1701` (PdfiumViewer) warnings. |
-| `WazzufJobs.Tests` | **54/54 passed**: 41 (rev 1) + 5 (rev 2: admin safety on SQL Server, rate-limit probe safety, endpoint leak sweep) + 8 (rev 3: Google sign-in hardening against a fake tokeninfo endpoint) |
+| `WazzufJobs.Tests` | **56/56 passed** (rev 4: seeder tests replaced by fail-safe tests: no automatic admin even with old bootstrap settings, admin endpoints fail closed without an administrator, self-registration never grants Admin, no default credentials in the shipped DLLs). Previously 54/54: 41 (rev 1) + 5 (rev 2: admin safety on SQL Server, rate-limit probe safety, endpoint leak sweep) + 8 (rev 3: Google sign-in hardening against a fake tokeninfo endpoint) |
 | Mutation checks | S1 reverted: 5 authorization tests + the leak sweep fail. Swagger guard removed: 2 tests fail. Google guards removed: 4 tests fail. All fixes restored. |
 | Dependency scans | `dotnet list package --vulnerable --include-transitive`: 0. `npm audit --omit=dev`: 0. Dev-only tooling advisories (test runner, jsdom, CLI) are not shipped; deferred to Phase 02. |
 | Frontend production build | Success on Angular 21.2.25 (463 kB initial) |
 | SQL assessment script | Validated without errors on a throwaway database built from the project's EF migrations (same schema as production) with synthetic data, with and without a Hangfire schema; database dropped. Made portable (no `STRING_AGG`); needs `sqlcmd -I` or SSMS. |
 | Cloudinary tool | Verified end to end against a local fake Cloudinary (`tools/c0/verification`): inventory sent 0 mutating requests and joined correctly; spike passed all 10 checks and touched only its own synthetic assets. Real-account behaviour still needs your run. |
-| Release artifacts | Zip SHA-256 `9e4d14eb…8d405cfa83b` matches the 94-file manifest; no config, `.pdb` or test files; runtime, `web.config` and file set identical to pre-C0; no legacy credential strings in the C0 DLLs; frontend bundle has the production API URL, no localhost, and the demo notice; `aiScore` only in the admin chunk. |
+| Release artifacts | Zip SHA-256 `a088f67b…8927da803b` matches the 94-file manifest; no config, `.pdb` or test files; runtime, `web.config` and file set identical to pre-C0; no legacy credential strings in the C0 DLLs; frontend bundle has the production API URL, no localhost, and the demo notice; `aiScore` only in the admin chunk. |
 | Frontend unit tests | Pre-existing breakage unchanged (does not compile at baseline); planned for Phase 02/04 |
 | Script syntax | 3 PowerShell scripts parse OK; IIS snippet is well-formed XML |
 
@@ -115,19 +128,20 @@ No existing work was discarded. The pre-C0 snapshot and archive are unchanged. T
 - [x] Local branch prepared with separated commits (pre-existing work vs C0); not pushed
 
 ### Owner actions (before D20)
-- [ ] **G1**: back up the production DB, **download it, restore it locally**, and run the assessment SQL
-- [ ] **G2**: classify the production data (test-only vs real)
-- [ ] **G3**: rotate the production admin password now (live Swagger or later the Account security page); review admin login history
+- [x] ~~G1~~ backup gate **waived** by the owner (accepted risk: data loss would be permanent)
+- [x] G2 owner confirmed disposable test data
+- [ ] **G3**: rotate the production admin password **now** (it was public in the README) and review all Admin-role accounts
 - [ ] **G5**: confirm the production secrets location and `ASPNETCORE_ENVIRONMENT`
 - [ ] **G6**: download a copy of the current site files
 - [ ] **G7**: confirm the server config does not enable CV uploads
-- [ ] **G8**: confirm the Vercel deployment method; note the current production deployment
+- [x] G8 GitHub ↔ Vercel not connected; manual Vercel CLI deployment (note the current deployment id on deployment day)
+- [ ] Enter Cloudinary credentials with user secrets (`configuration-and-secrets.md` §2)
 - [ ] **G9**: prepare two test candidate accounts with applications
 - [ ] Run the Cloudinary `inventory` (read-only) and `spike` (synthetic) with credentials entered in your own terminal; share summaries only
 - [ ] Do **not** change the admin email before deployment (G4)
 - [ ] **G11 / D24**: decide the release content. Verified: the 44 earlier uncommitted changes are **not** in production (production API spec has no `POST /api/auth/google`), so this release would ship them for the first time. Options: ship together (recommended; security-relevant paths reviewed and tested) or a C0-only rebuild on `master`.
 - [ ] **G12**: tell me whether `Google:ClientId` is set on the server
-- [ ] Push the prepared branch only after D20 (pushing may trigger a Vercel preview build)
+- [ ] Push the prepared branch only after the phase is approved (pushing does not deploy)
 
 ### Unresolved risks (accepted or tracked)
 | Risk | Status |
@@ -144,17 +158,20 @@ No existing work was discarded. The pre-C0 snapshot and archive are unchanged. T
 | CV uploads unavailable, so new users cannot apply | Accepted for demo until D21b |
 | The release ships the 44 earlier uncommitted changes, which I only reviewed for security-relevant paths (Google sign-in hardened; admin views covered by the leak sweep) | Owner confirmation G11 |
 | Earlier uncommitted features go live for the first time with this release (production runs `master`) | Decision D24 |
+| No production database backup (G1 waived) | Accepted by owner: unrelated data loss would be permanent |
+| Default admin password was publicly readable for ~5 months | G3: rotate and review Admin-role accounts before deployment |
 | Dev-only npm advisories (22, tooling) | Phase 02 |
 
 ### Approvals required
 | ID | Decision |
 |---|---|
-| **D20** | Final approval to deploy C0 (after gates G1–G9) |
+| **D20** | Final approval to deploy C0 (after gates G3–G9, G11, G12; G1 waived) |
 | D20-copy | Demo banner wording |
 | D20-cleanup | Later: deletion of reviewed obsolete server files (runbook §6) |
 | **D21** | Per-class action for existing public CV assets, after the inventory; breach assessment outcome |
 | D21b | Enable CV uploads after the spike passes |
 | D23 | Publish the prepared Vercel preview probe |
-| D-push | Push `security/c0-emergency-containment` to GitHub (and open a PR) |
+| D-push | Push `security/c0-emergency-containment` to GitHub after C0 approval (no deployment is triggered) |
+| D-bootstrap | Any use of the admin bootstrap script against a shared or production database |
 | **D24** | Release content: ship C0 together with the earlier uncommitted features, or rebuild C0-only on `master` |
 | Next phase | Start Phase 00 after C0 is completed |

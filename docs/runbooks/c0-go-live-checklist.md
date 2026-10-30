@@ -6,24 +6,24 @@
 ## A. Before deployment day: gates
 | ✔ | Gate | Owner check |
 |---|---|---|
-| ☐ | G1 | Production DB backup **downloaded** and **restored locally**; assessment SQL ran without errors |
-| ☐ | G2 | Data classified: test-only / real third-party |
-| ☐ | G3 | Admin password rotated; admin login history reviewed (no unknown logins) |
+| ✔ | G1 | **Waived by owner:** disposable test data; no backup required (accepted risk: loss would be permanent) |
+| ✔ | G2 | Owner confirmed: disposable test data |
+| ☐ | G3 | Admin password rotated (the old one was public in README); all Admin-role accounts reviewed, unknown ones reported (not deleted) |
 | ☐ | G4 | Admin email **unchanged** (rollback hazard) |
 | ☐ | G5 | Secrets location and `ASPNETCORE_ENVIRONMENT` known |
 | ☐ | G6 | Current site files downloaded (zip) |
 | ☐ | G7 | Server config does not enable `Features:CvUploadsEnabled` |
-| ☐ | G8 | Vercel deploy method known; current production deployment id noted |
+| ✔ | G8 | GitHub ↔ Vercel not connected; manual `npx vercel --prod`. Note the current deployment id for rollback ☐ |
 | ☐ | G9 | Two test candidates with applications; ids noted |
 | ☐ | G11 | D24 decided: ship C0 together with the earlier uncommitted features (not yet live) or C0-only |
 | ☐ | G12 | `Google:ClientId` on server known (empty means Google sign-in is disabled) |
-| ☐ | D21 inventory | Cloudinary `inventory` + `spike` run; summaries shared |
+| ☐ | Cloudinary | Credentials entered via user-secrets (`configuration-and-secrets.md` §2); `inventory` + `spike` run; summaries shared |
 | ☐ | G10 | D20 approval received |
 
 ## B. Deployment (≈15 min)
-1. ☐ `certutil -hashfile WazzufJobs.API-C0-win-x86.zip SHA256` gives `9e4d14ebddd77b0af7f63eb553b9e1f24370647c102675252b77d8a405cfa83b`
+1. ☐ `certutil -hashfile WazzufJobs.API-C0-win-x86.zip SHA256` gives `a088f67b207d5226193d5cf3dd47e5b1f0cbe7e2887044893569cb8927da803b`
 2. ☐ Upload `app_offline.htm` to the site root
-3. ☐ Upload the **contents** of `backend-package\`, overwriting; delete nothing (`web.config`, `appsettings*.json`, `App_Data`, `logs`, `.well-known` stay)
+3. ☐ Upload the **contents** of `backend-package\`, overwriting; delete nothing (`web.config`, `appsettings*.json`, `App_Data`, `logs`, `.well-known` stay). **Never** use the VS publish profile for this release.
 4. ☐ Delete `app_offline.htm`
 5. ☐ `https://wazzufjobs.runasp.net/health` returns `Healthy` within 2 min. If not, go to **D**.
 6. ☐ Frontend: `npx vercel --prod` (or the approved Git route)
@@ -44,10 +44,10 @@
 |---|---|
 | Anything fails | **1. Upload `app_offline.htm` immediately.** 2. Diagnose (`lifecycle.log`, `logs\`). 3. Fix forward with the C0 package. |
 | Service must return before a fix | **Restricted rollback** (runbook §5.2): confirm `admin@wazzuf.com` still exists → restore the pre-C0 site files except `web.config` → merge `restricted-rollback.web.config.snippet.xml` into the server `web.config` → remove `app_offline.htm` → curl checks return **404** for `/api/Applications/1`, `/api/applications/job/1`, `/api/CV`, `/swagger/v1/swagger.json`, `/index.html`, `/hubs/scoring`. If any is not 404, go back offline. |
-| Admin email already changed | **Never** restore the pre-C0 build (it would re-create `admin@wazzuf.com` / `Admin@123456`). Stay offline and fix forward. |
+| Admin email already changed | **Never** restore the pre-C0 build (it would re-create `admin@wazzuf.com` with the former default password). Stay offline and fix forward. |
 | Frontend only | Vercel → previous deployment → *Promote to Production*. Safe: it does not re-expose data. |
 | Unrestricted rollback | Only with the owner's explicit written acceptance of re-exposing S1/S3/S4/S13 |
-| Database | No C0 schema or data changes, so nothing to roll back |
+| Database | No C0 schema or data changes, so nothing to roll back. No backup exists (G1 waived): unrelated data loss would be permanent. |
 
 ## E. After go-live
 - ☐ Record results in `docs/audit/c0-containment-report.md` (Production verification)

@@ -1,6 +1,6 @@
 # Runbook: Phase C0 emergency deployment
 
-> **Production deployment is NOT authorized.** Execute only after D20 final approval. Revision 3, 2026-10-30.
+> **Production deployment is NOT authorized.** Execute only after D20 final approval. Revision 4, 2026-10-30 (owner decisions: no admin seeding, DB backup waived, manual Vercel deploys).
 > Condensed version for deployment day: `c0-go-live-checklist.md`.
 > Golden rule: **a failed deployment must never silently restore the known vulnerabilities.** On failure, the default action is to take the API **offline** (§5).
 
@@ -9,7 +9,7 @@ Location: `F:\.NET study\Projects\WazzufJobs_release\C0-2026-10-30\`
 
 | Artifact | Content |
 |---|---|
-| `WazzufJobs.API-C0-win-x86.zip` | Release build. SHA-256 `9e4d14ebddd77b0af7f63eb553b9e1f24370647c102675252b77d8a405cfa83b` (also in `.sha256`). Verify before uploading: `certutil -hashfile WazzufJobs.API-C0-win-x86.zip SHA256`. |
+| `WazzufJobs.API-C0-win-x86.zip` | Release build. SHA-256 `a088f67b207d5226193d5cf3dd47e5b1f0cbe7e2887044893569cb8927da803b` (also in `.sha256`). Verify before uploading: `certutil -hashfile WazzufJobs.API-C0-win-x86.zip SHA256`. |
 | `backend-package\` | Same content unzipped: 94 files. **Excludes** `appsettings*.json`, `web.config` and `*.pdb`. |
 | `backend-package-manifest.txt` | SHA-256 + path of every package file (input for §6) |
 | `frontend-dist\browser\` | Angular production build, Angular 21.2.25 (API base `https://wazzufjobs.runasp.net/api`). Reference only: Vercel builds from source. |
@@ -26,22 +26,22 @@ Location: `F:\.NET study\Projects\WazzufJobs_release\C0-2026-10-30\`
 | File set | Same 94 files as the pre-C0 publish, minus the excluded config and `.pdb` files. No file is removed or renamed. |
 | Changed files | `WazzufJobs.API.dll/.exe`, `WazzufJobs.BLL.dll`, `WazzufJobs.DAL.dll`, `WazzufJobs.Shared.dll`; 3 email templates differ only in line endings |
 | Generated `web.config` | Byte-identical to the pre-C0 one (`processPath=".\WazzufJobs.API.exe"`, `hostingModel="inprocess"`), so the server's existing `web.config` remains valid |
-| New configuration | None required. Safe code defaults: `Features:CvUploadsEnabled=false`, `RateLimiting:AuthPermitLimitPerMinute=20`, `Diagnostics:LifecycleLogEnabled=true`; `AdminBootstrap:*` absent, so the admin seeder is skipped. |
+| New configuration | None required. Safe code defaults: `Features:CvUploadsEnabled=false`, `Storage:DocumentProvider=Cloudinary`, `RateLimiting:AuthPermitLimitPerMinute=20`, `Diagnostics:LifecycleLogEnabled=true`. **No administrator is created at startup** (former `AdminBootstrap:*` settings are ignored); startup logs whether an active administrator exists. |
 | Server writes | Only `App_Data\lifecycle.log` (failures are caught and logged; the app never crashes on it) |
-| Scans | `dotnet list package --vulnerable --include-transitive`: **0** for all projects. `npm audit --omit=dev`: **0** (Angular 21.2.13 → 21.2.25 patch, which fixes the XSS sanitization bypasses; unused `@microsoft/signalr`/`ws` removed). Dev-only tooling advisories remain (not shipped). The C0 DLLs contain no legacy credential strings (UTF-16 scan); the pre-C0 DAL contained `Admin@123456`. |
+| Scans | `dotnet list package --vulnerable --include-transitive`: **0** for all projects. `npm audit --omit=dev`: **0** (Angular 21.2.13 → 21.2.25 patch, which fixes the XSS sanitization bypasses; unused `@microsoft/signalr`/`ws` removed). Dev-only tooling advisories remain (not shipped). The C0 DLLs contain no legacy credential strings (UTF-16 scan); the pre-C0 DAL contained the former default password. |
 | Not verifiable from here [U] | Exact .NET 9 patch installed on the host; server `ASPNETCORE_ENVIRONMENT` value (if it is `Development`, Swagger stays exposed, which post-deploy check 1 detects); where production secrets are stored |
 
 ## 1. Deployment gates (ALL required; record evidence in the containment report)
 | Gate | Requirement | Evidence |
 |---|---|---|
-| **G1** | **Production DB backup taken in the control panel, DOWNLOADED, and SUCCESSFULLY RESTORED locally** (`WazzufJobs_ProdRestore`), with `tools/c0/sql/01_readonly_production_assessment.sql` run on the restore | Backup file name, size and time; restore completed without error; result 1 row counts recorded |
-| G2 | VER-01 classification recorded (test-only vs real third-party data) | Your written statement |
-| G3 | Production admin password **rotated**; admin login history (result 5) reviewed with no unknown logins, or an incident declared | Date of rotation; review outcome |
+| ~~G1~~ | **Waived by the owner (2026-10-30).** The production database holds disposable test data and no backup is required for preservation. **Accepted risk:** without a backup, any loss or corruption of the existing data is permanent. C0 itself does not touch the database. A control-panel backup remains a 1-minute optional precaution. | Waiver recorded |
+| G2 | **Satisfied (2026-10-30):** the owner confirmed the production data is disposable test data | Owner statement |
+| G3 | Production admin password **rotated**. The original the former default password was published in the public README from 2026-05-21 until C0, so treat it as compromised. **All accounts holding the Admin role reviewed** (Admin → Users after login, or `01_readonly_production_assessment.sql` sections 4–5 run read-only); unknown admins reported, not deleted. | Date; review outcome |
 | G4 | **Do not change the admin email before deployment** (see §5.4 hazard) | n/a |
-| G5 | Location of production secrets confirmed (server `appsettings.json` / `web.config` env vars / control panel), and the server `ASPNETCORE_ENVIRONMENT` value known | Your note |
+| G5 | Location of production secrets confirmed (server `appsettings.json` / `appsettings.Production.json` / `web.config` env vars), and the server `ASPNETCORE_ENVIRONMENT` value known. The repository `appsettings.json` no longer carries the cloud name or mail address, so production must keep them in **server-side** configuration (see `configuration-and-secrets.md` §3). | Your note |
 | G6 | Downloaded copy of the **current site files** (zip of the site root), used for §5 and §6 | Zip name and size |
 | G7 | Server `appsettings.json` does **not** set `Features:CvUploadsEnabled=true` | Checked |
-| G8 | Vercel deployment method known (CLI vs Git integration); current production deployment noted for instant rollback | Deployment id |
+| G8 | **Resolved (2026-10-30):** GitHub and Vercel are not connected, so pushing to GitHub deploys nothing. The frontend is deployed manually with the Vercel CLI. Note the current production deployment id for rollback. | Deployment id |
 | G9 | Two test accounts on production: a candidate with an application, and a second candidate with an application whose id you note | Ids noted (no passwords recorded) |
 | G11 | **Release content decision (D24).** Verified 2026-10-30 by comparing the public production API spec (47 endpoints): production runs the **committed** code, so the 44 previously uncommitted changes (Google sign-in, profile photo, admin user/application details, status-update email template) are **not live**. This release would ship them for the first time, together with C0. New endpoints: `POST /api/auth/google`, `GET /api/cv/file`, `GET /api/applications/{id}/cv`, `GET /health`. Choose: (a) ship together, as built and tested (recommended); or (b) a C0-only rebuild on top of `master` (extra work and retest). | Your choice |
 | G12 | Google sign-in configuration known: if the server sets `Google:ClientId`, Google sign-in becomes active. It is now hardened (verified emails only; no linking to unconfirmed accounts). | Note |
@@ -53,7 +53,7 @@ Location: `F:\.NET study\Projects\WazzufJobs_release\C0-2026-10-30\`
 3. Delete `app_offline.htm`.
 4. Within 2 min, `GET https://wazzufjobs.runasp.net/health` must return `Healthy`. Otherwise go to **§5**.
 
-Visual Studio publish (`site69433`) is allowed **only if G5 confirmed the server `appsettings.json` contains no secrets**, because VS uploads the repository `appsettings.json` (empty secrets) and a regenerated `web.config`.
+**Do not use the Visual Studio publish profile (`site69433`) for this release.** It uploads the repository `appsettings.json`, which has empty secrets, cloud name and mail address, plus a regenerated `web.config`, and that would break production configuration. Use the package upload above.
 
 ## 3. Deploy frontend (≈5 min, after the backend is healthy)
 - CLI-linked: in `SrcCode/Frontend/wazzuf-jobs-frontend` run `npx vercel --prod`.
@@ -117,10 +117,10 @@ Failure detected (health not OK, 5xx, core flow broken, security check failing)
 7. Frontend: either keep the C0 frontend (it tolerates the missing endpoints) or promote the previous Vercel deployment. Neither re-exposes data on its own.
 
 ### 5.3 Database
-C0 makes **no schema or data changes**, so no DB rollback is needed for C0. The G1 backup is only for unrelated corruption.
+C0 makes **no schema or data changes**, so no DB rollback is needed for C0. G1 was waived by the owner: if the database is lost or corrupted for unrelated reasons, the existing test data **cannot be restored** (accepted risk).
 
 ### 5.4 Rollback hazard: default-admin re-seeding
-The **pre-C0** build creates `admin@wazzuf.com` / `Admin@123456` whenever no account with that email exists. So:
+The **pre-C0** build creates `admin@wazzuf.com` with the former default password whenever no account with that email exists. So:
 - do **not** change the admin email until C0 has run successfully for ≥ 7 days and rollback is no longer expected (§7);
 - if the email has already been changed, **never** restore the pre-C0 build (stay offline and fix forward).
 
@@ -148,7 +148,12 @@ Procedure:
 4. If Save returns **"Invalid Roles"**, your account also holds the default "User" role. Existing validation rejects it before anything changes, so nothing was modified. Report this and do not work around it.
 5. Optionally trigger "Forgot password" for the new email to confirm the mailbox receives mail.
 
-## 8. After deployment
+## 8. Source control policy
+- GitHub and Vercel are not connected, so pushing never deploys.
+- Push only after a phase is **tested and approved**: professional commits, documentation and README updated where appropriate.
+- CI/CD (GitHub Actions and/or Vercel Git integration) may be introduced later, once test and deployment safeguards exist.
+
+## 9. After deployment
 - Monitor `/health` and `lifecycle.log` for ≥ 7 days (VER-03).
 - **CV uploads stay disabled** until the synthetic spike passes **and** D21b is approved. Re-enabling means setting `Features:CvUploadsEnabled=true` in the server configuration; it is a separate approved change.
 - Existing public CVs remain public until D21 remediation (the next priority).
