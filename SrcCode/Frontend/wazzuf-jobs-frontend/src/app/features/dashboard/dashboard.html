@@ -53,12 +53,12 @@
         <span class="stat-label">Applications sent</span>
       </div>
       <div class="stat-card glass-card">
-        <span class="stat-value">{{ avgScore() }}</span>
-        <span class="stat-label">Average AI match</span>
+        <span class="stat-value">{{ inProgressCount() }}</span>
+        <span class="stat-label">In progress</span>
       </div>
       <div class="stat-card glass-card highlight-stat">
         <span class="stat-label">Tip</span>
-        <p class="stat-tip">Apply with an updated CV for the best AI score</p>
+        <p class="stat-tip">Keep your profile and CV up to date before applying</p>
       </div>
     </div>
 
@@ -94,7 +94,7 @@
         <div class="empty-state glass-card friendly-empty">
           <div class="empty-icon">🚀</div>
           <h3>Ready to take the next step?</h3>
-          <p>You haven't applied yet. Pick a job you like — we'll score your CV in seconds.</p>
+          <p>You haven't applied yet. Pick a job you like and apply with your CV.</p>
           <a routerLink="/jobs" class="btn-glow btn-large"><span>Browse open roles</span></a>
         </div>
       } @else if (filteredApplications.length === 0) {
@@ -112,20 +112,10 @@
                 <p class="app-sub">{{ app.jobLocation }} · {{ app.categoryName }}</p>
                 <span class="status-badge" [class]="statusCss(app.status)">{{ app.status }}</span>
               </div>
-              <div class="score-panel" [class.scored]="app.isAIScored">
-                @if (app.isAIScored && app.aiScore != null) {
-                  <div class="score-ring" [class.high]="app.aiScore >= 80" [class.mid]="app.aiScore >= 50 && app.aiScore < 80">
-                    <span class="score-num">{{ app.aiScore | number:'1.0-0' }}%</span>
-                  </div>
-                  <span class="score-label">Match score</span>
-                } @else {
-                  <span class="score-wait">⏳ AI is reviewing your CV…</span>
-                }
+              <div class="score-panel">
+                <span class="score-label">Applied {{ app.appliedAt | date:'mediumDate' }}</span>
               </div>
             </article>
-            @if (app.aiFeedback) {
-              <p class="ai-feedback glass-card soft-feedback">💡 {{ app.aiFeedback }}</p>
-            }
           }
         </div>
       }

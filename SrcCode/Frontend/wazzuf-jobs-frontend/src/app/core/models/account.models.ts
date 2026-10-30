@@ -28,7 +28,7 @@ export interface AdminUserRow {
   isDisabled: boolean;
   roles: string[];
   profilePhotoUrl?: string;
-  cvUrl?: string;
+  hasCv?: boolean;
   desiredSalary?: number | null;
   showSalary?: boolean;
 }

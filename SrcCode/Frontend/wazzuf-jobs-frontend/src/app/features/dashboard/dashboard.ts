@@ -74,10 +74,8 @@ export class Dashboard implements OnInit {
     this.filteredApplications = this.applications.filter(app => app.status === APPLICATION_STATUS_LABELS[status]);
   }
 
-  avgScore(): string {
-    const scored = this.applications.filter(a => a.isAIScored && a.aiScore != null);
-    if (!scored.length) return '—';
-    const avg = scored.reduce((s, a) => s + (a.aiScore ?? 0), 0) / scored.length;
-    return `${Math.round(avg)}%`;
+  inProgressCount(): number {
+    const closed = ['Rejected', 'Accepted'];
+    return this.applications.filter(a => !closed.includes(a.status)).length;
   }
 }

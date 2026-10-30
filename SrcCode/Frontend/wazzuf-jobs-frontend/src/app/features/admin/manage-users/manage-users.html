@@ -73,8 +73,8 @@
               <p>{{ viewingUser.email }}</p>
               <p>Roles: {{ (viewingUser.roles || []).join(', ') }}</p>
               <p>Status: <strong>{{ viewingUser.isDisabled ? 'Disabled' : 'Active' }}</strong></p>
-              @if (viewingUser.cvUrl) {
-                <p><a [href]="viewingUser.cvUrl" target="_blank" rel="noopener" class="link">View applicant CV</a></p>
+              @if (viewingUser.hasCv != null) {
+                <p>CV on file: <strong>{{ viewingUser.hasCv ? 'Yes' : 'No' }}</strong> <span class="muted">(open it from the applicant's application)</span></p>
               }
               @if (viewingUser.desiredSalary != null) {
                 <p>Salary expectation: ${{ viewingUser.desiredSalary }}</p>

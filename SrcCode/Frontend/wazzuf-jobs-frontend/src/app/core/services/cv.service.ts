@@ -23,4 +23,8 @@ export class CvService {
   delete() {
     return this.http.delete<void>(this.api);
   }
+
+  downloadFile() {
+    return this.http.get(`${this.api}/file`, { observe: 'response', responseType: 'blob' });
+  }
 }

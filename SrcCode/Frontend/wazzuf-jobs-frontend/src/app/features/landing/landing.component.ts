@@ -36,8 +36,8 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
   features = [
     {
       icon: '🤖',
-      title: 'AI-Powered Matching',
-      description: 'Our AI scores your CV against job requirements instantly'
+      title: 'AI-Assisted Review',
+      description: 'AI helps employers review applications; hiring decisions are always made by people'
     },
     {
       icon: '⚡',

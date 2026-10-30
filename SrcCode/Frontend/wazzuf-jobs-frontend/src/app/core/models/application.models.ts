@@ -1,13 +1,11 @@
 // src/app/core/models/application.models.ts
+// Candidate-facing: the API never returns AI assessment data for the applicant.
 export interface MyApplication {
   id: number;
   jobTitle: string;
   jobLocation: string;
   categoryName: string;
   status: string;
-  aiScore: number | null;
-  aiFeedback: string | null;
-  isAIScored: boolean;
   appliedAt: string;
 }
 
@@ -28,7 +26,7 @@ export interface ApplicationDetail {
   applicantName: string;
   applicantEmail: string;
   applicantProfilePhotoUrl?: string;
-  cvUrl: string;
+  hasCv: boolean;
   jobTitle: string;
   status: string;
   aiScore: number | null;
@@ -39,9 +37,9 @@ export interface ApplicationDetail {
   showSalary?: boolean;
 }
 
+// CV files are downloaded through the API only; no storage URL is exposed.
 export interface CVResponse {
   id: number;
-  url: string;
   fileName: string;
   uploadedAt: string;
 }

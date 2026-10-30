@@ -213,13 +213,19 @@
 
 
 
-          @if (detail.cvUrl) {
+          @if (detail.hasCv) {
 
-            <a [href]="detail.cvUrl" target="_blank" rel="noopener" class="btn-glow" style="display:inline-block;margin-top:20px;text-decoration:none;">
+            <button type="button" class="btn-glow" style="display:inline-block;margin-top:20px;" (click)="downloadCv(detail.id)" [disabled]="downloadingCv">
 
-              <span>📄 View CV</span>
+              <span>📄 {{ downloadingCv ? 'Preparing…' : 'Download CV' }}</span>
 
-            </a>
+            </button>
+
+            @if (cvDownloadError) {
+
+              <p class="feedback">{{ cvDownloadError }}</p>
+
+            }
 
           }
 

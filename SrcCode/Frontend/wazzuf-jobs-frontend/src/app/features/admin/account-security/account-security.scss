@@ -1,0 +1,24 @@
+.security-card {
+  max-width: 520px;
+  padding: 28px;
+
+  h2 { font-size: 18px; margin-bottom: 6px; }
+  .hint { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 16px;
+
+    label { font-size: 13px; color: var(--text-secondary); }
+  }
+
+  .message {
+    font-size: 13px;
+    margin: 12px 0;
+
+    &.error { color: var(--danger); }
+    &.success { color: var(--success); }
+  }
+}

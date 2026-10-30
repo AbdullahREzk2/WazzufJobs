@@ -103,7 +103,7 @@ export class JobDetail implements OnInit {
     this.applicationService.apply(this.job.id).subscribe({
       next: () => {
         this.applied = true;
-        this.success = 'Application submitted! AI will score your CV shortly.';
+        this.success = 'Application submitted! You can track its status from your dashboard.';
         this.applying = false;
       },
       error: err => {

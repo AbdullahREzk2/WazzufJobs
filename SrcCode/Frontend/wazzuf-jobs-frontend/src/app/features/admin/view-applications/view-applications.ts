@@ -6,6 +6,7 @@ import { UserAvatar } from '../../../shared/components/user-avatar/user-avatar';
 import { JobService } from '../../../core/services/job.service';
 import { ApplicationService } from '../../../core/services/application.service';
 import { JobSummary } from '../../../core/models/job.models';
+import { saveBlobResponse } from '../../../core/utils/file-download';
 import {
   ApplicationResponse,
   ApplicationDetail
@@ -84,6 +85,24 @@ export class ViewApplications implements OnInit {
     }
     const label = APPLICATION_STATUS_LABELS[this.selectedStatus];
     this.filteredApplications = this.applications.filter(app => app.status === label);
+  }
+
+  cvDownloadError = '';
+  downloadingCv = false;
+
+  downloadCv(applicationId: number) {
+    this.cvDownloadError = '';
+    this.downloadingCv = true;
+    this.applicationService.downloadCv(applicationId).subscribe({
+      next: response => {
+        this.downloadingCv = false;
+        saveBlobResponse(response, `application-${applicationId}-cv.pdf`);
+      },
+      error: () => {
+        this.downloadingCv = false;
+        this.cvDownloadError = 'The CV could not be downloaded right now.';
+      }
+    });
   }
 
   viewDetail(id: number) {

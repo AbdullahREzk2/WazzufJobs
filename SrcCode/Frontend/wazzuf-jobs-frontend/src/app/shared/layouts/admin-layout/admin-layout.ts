@@ -19,7 +19,8 @@ export class AdminLayout implements OnInit {
     { path: '/admin/categories', label: 'Categories', icon: '📂', exact: false },
     { path: '/admin/applications', label: 'Applications', icon: '📋', exact: false },
     { path: '/admin/users', label: 'Users', icon: '👥', exact: false },
-    { path: '/admin/roles', label: 'Roles', icon: '🔐', exact: false }
+    { path: '/admin/roles', label: 'Roles', icon: '🔐', exact: false },
+    { path: '/admin/account-security', label: 'Account security', icon: '🛡️', exact: false }
   ];
 
   constructor(
