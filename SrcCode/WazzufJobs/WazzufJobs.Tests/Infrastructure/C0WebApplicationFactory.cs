@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using WazzufJobs.BLL.Services;
+using WazzufJobs.BLL.Services.Storage;
 using WazzufJobs.DAL.Persistence;
 
 namespace WazzufJobs.Tests.Infrastructure;
@@ -22,9 +23,12 @@ public class C0WebApplicationFactory : WebApplicationFactory<WazzufJobs.API.Prog
 {
     private readonly string _databaseName = $"wazzuf-c0-{Guid.NewGuid():N}";
 
-    public FakeCloudinaryService Storage { get; } = new();
+    public FakeDocumentStorage Storage { get; } = new();
+    public FakeImageService Images { get; } = new();
     public FakeEmailSender Email { get; } = new();
     public FakeBackgroundJobClient BackgroundJobs { get; } = new();
+
+    public const string IgnoredBootstrapEmail = "bootstrap-attempt@example.test";
 
     protected virtual bool CvUploadsEnabled => false;
 
@@ -55,8 +59,9 @@ public class C0WebApplicationFactory : WebApplicationFactory<WazzufJobs.API.Prog
         builder.UseSetting("AISettings:ApiKey", "test");
         builder.UseSetting("AppURL:BaseUrl", "https://api.example.test");
         builder.UseSetting("AppURL:FrontendUrl", "https://app.example.test");
-        builder.UseSetting("AdminBootstrap:Email", "");
-        builder.UseSetting("AdminBootstrap:Password", "");
+        // former bootstrap settings are deliberately present: they must be ignored (no automatic admin creation)
+        builder.UseSetting("AdminBootstrap:Email", IgnoredBootstrapEmail);
+        builder.UseSetting("AdminBootstrap:Password", "Ignored#Passw0rd!1");
         builder.UseSetting("Features:CvUploadsEnabled", CvUploadsEnabled.ToString());
         builder.UseSetting("RateLimiting:AuthPermitLimitPerMinute", AuthPermitLimitPerMinute.ToString());
         builder.UseSetting("Diagnostics:LifecycleLogEnabled", "false");
@@ -80,7 +85,10 @@ public class C0WebApplicationFactory : WebApplicationFactory<WazzufJobs.API.Prog
             services.AddSingleton<IBackgroundJobClient>(BackgroundJobs);
 
             services.RemoveAll<ICloudinaryService>();
-            services.AddSingleton<ICloudinaryService>(Storage);
+            services.AddSingleton<ICloudinaryService>(Images);
+
+            services.RemoveAll<IDocumentStorage>();
+            services.AddSingleton<IDocumentStorage>(Storage);
 
             services.RemoveAll<IEmailSender>();
             services.AddSingleton<IEmailSender>(Email);

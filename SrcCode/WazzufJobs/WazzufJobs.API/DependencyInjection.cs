@@ -16,6 +16,7 @@ using WazzufJobs.BLL.Authentication;
 using WazzufJobs.BLL.Errors;
 using WazzufJobs.BLL.Helpers;
 using WazzufJobs.BLL.Services;
+using WazzufJobs.BLL.Services.Storage;
 using WazzufJobs.BLL.Setting;
 using WazzufJobs.BLL.Settings;
 using WazzufJobs.DAL.Entities;
@@ -168,8 +169,22 @@ public static class DependencyInjection
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
-        services.AddHttpClient(nameof(CloudinaryService), client => client.Timeout = TimeSpan.FromSeconds(30));
+        // public images (profile photos, category icons)
         services.AddScoped<ICloudinaryService, CloudinaryService>();
+
+        // private documents (CVs) behind a provider-neutral abstraction
+        var storage = configuration.GetSection(StorageSettings.SectionName).Get<StorageSettings>() ?? new StorageSettings();
+        services.Configure<StorageSettings>(configuration.GetSection(StorageSettings.SectionName));
+        switch (storage.DocumentProvider)
+        {
+            case "Cloudinary":
+                services.AddHttpClient(CloudinaryDocumentStorage.HttpClientName, client => client.Timeout = TimeSpan.FromSeconds(30));
+                services.AddScoped<IDocumentStorage, CloudinaryDocumentStorage>();
+                break;
+            default:
+                // fail closed: never fall back to an unintended (possibly public) storage
+                throw new InvalidOperationException($"Unsupported Storage:DocumentProvider '{storage.DocumentProvider}'.");
+        }
 
         return services;
     }

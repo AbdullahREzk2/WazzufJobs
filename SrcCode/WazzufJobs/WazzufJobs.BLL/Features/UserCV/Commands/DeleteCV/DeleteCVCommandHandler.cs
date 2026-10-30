@@ -1,15 +1,16 @@
 ﻿using Microsoft.Extensions.Logging;
 using WazzufJobs.BLL.Services;
+using WazzufJobs.BLL.Services.Storage;
 
 namespace WazzufJobs.BLL.Features.UserCV.Commands.DeleteCV;
 
 public class DeleteCVCommandHandler(
     ICVRepository cvRepository,
-    ICloudinaryService cloudinaryService,
+    IDocumentStorage documentStorage,
     ILogger<DeleteCVCommandHandler> logger): IRequestHandler<DeleteCVCommand, Result>
 {
     private readonly ICVRepository _cvRepository = cvRepository;
-    private readonly ICloudinaryService _cloudinaryService = cloudinaryService;
+    private readonly IDocumentStorage _documentStorage = documentStorage;
     private readonly ILogger<DeleteCVCommandHandler> _logger = logger;
 
     public async Task<Result> Handle(DeleteCVCommand request,CancellationToken cancellationToken)
@@ -28,7 +29,7 @@ public class DeleteCVCommandHandler(
                     "LegacyCvAssetRetained: user {UserId} deleted a legacy public CV asset {PublicId}; awaiting approved remediation.",
                     request.UserId, cv.PublicId);
             }
-            else if (!await _cloudinaryService.DeleteRawFileAsync(cv.PublicId, CvStorage.AuthenticatedType, cancellationToken))
+            else if (!await _documentStorage.DeleteAsync(cv.PublicId, CvStorage.AuthenticatedType, cancellationToken))
             {
                 _logger.LogWarning("CvAssetDeleteFailed: authenticated CV asset {PublicId} could not be deleted.", cv.PublicId);
             }

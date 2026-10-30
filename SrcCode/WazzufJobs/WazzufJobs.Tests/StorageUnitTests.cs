@@ -1,4 +1,5 @@
 using WazzufJobs.BLL.Services;
+using WazzufJobs.BLL.Services.Storage;
 using WazzufJobs.Tests.Infrastructure;
 
 namespace WazzufJobs.Tests;
@@ -10,7 +11,7 @@ public class StorageUnitTests
     {
         using var content = new MemoryStream(PdfBuilder.CreateTextPdf("x"));
 
-        var parameters = CloudinaryService.BuildPrivateRawUploadParams(content, CvStorage.CvFolder);
+        var parameters = CloudinaryDocumentStorage.BuildPrivateRawUploadParams(content, CvStorage.CvFolder);
 
         Assert.Equal("authenticated", parameters.Type);
         Assert.False(parameters.UseFilename);

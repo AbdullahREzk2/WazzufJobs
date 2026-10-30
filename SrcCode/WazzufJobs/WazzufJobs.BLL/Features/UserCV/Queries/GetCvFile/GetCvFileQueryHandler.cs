@@ -1,18 +1,19 @@
 using WazzufJobs.BLL.Contracts.UserCV;
 using WazzufJobs.BLL.Services;
+using WazzufJobs.BLL.Services.Storage;
 
 namespace WazzufJobs.BLL.Features.UserCV.Queries.GetCvFile;
 
 public class GetCvFileQueryHandler(
     ICVRepository cvRepository,
     IApplicationRepository applicationRepository,
-    ICloudinaryService cloudinaryService)
+    IDocumentStorage documentStorage)
     : IRequestHandler<GetCvFileQuery, Result<CvFileResponse>>,
       IRequestHandler<GetApplicationCvFileQuery, Result<CvFileResponse>>
 {
     private readonly ICVRepository _cvRepository = cvRepository;
     private readonly IApplicationRepository _applicationRepository = applicationRepository;
-    private readonly ICloudinaryService _cloudinaryService = cloudinaryService;
+    private readonly IDocumentStorage _documentStorage = documentStorage;
 
     public async Task<Result<CvFileResponse>> Handle(GetCvFileQuery request, CancellationToken cancellationToken)
     {
@@ -39,7 +40,7 @@ public class GetCvFileQueryHandler(
 
     private async Task<Result<CvFileResponse>> DownloadAsync(CV cv, CancellationToken cancellationToken)
     {
-        var bytes = await _cloudinaryService.DownloadRawFileAsync(
+        var bytes = await _documentStorage.ReadAsync(
             cv.PublicId,
             CvStorage.DeliveryTypeFromUrl(cv.Url),
             cancellationToken);

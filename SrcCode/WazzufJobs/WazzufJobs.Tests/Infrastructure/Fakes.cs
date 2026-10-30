@@ -5,40 +5,46 @@ using Hangfire.States;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using WazzufJobs.BLL.Services;
+using WazzufJobs.BLL.Services.Storage;
 
 namespace WazzufJobs.Tests.Infrastructure;
 
-/// <summary>In-memory stand-in for Cloudinary. Records every call so tests can assert storage behaviour.</summary>
-public class FakeCloudinaryService : ICloudinaryService
+/// <summary>In-memory private document storage. Records every call so tests can assert storage behaviour.</summary>
+public class FakeDocumentStorage : IDocumentStorage
 {
     public static readonly byte[] SamplePdf = "%PDF-1.4\n% fake cv for tests\n%%EOF"u8.ToArray();
 
+    public string ProviderName => "Fake";
     public ConcurrentQueue<string> PrivateUploads { get; } = new();
     public ConcurrentQueue<(string PublicId, string DeliveryType)> Downloads { get; } = new();
     public ConcurrentQueue<(string PublicId, string DeliveryType)> RawDeletes { get; } = new();
 
-    public Task<CloudinaryUploadResult> UploadImageAsync(IFormFile file, string folder, CancellationToken cancellationToken = default)
-        => Task.FromResult(new CloudinaryUploadResult($"https://res.cloudinary.com/test/image/upload/{folder}/img.jpg", $"{folder}/img", true));
-
-    public Task<CloudinaryUploadResult> UploadPrivateFileAsync(Stream content, string folder, CancellationToken cancellationToken = default)
+    public Task<StoredDocument?> StorePrivateAsync(Stream content, string folder, CancellationToken cancellationToken = default)
     {
-        var publicId = $"{folder}/{Guid.NewGuid():N}";
-        PrivateUploads.Enqueue(publicId);
-        return Task.FromResult(new CloudinaryUploadResult(
-            $"https://res.cloudinary.com/test/raw/authenticated/s--sig--/v1/{publicId}", publicId, true));
+        var key = $"{folder}/{Guid.NewGuid():N}";
+        PrivateUploads.Enqueue(key);
+        return Task.FromResult<StoredDocument?>(new StoredDocument(
+            key, CvStorage.AuthenticatedType, $"https://res.cloudinary.com/test/raw/authenticated/s--sig--/v1/{key}"));
     }
 
-    public Task<byte[]?> DownloadRawFileAsync(string publicId, string deliveryType, CancellationToken cancellationToken = default)
+    public Task<byte[]?> ReadAsync(string key, string accessType, CancellationToken cancellationToken = default)
     {
-        Downloads.Enqueue((publicId, deliveryType));
+        Downloads.Enqueue((key, accessType));
         return Task.FromResult<byte[]?>(SamplePdf);
     }
 
-    public Task<bool> DeleteRawFileAsync(string publicId, string deliveryType, CancellationToken cancellationToken = default)
+    public Task<bool> DeleteAsync(string key, string accessType, CancellationToken cancellationToken = default)
     {
-        RawDeletes.Enqueue((publicId, deliveryType));
+        RawDeletes.Enqueue((key, accessType));
         return Task.FromResult(true);
     }
+}
+
+/// <summary>Public image hosting stand-in.</summary>
+public class FakeImageService : ICloudinaryService
+{
+    public Task<CloudinaryUploadResult> UploadImageAsync(IFormFile file, string folder, CancellationToken cancellationToken = default)
+        => Task.FromResult(new CloudinaryUploadResult($"https://res.cloudinary.com/test/image/upload/{folder}/img.jpg", $"{folder}/img", true));
 
     public Task<bool> DeleteAsync(string publicId, CancellationToken cancellationToken = default) => Task.FromResult(true);
 }

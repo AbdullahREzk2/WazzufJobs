@@ -6,6 +6,7 @@ using WazzufJobs.BLL.Abstractions;
 using WazzufJobs.BLL.Contracts.UserCV;
 using WazzufJobs.BLL.Errors;
 using WazzufJobs.BLL.Services;
+using WazzufJobs.BLL.Services.Storage;
 using WazzufJobs.BLL.Setting;
 using WazzufJobs.DAL.Entities;
 using WazzufJobs.DAL.IRepository;
@@ -14,7 +15,7 @@ namespace WazzufJobs.BLL.Features.UserCV.Commands.UploadCV;
 
 public class UploadCVCommandHandler(
     ICVRepository cvRepository,
-    ICloudinaryService cloudinaryService,
+    IDocumentStorage documentStorage,
     ICVTextExtractor cvTextExtractor,
     IOptions<FeatureSettings> features,
     ILogger<UploadCVCommandHandler> logger)
@@ -23,7 +24,7 @@ public class UploadCVCommandHandler(
     private const long MaxFileBytes = 5 * 1024 * 1024;
 
     private readonly ICVRepository _cvRepository = cvRepository;
-    private readonly ICloudinaryService _cloudinaryService = cloudinaryService;
+    private readonly IDocumentStorage _documentStorage = documentStorage;
     private readonly ICVTextExtractor _cvTextExtractor = cvTextExtractor;
     private readonly FeatureSettings _features = features.Value;
     private readonly ILogger<UploadCVCommandHandler> _logger = logger;
@@ -57,12 +58,12 @@ public class UploadCVCommandHandler(
             return Result.Failure<CVResponse>(CVErrors.ScannedPDF);
 
         memoryStream.Position = 0;
-        var uploadResult = await _cloudinaryService.UploadPrivateFileAsync(
+        var stored = await _documentStorage.StorePrivateAsync(
             memoryStream,
             CvStorage.CvFolder,
             cancellationToken);
 
-        if (!uploadResult.IsSuccess)
+        if (stored is null)
             return Result.Failure<CVResponse>(CVErrors.UploadFailed);
 
         var fileName = SanitizeFileName(request.File.FileName);
@@ -74,8 +75,8 @@ public class UploadCVCommandHandler(
             var previousPublicId = existingCV.PublicId;
             var previousUrl = existingCV.Url;
 
-            existingCV.Url = uploadResult.Url!;
-            existingCV.PublicId = uploadResult.PublicId!;
+            existingCV.Url = stored.ProviderReference;
+            existingCV.PublicId = stored.Key;
             existingCV.FileName = fileName;
             existingCV.ExtractedText = extractedText;
             existingCV.UploadedAt = DateTime.UtcNow;
@@ -94,8 +95,8 @@ public class UploadCVCommandHandler(
         var cv = new CV
         {
             UserId = request.UserId,
-            Url = uploadResult.Url!,
-            PublicId = uploadResult.PublicId!,
+            Url = stored.ProviderReference,
+            PublicId = stored.Key,
             FileName = fileName,
             ExtractedText = extractedText,
             UploadedAt = DateTime.UtcNow
@@ -124,7 +125,7 @@ public class UploadCVCommandHandler(
             return;
         }
 
-        var deleted = await _cloudinaryService.DeleteRawFileAsync(publicId, CvStorage.AuthenticatedType, cancellationToken);
+        var deleted = await _documentStorage.DeleteAsync(publicId, CvStorage.AuthenticatedType, cancellationToken);
         if (!deleted)
             _logger.LogWarning("CvAssetDeleteFailed: authenticated CV asset {PublicId} could not be deleted.", publicId);
     }
