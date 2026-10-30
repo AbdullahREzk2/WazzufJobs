@@ -1,0 +1,33 @@
+<!--
+  EMERGENCY RESTRICTED-ROLLBACK RULES (use only if the pre-C0 build must be restored).
+  Merge the <security> element below INSIDE the existing <system.webServer> element of the
+  server's CURRENT web.config (download it first; keep every other element, including any
+  <environmentVariables>). IIS request filtering runs before the ASP.NET Core module, so these
+  paths return 404.5 without reaching the vulnerable pre-C0 code.
+
+  Blocks:  S1/S4  /api/Applications/*  (applicant data + candidate AI scores; also disables apply/my-applications)
+           S3     /api/CV/*            (public CV uploads and CV URLs; also disables the CV section)
+           S13    /swagger, /index.html (public API documentation)
+           S5     /hangfire            (already 401, blocked for completeness)
+                  /hubs/scoring        (pre-C0 build pushes AI scores to candidates)
+  Several casings are listed because clients use both PascalCase and lowercase routes.
+  Verify after upload with the curl checks in docs/runbooks/c0-emergency-deployment.md (expect 404).
+-->
+<security>
+  <requestFiltering>
+    <denyUrlSequences>
+      <add sequence="/api/Applications" />
+      <add sequence="/api/applications" />
+      <add sequence="/api/APPLICATIONS" />
+      <add sequence="/api/CV" />
+      <add sequence="/api/cv" />
+      <add sequence="/api/Cv" />
+      <add sequence="/swagger" />
+      <add sequence="/Swagger" />
+      <add sequence="/index.html" />
+      <add sequence="/hangfire" />
+      <add sequence="/Hangfire" />
+      <add sequence="/hubs/scoring" />
+    </denyUrlSequences>
+  </requestFiltering>
+</security>
