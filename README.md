@@ -4,13 +4,15 @@
 
 ![Wazzuf Jobs](https://img.shields.io/badge/Wazzuf-Jobs-00d4ff?style=for-the-badge&logo=lightning&logoColor=white)
 ![.NET](https://img.shields.io/badge/.NET_9-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)
-![Angular](https://img.shields.io/badge/Angular_18-DD0031?style=for-the-badge&logo=angular&logoColor=white)
+![Angular](https://img.shields.io/badge/Angular_21-DD0031?style=for-the-badge&logo=angular&logoColor=white)
 ![Three.js](https://img.shields.io/badge/Three.js-000000?style=for-the-badge&logo=three.js&logoColor=white)
 ![SQL Server](https://img.shields.io/badge/SQL_Server-CC2927?style=for-the-badge&logo=microsoft-sql-server&logoColor=white)
 
-**A full-stack AI-powered job platform where users upload their CV, apply for jobs, and receive an instant AI match score powered by Groq LLaMA 3.**
+**A full-stack job platform where candidates apply with their CV and administrators review applications with the help of an advisory AI assessment (Groq LLaMA 3). Hiring decisions are always made by people.**
 
-[🌐 Live Demo](https://wazzuf-jobs.vercel.app)  • [📖 API Docs](https://wazzufjobs.runasp.net/index.html)
+[🌐 Live Demo](https://wazzuf-jobs.vercel.app)  • [🔒 Security notes](docs/audit/c0-containment-report.md)
+
+> The live site is a **demo**: please do not upload real CVs or personal documents.
 
 </div>
 
@@ -20,23 +22,22 @@
 
 ### 👤 For Job Seekers
 - 🔐 Register, confirm email, login with JWT authentication
-- 📄 Upload CV (PDF) — automatically validated and text extracted
+- 📄 Upload CV (PDF): validated, text extracted, stored privately (authenticated storage, served only through the API). *Uploads are temporarily disabled on the demo.*
 - 🔍 Browse and search jobs by title, keyword, location, category, type
 - ⚡ Apply for jobs with one click
-- 🤖 **AI Match Scoring** — Groq LLaMA 3 scores your CV against the job description instantly in the background
-- 📊 Track all your applications and AI scores in your dashboard
-- 🔔 Real-time SignalR notification when your score is ready
-- 📧 Email notification with your match score and feedback
+- 📊 Track the status of all your applications in your dashboard
+- 📧 Email notifications for account and application status changes
 - 🔖 Save jobs to apply later
 - 🎯 Onboarding — set career level, preferred job types, salary, and more
 
 ### 🛠️ For Admins
 - 📋 Full job management (create, edit, delete, toggle status)
 - 🗂️ Job category management with icon upload to Cloudinary
-- 👥 View all applicants per job with their AI scores
+- 👥 Review applicants per job with an **advisory AI assessment** (score + feedback, visible to administrators only)
+- 📄 Download applicant CVs through the API (no public file links)
 - 🔑 Role and permission management
 - 👤 User management (create, update, toggle status, unlock)
-- 📊 Hangfire dashboard for background job monitoring
+- 🛡️ Account security page (password change; other sessions are signed out)
 
 ---
 
@@ -44,8 +45,8 @@
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                    Angular 18 Frontend                   │
-│              Three.js 3D • SCSS • SignalR               │
+│                    Angular 21 Frontend                   │
+│                  Three.js 3D • SCSS                     │
 └────────────────────────┬────────────────────────────────┘
                          │ HTTPS / REST / WebSocket
 ┌────────────────────────▼────────────────────────────────┐
@@ -82,22 +83,20 @@
 | JWT Bearer | Token-based auth |
 | CQRS + MediatR | Command/Query separation |
 | Hangfire | Background job processing |
-| SignalR | Real-time notifications |
-| Cloudinary | File & image storage |
+| Cloudinary | Images (public) and CVs (authenticated, behind a storage abstraction) |
 | Groq API (LLaMA 3) | AI CV matching & scoring |
 | FluentValidation | Request validation |
 | Mapster | Object mapping |
 | PdfPig | PDF text extraction |
-| Swagger | API documentation |
+| Swagger | API documentation (Development environment only) |
 
 ### Frontend
 | Technology | Purpose |
 |---|---|
-| Angular 18 | SPA Framework |
+| Angular 21 | SPA Framework |
 | Three.js | 3D graphics & particles |
 | GSAP | Animations |
 | SCSS | Styling with CSS variables |
-| SignalR Client | Real-time score notifications |
 | Vercel | Hosting |
 
 ---
@@ -109,7 +108,6 @@ WazzufJobs/
 ├── WazzufJobs.API/                  # Presentation layer
 │   ├── Controllers/                 # API endpoints
 │   ├── Services/                    # CurrentUserService, EmailService
-│   ├── Filters/                     # HangfireAuthorizationFilter
 │   └── DependencyInjection.cs       # Service registration
 │
 ├── WazzufJobs.BLL/                  # Business logic layer
@@ -136,10 +134,10 @@ WazzufJobs/
 │   ├── Persistence/
 │   │   ├── ApplicationDBContext.cs
 │   │   ├── Configurations/          # Fluent API entity configs
-│   │   └── Seeders/                 # Role, permission, admin seeders
+│   │   └── Seeders/                 # Role and permission seeders (no admin seeding)
 │   └── Migrations/
 │
-└── wazzuf-jobs-frontend/            # Angular 18 frontend
+└── wazzuf-jobs-frontend/            # Angular 21 frontend
     ├── src/app/
     │   ├── core/                    # Services, guards, interceptors, models
     │   ├── features/                # Pages (landing, auth, jobs, admin...)
@@ -161,16 +159,12 @@ WazzufJobs/
 
 ```bash
 # Clone the repo
-git clone https://github.com/your-username/wazzuf-jobs.git
-cd wazzuf-jobs
+git clone https://github.com/AbdullahREzk2/WazzufJobs.git
+cd WazzufJobs/SrcCode/WazzufJobs
 
-# Set up user secrets
-dotnet user-secrets set "ConnectionStrings:DefaultConnection" "your-connection-string" --project WazzufJobs.API
-dotnet user-secrets set "Jwt:key" "your-jwt-secret-min-32-chars" --project WazzufJobs.API
-dotnet user-secrets set "CloudinarySettings:ApiKey" "your-key" --project WazzufJobs.API
-dotnet user-secrets set "CloudinarySettings:ApiSecret" "your-secret" --project WazzufJobs.API
-dotnet user-secrets set "AISettings:ApiKey" "your-groq-key" --project WazzufJobs.API
-dotnet user-secrets set "MailSettings:Password" "your-gmail-app-password" --project WazzufJobs.API
+# Configure secrets with .NET User Secrets (never commit them).
+# All keys and hidden-prompt commands: docs/runbooks/configuration-and-secrets.md
+# (ConnectionStrings, Jwt, MailSettings, CloudinarySettings, AISettings)
 
 # Run migrations
 dotnet ef database update --project WazzufJobs.DAL --startup-project WazzufJobs.API
@@ -179,14 +173,14 @@ dotnet ef database update --project WazzufJobs.DAL --startup-project WazzufJobs.
 dotnet run --project WazzufJobs.API
 ```
 
-API runs at `https://localhost:7000`
-Swagger at `https://localhost:7000/swagger`
-Hangfire at `https://localhost:7000/hangfire`
+API runs at `https://localhost:7154`
+Swagger UI at `https://localhost:7154/` (Development environment only; disabled in production)
+Health check at `https://localhost:7154/health`
 
 ### Frontend Setup
 
 ```bash
-cd wazzuf-jobs-frontend
+cd WazzufJobs/SrcCode/Frontend/wazzuf-jobs-frontend
 
 # Install dependencies
 npm install
@@ -199,14 +193,11 @@ Frontend runs at `http://localhost:4200`
 
 ---
 
-## 🔑 Default Admin Credentials
+## 🔑 Administrator Accounts
 
-```
-Email:    admin@wazzuf.com
-Password: Admin@123456
-```
-
-> ⚠️ Change these immediately in production via the `AdminSeeder.cs` file.
+There are **no default administrator credentials**, and no administrator account is created automatically.
+The first administrator is created through a controlled bootstrap procedure (see `docs/runbooks/configuration-and-secrets.md`).
+Credentials and API keys are never stored in this repository; see the same document for local and production configuration.
 
 ---
 
@@ -237,16 +228,18 @@ Password: Admin@123456
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | POST | `/api/applications/job/{jobId}/apply` | Apply for job |
-| GET | `/api/applications/my-applications` | My applications + AI scores |
+| GET | `/api/applications/my-applications` | My applications (status only, no AI data) |
 | GET | `/api/applications/job/{jobId}` | Job applicants (Admin) |
 | GET | `/api/applications/{id}` | Application detail (Admin) |
 | PUT | `/api/applications/{id}/status` | Update status (Admin) |
+| GET | `/api/applications/{id}/cv` | Download an applicant's CV (Admin) |
 
 ### CV
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/cv` | Get my CV |
-| POST | `/api/cv` | Upload CV (PDF) |
+| GET | `/api/cv` | Get my CV metadata (no storage URL) |
+| GET | `/api/cv/file` | Download my CV |
+| POST | `/api/cv` | Upload CV (PDF; disabled until `Features:CvUploadsEnabled` is approved) |
 | DELETE | `/api/cv` | Delete CV |
 
 ### Categories
@@ -281,9 +274,8 @@ Password: Admin@123456
 4. PdfPig extracts text from stored CV
 5. Groq LLaMA 3 receives CV text + job description
 6. AI returns SCORE (0-100) + FEEDBACK
-7. Application updated with score
-8. SignalR notifies user in real-time
-9. Email sent with score details
+7. Assessment stored for administrator review only
+   (never shown, pushed or emailed to the candidate; advisory, people decide)
 ```
 
 **Scoring criteria:**
@@ -342,7 +334,7 @@ Password: Admin@123456
   },
   "AISettings": {
     "ApiKey": "",
-    "Model": "llama3-8b-8192",
+    "Model": "llama-3.1-8b-instant",
     "BaseUrl": "https://api.groq.com/openai/v1/chat/completions"
   },
   "AppURL": {
@@ -362,7 +354,7 @@ This project was built as a **graduation project** showcasing a modern full-stac
 - Repository pattern
 - Result pattern for error handling
 - Permission-based authorization
-- Real-time features with SignalR
+- Security hardening (Phase C0): object-level authorization, private CV storage, no default credentials, rate limiting, 58 automated security tests
 - AI integration with Groq
 - 3D frontend with Three.js
 
@@ -372,8 +364,8 @@ This project was built as a **graduation project** showcasing a modern full-stac
 
 **Abdullah Rezk**
 
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://linkedin.com/in/your-profile)
-[![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/your-username)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/abdullahrezk03/)
+[![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/AbdullahREzk2)
 
 ---
 

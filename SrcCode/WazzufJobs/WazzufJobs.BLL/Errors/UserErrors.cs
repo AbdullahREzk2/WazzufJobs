@@ -36,5 +36,11 @@ public record UserErrors
 
     public static readonly Error ImageUploadFailed =
         new("User.ImageUploadFailed", "Failed to upload image", StatusCodes.Status400BadRequest);
+
+    public static readonly Error GoogleAccountNotLinkable =
+        new("User.GoogleAccountNotLinkable", "This email has an unconfirmed account. Confirm your email or reset your password before using Google sign-in.", StatusCodes.Status409Conflict);
+
+    public static readonly Error LastAdministrator =
+        new("User.LastAdministrator", "The last active administrator cannot be disabled or lose the Admin role.", StatusCodes.Status400BadRequest);
 }
 

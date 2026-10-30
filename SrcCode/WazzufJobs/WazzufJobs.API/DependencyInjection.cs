@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using System.Threading.RateLimiting;
 using FluentValidation;
 using Hangfire;
 using Mapster;
@@ -6,6 +7,7 @@ using MapsterMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using WazzufJobs.API.Services;
@@ -14,6 +16,7 @@ using WazzufJobs.BLL.Authentication;
 using WazzufJobs.BLL.Errors;
 using WazzufJobs.BLL.Helpers;
 using WazzufJobs.BLL.Services;
+using WazzufJobs.BLL.Services.Storage;
 using WazzufJobs.BLL.Setting;
 using WazzufJobs.BLL.Settings;
 using WazzufJobs.DAL.Entities;
@@ -166,7 +169,22 @@ public static class DependencyInjection
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
-        services.AddScoped<ICloudinaryService, CloudinaryService>();  // ← add this
+        // public images (profile photos, category icons)
+        services.AddScoped<ICloudinaryService, CloudinaryService>();
+
+        // private documents (CVs) behind a provider-neutral abstraction
+        var storage = configuration.GetSection(StorageSettings.SectionName).Get<StorageSettings>() ?? new StorageSettings();
+        services.Configure<StorageSettings>(configuration.GetSection(StorageSettings.SectionName));
+        switch (storage.DocumentProvider)
+        {
+            case "Cloudinary":
+                services.AddHttpClient(CloudinaryDocumentStorage.HttpClientName, client => client.Timeout = TimeSpan.FromSeconds(30));
+                services.AddScoped<IDocumentStorage, CloudinaryDocumentStorage>();
+                break;
+            default:
+                // fail closed: never fall back to an unintended (possibly public) storage
+                throw new InvalidOperationException($"Unsupported Storage:DocumentProvider '{storage.DocumentProvider}'.");
+        }
 
         return services;
     }
@@ -221,6 +239,47 @@ public static class DependencyInjection
     public static IServiceCollection AddSignalRServices(this IServiceCollection services)
     {
         services.AddSignalR();
+        return services;
+    }
+
+    public static IServiceCollection AddFeatureFlags(this IServiceCollection services)
+    {
+        services.AddOptions<FeatureSettings>()
+            .BindConfiguration(FeatureSettings.SectionName);
+
+        return services;
+    }
+
+    public const string AuthRateLimitPolicy = "ipLimit";
+
+    public static IServiceCollection AddRateLimitingServices(this IServiceCollection services, IConfiguration configuration)
+    {
+        var permitLimit = configuration.GetValue("RateLimiting:AuthPermitLimitPerMinute", 20);
+
+        services.AddRateLimiter(options =>
+        {
+            options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+            // Per-client-IP fixed window for anonymous authentication endpoints (login, register, reset, ...).
+            options.AddPolicy(AuthRateLimitPolicy, httpContext =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = permitLimit,
+                        Window = TimeSpan.FromMinutes(1),
+                        QueueLimit = 0
+                    }));
+        });
+
+        return services;
+    }
+
+    public static IServiceCollection AddHealthCheckServices(this IServiceCollection services)
+    {
+        services.AddHealthChecks()
+            .AddCheck<DatabaseHealthCheck>("database");
+
         return services;
     }
 }

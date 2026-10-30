@@ -41,4 +41,8 @@ export class ApplicationService {
   updateStatus(id: number, status: ApplicationStatus) {
     return this.http.put<void>(`${this.api}/${id}/status`, { status });
   }
+
+  downloadCv(id: number) {
+    return this.http.get(`${this.api}/${id}/cv`, { observe: 'response', responseType: 'blob' });
+  }
 }

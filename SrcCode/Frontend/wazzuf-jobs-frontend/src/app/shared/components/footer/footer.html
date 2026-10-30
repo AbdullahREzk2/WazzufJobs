@@ -5,9 +5,24 @@
       <span>Wazzuf<span class="accent">Jobs</span></span>
     </div>
     <div class="footer-links">
-      <a routerLink="/jobs">Jobs</a>
-      <a routerLink="/register">Register</a>
-      <a routerLink="/login">Login</a>
+      @if (auth.isLoggedIn()) {
+        @if (auth.isAdmin()) {
+          <a routerLink="/admin">Dashboard</a>
+          <a routerLink="/admin/applications">Applications</a>
+          <a routerLink="/admin/users">Users</a>
+          <button type="button" class="footer-button" (click)="logout()">Sign out</button>
+        } @else {
+          <a routerLink="/dashboard">Dashboard</a>
+          <a routerLink="/jobs">Find jobs</a>
+          <a routerLink="/saved-jobs">Saved jobs</a>
+          <a routerLink="/profile">Profile</a>
+          <button type="button" class="footer-button" (click)="logout()">Sign out</button>
+        }
+      } @else {
+        <a routerLink="/jobs">Browse jobs</a>
+        <a routerLink="/register">Register</a>
+        <a routerLink="/login">Sign in</a>
+      }
     </div>
     <p class="copyright">© 2026 WazzufJobs. AI-powered job matching.</p>
   </div>

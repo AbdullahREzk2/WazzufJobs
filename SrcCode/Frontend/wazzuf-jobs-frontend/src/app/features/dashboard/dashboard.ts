@@ -9,7 +9,11 @@ import { ApplicationService } from '../../core/services/application.service';
 import { OnboardingService } from '../../core/services/onboarding.service';
 import { AuthService } from '../../core/services/auth.service';
 import { MyApplication } from '../../core/models/application.models';
-import { statusClass } from '../../core/models/enums';
+import {
+  ApplicationStatus,
+  APPLICATION_STATUS_LABELS,
+  statusClass
+} from '../../core/models/enums';
 
 @Component({
   selector: 'app-dashboard',
@@ -20,6 +24,11 @@ import { statusClass } from '../../core/models/enums';
 })
 export class Dashboard implements OnInit {
   applications: MyApplication[] = [];
+  filteredApplications: MyApplication[] = [];
+  selectedStatus: ApplicationStatus | null = null;
+  statusFilters = Object.entries(APPLICATION_STATUS_LABELS).map(
+    ([key, label]) => ({ value: +key as ApplicationStatus, label })
+  );
   loading = true;
   needsOnboarding = false;
   userName = '';
@@ -45,6 +54,7 @@ export class Dashboard implements OnInit {
     this.applicationService.getMyApplications(1, 8).subscribe({
       next: res => {
         this.applications = res.items;
+        this.filteredApplications = res.items;
         this.loading = false;
       },
       error: () => this.loading = false
@@ -55,10 +65,17 @@ export class Dashboard implements OnInit {
     return statusClass(status);
   }
 
-  avgScore(): string {
-    const scored = this.applications.filter(a => a.isAIScored && a.aiScore != null);
-    if (!scored.length) return '—';
-    const avg = scored.reduce((s, a) => s + (a.aiScore ?? 0), 0) / scored.length;
-    return `${Math.round(avg)}%`;
+  setStatusFilter(status: ApplicationStatus | null) {
+    this.selectedStatus = status;
+    if (status === null) {
+      this.filteredApplications = [...this.applications];
+      return;
+    }
+    this.filteredApplications = this.applications.filter(app => app.status === APPLICATION_STATUS_LABELS[status]);
+  }
+
+  inProgressCount(): number {
+    const closed = ['Rejected', 'Accepted'];
+    return this.applications.filter(a => !closed.includes(a.status)).length;
   }
 }

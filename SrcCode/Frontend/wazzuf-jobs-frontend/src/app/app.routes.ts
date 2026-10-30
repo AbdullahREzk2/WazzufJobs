@@ -123,6 +123,13 @@ export const routes: Routes = [
           )
       },
       {
+        path: 'account-security',
+        loadComponent: () =>
+          import('./features/admin/account-security/account-security').then(
+            m => m.AccountSecurity
+          )
+      },
+      {
         path: 'roles',
         loadComponent: () =>
           import('./features/admin/manage-roles/manage-roles').then(

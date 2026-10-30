@@ -16,14 +16,18 @@ public class GetApplicationDetailQueryHandler(IApplicationRepository application
 
         return Result.Success(new ApplicationDetailResponse(
             application.Id,
+            application.UserId,
             $"{application.User.FirstName} {application.User.LastName}",
             application.User.Email!,
-            application.User.CV?.Url ?? string.Empty,
+            application.User.ProfilePhotoUrl,
+            application.User.CV is not null,
             application.Job.Title,
             application.Status.ToString(),
             application.AIScore,
             application.AIFeedback,
             application.IsAIScored,
-            application.AppliedAt));
+            application.AppliedAt,
+            application.User.Preference?.MinSalary,
+            application.User.ShowSalary));
     }
 }

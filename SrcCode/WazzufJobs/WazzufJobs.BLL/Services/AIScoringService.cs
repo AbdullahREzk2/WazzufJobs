@@ -1,11 +1,7 @@
 ﻿// WazzufJobs.BLL/Services/AIScoringService.cs
-using Microsoft.AspNetCore.Identity.UI.Services;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using WazzufJobs.BLL.Abstractions;
-using WazzufJobs.BLL.Helpers;
-using WazzufJobs.BLL.Hubs;
 using WazzufJobs.DAL.Persistence;
 
 namespace WazzufJobs.BLL.Services;
@@ -13,14 +9,10 @@ namespace WazzufJobs.BLL.Services;
 public class AIScoringService(
     ApplicationDBContext context,
     IAIClient aiClient,
-    IEmailSender emailSender,
-    IHubContext<ScoringHub> hubContext,
     ILogger<AIScoringService> logger) : IAIScoringService
 {
     private readonly ApplicationDBContext _context = context;
     private readonly IAIClient _aiClient = aiClient;
-    private readonly IEmailSender _emailSender = emailSender;
-    private readonly IHubContext<ScoringHub> _hubContext = hubContext;
     private readonly ILogger _logger = logger;
 
     public async Task ScoreApplicationAsync(int applicationId,CancellationToken cancellationToken)
@@ -68,7 +60,7 @@ public class AIScoringService(
 
             var responseText = await _aiClient.GenerateAsync(scoringPrompt, cancellationToken);
 
-            _logger.LogInformation("AI Scoring: Raw response = {Response}.", responseText);
+            _logger.LogDebug("AI Scoring: Raw response length = {Length}.", responseText.Length);
 
             var (score, feedback) = ParseAIResponse(responseText);
 
@@ -81,19 +73,7 @@ public class AIScoringService(
             _logger.LogInformation(
                 "AI Scoring: Application {Id} scored {Score}/100.", applicationId, score);
 
-            // notify via SignalR
-            await _hubContext.Clients
-                .User(application.UserId)
-                .SendAsync("ApplicationScored", new
-                {
-                    applicationId = application.Id,
-                    jobTitle = application.Job.Title,
-                    score,
-                    feedback
-                }, cancellationToken);
-
-            // send score email
-            await SendScoreEmailAsync(application, score, feedback, cancellationToken);
+            // The AI assessment is advisory and internal: it is never pushed or emailed to the candidate.
         }
         catch (Exception ex)
         {
@@ -103,55 +83,6 @@ public class AIScoringService(
             throw;
         }
     }
-
-    private async Task SendScoreEmailAsync(DAL.Entities.Application application,float score,string feedback,CancellationToken cancellationToken)
-    {
-        try
-        {
-            var emailBody = EmailBodyBuilder.GenerateEmailBody("ApplicationScore",
-                new Dictionary<string, string>
-                {
-                    { "{name}",       application.User.FirstName       },
-                    { "{jobTitle}",   application.Job.Title            },
-                    { "{score}",      ((int)score).ToString()          },
-                    { "{feedback}",   feedback                         },
-                    { "{status}",     GetScoreStatus(score)            },
-                    { "{scoreClass}", GetScoreClass(score)             },
-                    { "{appUrl}",     "https://wazzuf-jobs.vercel.app" }
-                });
-
-            await _emailSender.SendEmailAsync(
-                application.User.Email!,
-                $"🎯 Your AI Match Score for {application.Job.Title} — Wazzuf Jobs",
-                emailBody);
-
-            _logger.LogInformation(
-                "AI Scoring: Score email sent to {Email}.", application.User.Email);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex,
-                "AI Scoring: Failed to send score email for application {Id}.", application.Id);
-        }
-    }
-
-    // ── Static helpers ───────────────────────────────────
-
-    private static string GetScoreStatus(float score) => score switch
-    {
-        >= 80 => "Excellent match! 🌟",
-        >= 60 => "Good match! ✅",
-        >= 40 => "Fair match 📊",
-        _ => "Low match ⚠️"
-    };
-
-    private static string GetScoreClass(float score) => score switch
-    {
-        >= 80 => "excellent",
-        >= 60 => "good",
-        >= 40 => "fair",
-        _ => "low"
-    };
 
     private static string BuildScoringPrompt(string cvText, DAL.Entities.Job job) =>
         $"""

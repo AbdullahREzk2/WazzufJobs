@@ -58,6 +58,7 @@
               </div>
             </div>
             <button type="button" class="btn-glow" (click)="saveProfile()">Save profile</button>
+            <a routerLink="/onboarding" class="btn-outline profile-edit-prefs">Edit job preferences</a>
           </section>
 
           <section class="glass-card profile-card">
@@ -98,7 +99,7 @@
 
         <section class="glass-card profile-card cv-card">
           <h2>📄 Your CV</h2>
-          <p class="hint">Upload your CV — our AI uses it to score every application</p>
+          <p class="hint">Upload your CV (PDF) to apply for jobs. Your CV is private and shared only with the employers you apply to.</p>
 
           @if (cv) {
             <div class="cv-info">
@@ -107,14 +108,14 @@
                 <strong>{{ cv.fileName }}</strong>
                 <p>Uploaded {{ cv.uploadedAt | date:'medium' }}</p>
               </div>
-              <a [href]="cv.url" target="_blank" rel="noopener" class="btn-outline">View CV</a>
+              <button type="button" class="btn-outline" (click)="downloadCv()" [disabled]="downloadingCv">{{ downloadingCv ? 'Preparing…' : 'Download CV' }}</button>
               <button class="btn-danger" (click)="deleteCv()">Delete</button>
             </div>
             <label class="btn-outline upload-label">
               Replace CV
               <input
                 type="file"
-                accept=".pdf,.doc,.docx"
+                accept=".pdf,application/pdf"
                 hidden
                 (change)="onCvSelected($event)" />
             </label>
@@ -125,7 +126,7 @@
               <p>PDF, DOC, DOCX — max 10MB</p>
               <input
                 type="file"
-                accept=".pdf,.doc,.docx"
+                accept=".pdf,application/pdf"
                 hidden
                 (change)="onCvSelected($event)"
                 [disabled]="uploadingCv" />

@@ -1,6 +1,6 @@
-﻿using Hangfire;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.OpenApi.Models;
+using WazzufJobs.API.Services;
 using WazzufJobs.BLL.Hubs;
 using WazzufJobs.DAL.Entities;
 using WazzufJobs.DAL.Persistence.Seeders;
@@ -32,6 +32,9 @@ public class Program
         builder.Services.AddHelperServices();
         builder.Services.AddAIServices(builder.Configuration);
         builder.Services.AddSignalRServices();
+        builder.Services.AddFeatureFlags();
+        builder.Services.AddRateLimitingServices(builder.Configuration);
+        builder.Services.AddHealthCheckServices();
 
         builder.Services.AddCors(options =>
         {
@@ -85,28 +88,33 @@ public class Program
 
         var app = builder.Build();
 
+        LifecycleLog.Register(app);
+
         // ── Seed data ────────────────────────────────────
         await SeedDataAsync(app);
         // ─────────────────────────────────────────────────
 
+        // API documentation is only exposed in Development (Phase C0, S13).
+        if (app.Environment.IsDevelopment())
+        {
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "WazzufJobs API V1");
                 c.RoutePrefix = string.Empty;
             });
-        
-        app.UseHangfireDashboard("/hangfire");
+        }
+
+        // The Hangfire dashboard is intentionally not mapped (Phase C0, S5): background
+        // processing still runs, but the dashboard is not reachable over HTTP.
         app.UseExceptionHandler();
         app.UseCors("AllowFrontend");
         app.UseHttpsRedirection();
+        app.UseRateLimiter();
         app.UseAuthentication();
         app.UseAuthorization();
+        app.MapHealthChecks("/health").AllowAnonymous();
         app.MapHub<ScoringHub>("/hubs/scoring");
-        app.UseHangfireDashboard("/hangfire", new DashboardOptions
-        {
-            Authorization = [new HangfireAuthorizationFilter()]
-        });
         app.MapControllers();
         await app.RunAsync();
     }
@@ -114,6 +122,7 @@ public class Program
     private static async Task SeedDataAsync(WebApplication app)
     {
         using var scope = app.Services.CreateScope();
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
 
         try
         {
@@ -123,12 +132,18 @@ public class Program
                 .GetRequiredService<UserManager<AppUser>>();
 
             await RoleSeeder.SeedAsync(roleManager);
-            await AdminSeeder.SeedAsync(userManager);
+
+            // No administrator account is ever created automatically (no default credentials).
+            // The first administrator is created through the controlled bootstrap procedure.
+            // Without one, administrative endpoints stay unreachable (no account holds the permissions).
+            var administrators = (await userManager.GetUsersInRoleAsync(AppRoles.Admin.Name)).Count(u => !u.IsDisabled);
+            if (administrators == 0)
+                logger.LogWarning("No active administrator exists. Administrative features are unavailable until the controlled bootstrap is performed.");
+            else
+                logger.LogInformation("Active administrators: {Count}.", administrators);
         }
         catch (Exception ex)
         {
-            var logger = scope.ServiceProvider
-                .GetRequiredService<ILogger<Program>>();
             logger.LogError(ex, "An error occurred during seeding.");
         }
     }

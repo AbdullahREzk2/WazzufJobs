@@ -56,6 +56,8 @@ public class ApplicationRepository(ApplicationDBContext context) : IApplicationR
         await _context.Applications
             .Include(a => a.User)
             .ThenInclude(u => u.CV)
+            .Include(a => a.User)
+            .ThenInclude(u => u.Preference)
             .Include(a => a.Job)
             .FirstOrDefaultAsync(a => a.Id == id, cancellationToken);
 

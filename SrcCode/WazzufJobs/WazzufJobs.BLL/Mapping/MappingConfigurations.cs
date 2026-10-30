@@ -15,7 +15,11 @@ public class MappingConfigurations : IRegister
           src.user.LastName,
           src.user.Email!,
           src.user.IsDisabled,
-          src.roles
+          src.roles,
+          null,
+          null,
+          null,
+          null
          ));
     }
 }

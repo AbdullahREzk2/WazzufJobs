@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WazzufJobs C0 - VER-08 rewrite probe (synthetic)</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 2rem; color: #263445; background: #f5f7fa; }
+    table { border-collapse: collapse; margin-top: 1rem; background: #fff; }
+    td, th { border: 1px solid #ccd4de; padding: 6px 10px; text-align: left; vertical-align: top; font-size: 14px; }
+    .pass { color: #0f7f69; font-weight: 600; } .fail { color: #b42318; font-weight: 600; }
+    pre { white-space: pre-wrap; max-width: 60rem; }
+    button { background: #2463a8; color: #fff; border: 0; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>VER-08 Vercel rewrite probe</h1>
+  <p>Synthetic test only. It calls no WazzufJobs system and sends no personal data. Requests are proxied by Vercel to the public echo service httpbin.org.</p>
+  <p>Browser: <span id="ua"></span></p>
+  <button id="run">Run checks</button>
+  <table><thead><tr><th>Check</th><th>Result</th><th>Detail</th></tr></thead><tbody id="results"></tbody></table>
+  <h3>Headers seen by the upstream (for forwarded-IP analysis)</h3>
+  <pre id="headers"></pre>
+  <script>
+    document.getElementById('ua').textContent = navigator.userAgent;
+    const rows = document.getElementById('results');
+    const add = (check, ok, detail) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${check}</td><td class="${ok ? 'pass' : 'fail'}">${ok ? 'PASS' : 'FAIL'}</td><td></td>`;
+      tr.lastChild.textContent = detail;
+      rows.appendChild(tr);
+    };
+    const syntheticBody = mb => new Blob([new Uint8Array(mb * 1024 * 1024).fill(65)], { type: 'application/octet-stream' });
+
+    document.getElementById('run').addEventListener('click', async () => {
+      rows.innerHTML = '';
+      try {
+        const h = await fetch('/api/headers', { cache: 'no-store' });
+        const body = await h.json();
+        document.getElementById('headers').textContent = JSON.stringify(body.headers, null, 2);
+        add('Rewrite proxies to external origin', h.ok, `HTTP ${h.status}`);
+      } catch (e) { add('Rewrite proxies to external origin', false, String(e)); }
+
+      try {
+        const s = await fetch('/api/set-cookie', { credentials: 'same-origin', cache: 'no-store' });
+        add('Upstream Set-Cookie response accepted', s.ok, `HTTP ${s.status}`);
+        add('HttpOnly cookie hidden from JavaScript', !document.cookie.includes('wz_probe'), `document.cookie="${document.cookie}"`);
+        const c = await fetch('/api/cookies', { credentials: 'same-origin', cache: 'no-store' });
+        const cookies = (await c.json()).cookies || {};
+        add('__Host- SameSite=Strict cookie sent back through the rewrite', cookies['__Host-wz_probe'] === '1', JSON.stringify(cookies));
+      } catch (e) { add('Cookie round-trip', false, String(e)); }
+
+      for (const mb of [1, 4, 5, 6]) {
+        try {
+          const started = performance.now();
+          const r = await fetch('/api/upload', { method: 'POST', body: syntheticBody(mb), cache: 'no-store' });
+          add(`POST ${mb} MB synthetic body through rewrite`, r.ok, `HTTP ${r.status} in ${Math.round(performance.now() - started)} ms`);
+        } catch (e) { add(`POST ${mb} MB synthetic body through rewrite`, false, String(e)); }
+      }
+
+      try {
+        const started = performance.now();
+        const d = await fetch('/api/delay', { cache: 'no-store' });
+        add('10 s upstream response passes through', d.ok, `HTTP ${d.status} in ${Math.round(performance.now() - started)} ms`);
+      } catch (e) { add('10 s upstream response passes through', false, String(e)); }
+    });
+  </script>
+</body>
+</html>

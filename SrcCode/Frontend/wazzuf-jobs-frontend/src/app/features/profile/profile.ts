@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { Navbar } from '../../shared/components/navbar/navbar';
 import { Footer } from '../../shared/components/footer/footer';
 import { LoadingSpinner } from '../../shared/components/loading-spinner/loading-spinner';
@@ -8,7 +9,10 @@ import { PasswordCriteria } from '../../shared/components/password-criteria/pass
 import { AuthService } from '../../core/services/auth.service';
 import { CvService } from '../../core/services/cv.service';
 import { AccountService } from '../../core/services/account.service';
+import { ProfilePhotoService } from '../../core/services/profile-photo.service';
 import { CVResponse } from '../../core/models/application.models';
+import { saveBlobResponse } from '../../core/utils/file-download';
+import { apiErrorMessage } from '../../core/utils/api-error';
 import { UserProfile } from '../../core/models/account.models';
 import {
   isPasswordValid,
@@ -21,6 +25,7 @@ import {
   imports: [
     CommonModule,
     FormsModule,
+    RouterLink,
     Navbar,
     Footer,
     LoadingSpinner,
@@ -36,6 +41,7 @@ export class Profile implements OnInit {
   loadingAccount = true;
   loadingCv = true;
   uploadingCv = false;
+  downloadingCv = false;
   uploadingPhoto = false;
 
   error = '';
@@ -51,6 +57,7 @@ export class Profile implements OnInit {
   constructor(
     private cvService: CvService,
     private accountService: AccountService,
+    private profilePhoto: ProfilePhotoService,
     public auth: AuthService
   ) {}
 
@@ -168,6 +175,7 @@ export class Profile implements OnInit {
         this.accountService.getUserInfo().subscribe({
           next: p => {
             this.profile = p;
+            this.profilePhoto.setPhotoUrl(p.profilePhotoUrl || null);
             this.success = 'Profile photo updated.';
           },
           error: () => {
@@ -187,8 +195,8 @@ export class Profile implements OnInit {
     const file = input.files?.[0];
     if (!file) return;
 
-    if (!file.name.match(/\.(pdf|doc|docx)$/i)) {
-      this.error = 'Please upload a PDF or Word document.';
+    if (!file.name.match(/\.pdf$/i)) {
+      this.error = 'Please upload your CV as a PDF file.';
       return;
     }
 
@@ -203,8 +211,24 @@ export class Profile implements OnInit {
         input.value = '';
       },
       error: err => {
-        this.error = err.error?.detail || 'Upload failed.';
+        this.error = apiErrorMessage(err, 'Upload failed.');
         this.uploadingCv = false;
+        input.value = '';
+      }
+    });
+  }
+
+  downloadCv() {
+    this.clearMessages();
+    this.downloadingCv = true;
+    this.cvService.downloadFile().subscribe({
+      next: response => {
+        this.downloadingCv = false;
+        saveBlobResponse(response, this.cv?.fileName || 'cv.pdf');
+      },
+      error: () => {
+        this.downloadingCv = false;
+        this.error = 'Your CV could not be downloaded right now. Please try again later.';
       }
     });
   }

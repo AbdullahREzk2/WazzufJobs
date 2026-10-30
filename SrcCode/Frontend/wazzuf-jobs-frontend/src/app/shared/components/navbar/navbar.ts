@@ -1,28 +1,31 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { ProfilePhotoService } from '../../../core/services/profile-photo.service';
+import { UserAvatar } from '../user-avatar/user-avatar';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterLink, RouterLinkActive, UserAvatar],
   templateUrl: './navbar.html',
   styleUrls: ['./navbar.scss']
 })
-export class Navbar {
+export class Navbar implements OnInit {
   menuOpen = signal(false);
-
-  initials = computed(() => {
-    const u = this.auth.currentUser();
-    if (!u) return '?';
-    return `${u.firstName?.charAt(0) ?? ''}${u.lastName?.charAt(0) ?? ''}`.toUpperCase() || '?';
-  });
 
   constructor(
     public auth: AuthService,
+    private profilePhoto: ProfilePhotoService,
     private router: Router
   ) {}
+
+  ngOnInit() {
+    if (this.auth.isLoggedIn()) {
+      this.profilePhoto.refresh();
+    }
+  }
 
   toggleMenu() {
     this.menuOpen.update(v => !v);

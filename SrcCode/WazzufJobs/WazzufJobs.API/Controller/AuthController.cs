@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.RateLimiting;
 using WazzufJobs.BLL.Contracts.Authentication;
 using WazzufJobs.BLL.Features.Auth.Command.ConfirmEmail;
+using WazzufJobs.BLL.Features.Auth.Command.GoogleLogin;
 using WazzufJobs.BLL.Features.Auth.Command.Login;
 using WazzufJobs.BLL.Features.Auth.Command.Register;
 using WazzufJobs.BLL.Features.Auth.Command.ResetPassword;
@@ -109,6 +110,15 @@ public class AuthController(IMediator mediator) : ControllerBase
         return result.IsSuccess
             ? Ok()
             : result.ToProblem();
+    }
+    #endregion
+
+    #region Google-Login
+    [HttpPost("google")]
+    public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequest request, CancellationToken cancellationToken)
+    {
+        var authResult = await _mediator.Send(new GoogleLoginCommand(request.IdToken), cancellationToken);
+        return authResult.IsSuccess ? Ok(authResult.Value) : authResult.ToProblem();
     }
     #endregion
 

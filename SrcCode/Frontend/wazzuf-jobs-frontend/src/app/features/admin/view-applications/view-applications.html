@@ -1,79 +1,242 @@
 <div class="admin-page">
+
     <header class="page-header">
+
       <h1>View <span class="gradient-text">Applications</span></h1>
-      <p>Review applicants and AI CV scores</p>
+
+      <p>Review applicants, filter by status, and update decisions</p>
+
     </header>
 
+
+
+    @if (statusUpdateMessage) {
+
+      <div class="alert success">{{ statusUpdateMessage }}</div>
+
+    }
+
+
+
     <div class="field" style="max-width: 400px; margin-bottom: 24px;">
+
       <label>Select Job</label>
+
       <select class="input-field" [ngModel]="selectedJobId" (ngModelChange)="selectJob($event)">
+
         @for (job of jobs; track job.id) {
+
           <option [ngValue]="job.id">{{ job.title }}</option>
+
         }
+
       </select>
+
     </div>
+
+
+
+    <div class="status-filter-row">
+
+      <button
+
+        type="button"
+
+        class="filter-pill"
+
+        [class.active]="selectedStatus === null"
+
+        (click)="setStatusFilter(null)">
+
+        All
+
+      </button>
+
+      @for (filter of statusFilters; track filter.value) {
+
+        <button
+
+          type="button"
+
+          class="filter-pill"
+
+          [class.active]="selectedStatus === filter.value"
+
+          (click)="setStatusFilter(filter.value)">
+
+          {{ filter.label }}
+
+        </button>
+
+      }
+
+    </div>
+
+
 
     <div class="apps-layout">
+
       <div class="apps-panel">
+
         @if (loadingApps) {
+
           <app-loading-spinner message="Loading applications..." />
+
         } @else if (applications.length === 0) {
+
           <div class="empty-state glass-card"><p>No applications for this job</p></div>
+
+        } @else if (filteredApplications.length === 0) {
+
+          <div class="empty-state glass-card"><p>No applications match this status filter</p></div>
+
         } @else {
-          @for (app of applications; track app.id) {
+
+          @for (app of filteredApplications; track app.id) {
+
             <div
+
               class="app-item glass-card"
+
               [class.active]="detail?.id === app.id"
+
               (click)="viewDetail(app.id)">
+
               <div class="app-item-top">
+
                 <strong>{{ app.applicantName }}</strong>
+
                 <span class="status-badge" [class]="statusCss(app.status)">{{ app.status }}</span>
+
               </div>
+
               <p>{{ app.applicantEmail }}</p>
+
               @if (app.isAIScored && app.aiScore != null) {
+
                 <span class="ai-tag">🤖 AI Score: {{ app.aiScore | number:'1.0-0' }}%</span>
+
               } @else {
+
                 <span class="ai-tag pending">⏳ Awaiting AI score</span>
+
               }
+
               <select
+
                 class="input-field status-select"
+
                 [ngModel]="parseStatus(app.status)"
+
                 (ngModelChange)="updateStatus(app, $event)"
+
                 (click)="$event.stopPropagation()">
+
                 @for (s of statusOptions; track s.value) {
+
                   <option [ngValue]="s.value">{{ s.label }}</option>
+
                 }
+
               </select>
+
             </div>
+
           }
+
         }
+
       </div>
 
+
+
       @if (detail) {
+
         <div class="detail-panel glass-card">
-          <h2>{{ detail.applicantName }}</h2>
-          <p>{{ detail.applicantEmail }}</p>
+
+          <div class="applicant-header">
+
+            <app-user-avatar
+              size="lg"
+              [photoUrlOverride]="detail.applicantProfilePhotoUrl || null"
+              [initialsOverride]="detail.applicantName.charAt(0)" />
+
+            <div>
+
+              <h2>{{ detail.applicantName }}</h2>
+
+              <p>{{ detail.applicantEmail }}</p>
+
+            </div>
+
+          </div>
+
           <p><strong>Job:</strong> {{ detail.jobTitle }}</p>
+
           <span class="status-badge" [class]="statusCss(detail.status)">{{ detail.status }}</span>
 
-          @if (detail.isAIScored) {
-            <div class="ai-detail">
-              <div class="ai-score-ring">
-                <span class="score-num">{{ detail.aiScore | number:'1.0-0' }}%</span>
-                <span class="score-label">AI Match Score</span>
-              </div>
-              @if (detail.aiFeedback) {
-                <p class="feedback"><strong>AI Feedback:</strong> {{ detail.aiFeedback }}</p>
-              }
-            </div>
+
+
+          @if (detail.desiredSalary != null && detail.showSalary) {
+
+            <p class="salary-line"><strong>Salary expectation:</strong> ${{ detail.desiredSalary }}</p>
+
+          } @else if (detail.showSalary === false) {
+
+            <p class="salary-line muted">Salary hidden by applicant</p>
+
           }
 
-          <a [href]="detail.cvUrl" target="_blank" rel="noopener" class="btn-glow" style="display:inline-block;margin-top:20px;text-decoration:none;">
-            <span>📄 View CV</span>
-          </a>
+
+
+          @if (detail.isAIScored) {
+
+            <div class="ai-detail">
+
+              <div class="ai-score-ring">
+
+                <span class="score-num">{{ detail.aiScore | number:'1.0-0' }}%</span>
+
+                <span class="score-label">AI Match Score</span>
+
+              </div>
+
+              @if (detail.aiFeedback) {
+
+                <p class="feedback"><strong>AI Feedback:</strong> {{ detail.aiFeedback }}</p>
+
+              }
+
+            </div>
+
+          }
+
+
+
+          @if (detail.hasCv) {
+
+            <button type="button" class="btn-glow" style="display:inline-block;margin-top:20px;" (click)="downloadCv(detail.id)" [disabled]="downloadingCv">
+
+              <span>📄 {{ downloadingCv ? 'Preparing…' : 'Download CV' }}</span>
+
+            </button>
+
+            @if (cvDownloadError) {
+
+              <p class="feedback">{{ cvDownloadError }}</p>
+
+            }
+
+          }
+
           <p class="applied-at">Applied {{ detail.appliedAt | date:'medium' }}</p>
+
         </div>
+
       }
+
     </div>
+
 </div>
+
 

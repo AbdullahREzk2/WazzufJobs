@@ -25,9 +25,6 @@ public class GetMyApplicationsQueryHandler(IApplicationRepository applicationRep
             a.Job.Location,
             a.Job.Category.Name,
             a.Status.ToString(),
-            a.AIScore,
-            a.AIFeedback,
-            a.IsAIScored,
             a.AppliedAt));
 
         return new PaginatedResponse<MyApplicationResponse>(

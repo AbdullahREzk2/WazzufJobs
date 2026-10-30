@@ -1,0 +1,41 @@
+<div class="admin-page">
+  <header class="page-header">
+    <h1>Account <span class="gradient-text">Security</span></h1>
+    <p>Signed in as {{ auth.currentUser()?.email }}</p>
+  </header>
+
+  <section class="glass-card security-card">
+    <h2>Change password</h2>
+    <p class="hint">Use a unique password that is not used anywhere else. Changing it signs out your other sessions.</p>
+
+    <form (ngSubmit)="changePassword()" autocomplete="off">
+      <div class="field">
+        <label for="current-password">Current password</label>
+        <input id="current-password" class="input-field" type="password" name="currentPassword"
+               [(ngModel)]="currentPassword" autocomplete="current-password" />
+      </div>
+      <div class="field">
+        <label for="new-password">New password</label>
+        <input id="new-password" class="input-field" type="password" name="newPassword"
+               [(ngModel)]="newPassword" autocomplete="new-password" />
+      </div>
+      <app-password-criteria [password]="newPassword" />
+      <div class="field">
+        <label for="confirm-password">Confirm new password</label>
+        <input id="confirm-password" class="input-field" type="password" name="confirmPassword"
+               [(ngModel)]="confirmPassword" autocomplete="new-password" />
+      </div>
+
+      @if (error) {
+        <p class="message error" role="alert">{{ error }}</p>
+      }
+      @if (success) {
+        <p class="message success" role="status">{{ success }}</p>
+      }
+
+      <button type="submit" class="btn-glow" [disabled]="saving">
+        <span>{{ saving ? 'Saving…' : 'Update password' }}</span>
+      </button>
+    </form>
+  </section>
+</div>

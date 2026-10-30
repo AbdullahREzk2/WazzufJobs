@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
-import { AdminUpdateUserPayload, AdminUserRow } from '../models/account.models';
+import { AdminCreateUserPayload, AdminUpdateUserPayload, AdminUserRow } from '../models/account.models';
 
 @Injectable({ providedIn: 'root' })
 export class UsersAdminService {
@@ -19,6 +19,10 @@ export class UsersAdminService {
 
   update(userId: string, body: AdminUpdateUserPayload) {
     return this.http.put<void>(`${this.api}/${userId}`, body);
+  }
+
+  create(body: AdminCreateUserPayload) {
+    return this.http.post<void>(this.api, body);
   }
 
   toggleStatus(userId: string) {

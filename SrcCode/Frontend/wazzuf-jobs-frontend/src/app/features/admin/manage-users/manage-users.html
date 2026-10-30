@@ -2,7 +2,16 @@
   <header class="page-header">
     <div>
       <h1>Manage <span class="gradient-text">Users</span></h1>
-      <p>Edit accounts, roles, lock status, and sign-in lockout</p>
+      <p>Search, view profile details, and update account access for team members.</p>
+    </div>
+    <div class="search-row">
+      <input
+        class="input-field"
+        type="search"
+        placeholder="Search by name or email"
+        [(ngModel)]="searchTerm"
+      />
+      <button type="button" class="btn-glow" (click)="openCreate()">Add User</button>
     </div>
   </header>
 
@@ -21,7 +30,7 @@
           </tr>
         </thead>
         <tbody>
-          @for (u of users; track u.id) {
+          @for (u of filteredUsers; track u.id) {
             <tr>
               <td>{{ u.firstName }} {{ u.lastName }}</td>
               <td>{{ u.email }}</td>
@@ -32,6 +41,7 @@
                 </span>
               </td>
               <td class="actions">
+                <button type="button" class="btn-outline" (click)="openView(u)">View</button>
                 <button type="button" class="btn-outline" (click)="openEdit(u)">Edit</button>
                 <button type="button" class="btn-outline" (click)="toggleStatus(u)">Toggle</button>
                 <button type="button" class="btn-outline" (click)="unlock(u)">Unlock</button>
@@ -46,42 +56,81 @@
   @if (showModal) {
     <div class="modal-overlay" (click)="closeModal()">
       <div class="modal-card modal-wide" (click)="$event.stopPropagation()">
-        <h2>Edit user</h2>
-        @if (error) {
-          <div class="alert error">{{ error }}</div>
-        }
-        <div class="field-row">
-          <div class="field">
-            <label>First name</label>
-            <input class="input-field" [(ngModel)]="formFirst" />
-          </div>
-          <div class="field">
-            <label>Last name</label>
-            <input class="input-field" [(ngModel)]="formLast" />
-          </div>
-        </div>
-        <div class="field">
-          <label>Email</label>
-          <input class="input-field" type="email" [(ngModel)]="formEmail" />
-        </div>
-        <div class="field">
-          <label>Roles</label>
-          <div class="roles-checkboxes">
-            @for (r of roleOptions; track r.id) {
-              <label class="check-line">
-                <input
-                  type="checkbox"
-                  [checked]="roleChecked(r.name)"
-                  (change)="toggleRole(r.name)" />
-                <span>{{ r.name }}</span>
-              </label>
+        @if (viewLoading) {
+          <app-loading-spinner message="Loading user profile..." />
+        } @else if (viewingUser) {
+          <h2>User profile</h2>
+          <div class="user-preview">
+            @if (viewingUser.profilePhotoUrl) {
+              <img [src]="viewingUser.profilePhotoUrl" alt="Profile photo" class="profile-avatar" />
+            } @else {
+              <div class="profile-avatar placeholder">
+                {{ (viewingUser.firstName || '?').charAt(0) | uppercase }}
+              </div>
             }
+            <div class="user-details">
+              <p><strong>{{ viewingUser.firstName }} {{ viewingUser.lastName }}</strong></p>
+              <p>{{ viewingUser.email }}</p>
+              <p>Roles: {{ (viewingUser.roles || []).join(', ') }}</p>
+              <p>Status: <strong>{{ viewingUser.isDisabled ? 'Disabled' : 'Active' }}</strong></p>
+              @if (viewingUser.hasCv != null) {
+                <p>CV on file: <strong>{{ viewingUser.hasCv ? 'Yes' : 'No' }}</strong> <span class="muted">(open it from the applicant's application)</span></p>
+              }
+              @if (viewingUser.desiredSalary != null) {
+                <p>Salary expectation: ${{ viewingUser.desiredSalary }}</p>
+              }
+              @if (viewingUser.showSalary != null) {
+                <p>Salary visibility: {{ viewingUser.showSalary ? 'Visible' : 'Hidden' }}</p>
+              }
+            </div>
           </div>
-        </div>
-        <div class="modal-actions">
-          <button type="button" class="btn-outline" (click)="closeModal()">Cancel</button>
-          <button type="button" class="btn-glow" (click)="save()">Save</button>
-        </div>
+          <div class="modal-actions">
+            <button type="button" class="btn-outline" (click)="closeModal()">Close</button>
+          </div>
+        } @else if (!viewLoading) {
+          <h2>{{ editing ? 'Edit user' : 'Add user' }}</h2>
+          @if (error) {
+            <div class="alert error">{{ error }}</div>
+          }
+          <div class="field-row">
+            <div class="field">
+              <label>First name</label>
+              <input class="input-field" [(ngModel)]="formFirst" />
+            </div>
+            <div class="field">
+              <label>Last name</label>
+              <input class="input-field" [(ngModel)]="formLast" />
+            </div>
+          </div>
+          <div class="field">
+            <label>Email</label>
+            <input class="input-field" type="email" [(ngModel)]="formEmail" />
+          </div>
+          @if (!editing) {
+            <div class="field">
+              <label>Password</label>
+              <input class="input-field" type="password" [(ngModel)]="formPassword" />
+            </div>
+          }
+          <div class="field">
+            <label>Roles</label>
+            <div class="roles-checkboxes">
+              @for (r of roleOptions; track r.id) {
+                <label class="check-line">
+                  <input
+                    type="checkbox"
+                    [checked]="roleChecked(r.name)"
+                    (change)="toggleRole(r.name)" />
+                  <span>{{ r.name }}</span>
+                </label>
+              }
+            </div>
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn-outline" (click)="closeModal()">Cancel</button>
+            <button type="button" class="btn-glow" (click)="save()">Save</button>
+          </div>
+        }
       </div>
     </div>
   }

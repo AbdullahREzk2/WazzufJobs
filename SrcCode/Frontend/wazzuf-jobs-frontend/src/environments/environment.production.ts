@@ -2,5 +2,6 @@
 export const environment = {
   production: true,
   apiUrl: 'https://wazzufjobs.runasp.net/api',
-  hubUrl: 'https://wazzufjobs.runasp.net/hubs'
+  hubUrl: 'https://wazzufjobs.runasp.net/hubs',
+  googleClientId: ''
 };

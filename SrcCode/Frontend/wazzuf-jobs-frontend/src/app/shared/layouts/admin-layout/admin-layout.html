@@ -28,7 +28,7 @@
     </nav>
 
     <div class="sidebar-user">
-      <div class="user-avatar admin-avatar">{{ auth.currentUser()?.firstName?.charAt(0) || 'A' }}</div>
+      <app-user-avatar size="md" />
       <div class="user-meta">
         <strong>{{ auth.currentUser()?.firstName }} {{ auth.currentUser()?.lastName }}</strong>
         <span>Administrator</span>

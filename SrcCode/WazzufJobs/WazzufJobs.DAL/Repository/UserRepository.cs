@@ -106,6 +106,50 @@ public class UserRepository : IUserRepository
             .Where(x => x.UserId == userId)
             .ExecuteDeleteAsync(cancellationToken);
 
+    public async Task<IdentityResult> ReplaceUserRolesAsync(AppUser user, IEnumerable<string> roles, CancellationToken cancellationToken)
+    {
+        var target = roles.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+
+        async Task<IdentityResult> ApplyDifferencesAsync()
+        {
+            var current = await _usermanager.GetRolesAsync(user);
+            var toRemove = current.Where(r => !target.Contains(r, StringComparer.OrdinalIgnoreCase)).ToList();
+            var toAdd = target.Where(r => !current.Contains(r, StringComparer.OrdinalIgnoreCase)).ToList();
+
+            if (toRemove.Count > 0)
+            {
+                var removed = await _usermanager.RemoveFromRolesAsync(user, toRemove);
+                if (!removed.Succeeded)
+                    return removed;
+            }
+
+            return toAdd.Count > 0
+                ? await _usermanager.AddToRolesAsync(user, toAdd)
+                : IdentityResult.Success;
+        }
+
+        if (!_dbcontext.Database.IsRelational())
+            return await ApplyDifferencesAsync();
+
+        // the context uses a retrying execution strategy, so the transaction must run inside it
+        var strategy = _dbcontext.Database.CreateExecutionStrategy();
+        return await strategy.ExecuteAsync(async () =>
+        {
+            await using var transaction = await _dbcontext.Database.BeginTransactionAsync(cancellationToken);
+            var result = await ApplyDifferencesAsync();
+
+            if (result.Succeeded)
+                await transaction.CommitAsync(cancellationToken);
+            else
+                await transaction.RollbackAsync(cancellationToken);
+
+            return result;
+        });
+    }
+
+    public async Task<int> CountActiveUsersInRoleAsync(string roleName, CancellationToken cancellationToken)
+        => (await _usermanager.GetUsersInRoleAsync(roleName)).Count(u => !u.IsDisabled);
+
     public async Task<IdentityResult> SetLockoutEndDateAsync(AppUser user, DateTimeOffset? lockoutEnd)
         => await _usermanager.SetLockoutEndDateAsync(user, lockoutEnd);
 
@@ -126,8 +170,28 @@ public class UserRepository : IUserRepository
     public async Task<IdentityResult> ChangePasswordAsync(AppUser user, string currentPassword, string newPassword)
         => await _usermanager.ChangePasswordAsync(user, currentPassword, newPassword);
 
+    public async Task<int> RevokeAllRefreshTokensAsync(string userId, CancellationToken cancellationToken)
+    {
+        var now = DateTime.UtcNow;
+        var activeTokens = await _dbcontext.RefreshTokens
+            .Where(t => t.UserId == userId && t.RevokedOn == null && t.ExpiresOn > now)
+            .ToListAsync(cancellationToken);
+
+        foreach (var token in activeTokens)
+            token.RevokedOn = now;
+
+        await _dbcontext.SaveChangesAsync(cancellationToken);
+        return activeTokens.Count;
+    }
+
     public async Task<AppUser?> FindByIdWithPreferenceAsync(string userId,CancellationToken cancellationToken) =>
     await _dbcontext.Users
         .Include(u => u.Preference)
         .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+
+    public async Task<AppUser?> FindByIdWithProfileAsync(string userId, CancellationToken cancellationToken) =>
+        await _dbcontext.Users
+            .Include(u => u.CV)
+            .Include(u => u.Preference)
+            .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
 }

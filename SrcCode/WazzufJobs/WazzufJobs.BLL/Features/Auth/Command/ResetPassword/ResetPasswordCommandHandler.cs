@@ -22,7 +22,10 @@ public class ResetPasswordCommandHandler(IUserRepository userRepository) : IRequ
         }
 
         if (result.Succeeded)
+        {
+            await _userrepository.RevokeAllRefreshTokensAsync(user.Id, cancellationToken);
             return Result.Success();
+        }
 
         var error = result.Errors.First();
         return Result.Failure(new Error(error.Code, error.Description, StatusCodes.Status401Unauthorized));
