@@ -94,7 +94,7 @@ All PASS means C0 is deployed. Record the results (copy the script output) for t
 | Situation | Action |
 |---|---|
 | Anything fails | **1. Upload `app_offline.htm` immediately.** 2. Diagnose (`App_Data/lifecycle.log`, `logs\`, MonsterASP logs). 3. Fix forward with the C0 package. |
-| Service must return before a fix | **Restricted rollback** (`c0-emergency-deployment.md` §5.2): confirm `admin@wazzuf.com` still exists → restore the A1 site files except `web.config` → merge `tools\c0\deploy\restricted-rollback.web.config.snippet.xml` into the server `web.config` → remove `app_offline.htm` → `/api/Applications/1`, `/api/applications/job/1`, `/api/CV`, `/swagger/v1/swagger.json`, `/index.html`, `/hubs/scoring` must all return **404**, otherwise go back offline. |
+| Service must return before a fix | *(For the 2026-10-30 C0 deployment no A1 backup exists, so this option requires rebuilding the pre-C0 build from `master` `4aa438c` with separate approval.)* **Restricted rollback** (`c0-emergency-deployment.md` §5.2): confirm `admin@wazzuf.com` still exists → restore the A1 site files except `web.config` → merge `tools\c0\deploy\restricted-rollback.web.config.snippet.xml` into the server `web.config` → remove `app_offline.htm` → `/api/Applications/1`, `/api/applications/job/1`, `/api/CV`, `/swagger/v1/swagger.json`, `/index.html`, `/hubs/scoring` must all return **404**, otherwise go back offline. |
 | Frontend only | Vercel → Deployments → the deployment noted in A2 → *Promote to Production* (safe; it does not re-expose data). |
 | Unrestricted rollback | Only with your explicit written acceptance of re-exposing S1/S3/S4/S13 |
 | Database | Nothing to roll back (C0 makes no database changes) |
@@ -108,6 +108,7 @@ All PASS means C0 is deployed. Record the results (copy the script output) for t
 ## G. Execution record (2026-10-30/31)
 | Step | Result |
 |---|---|
+| A1 site-file backup | ✖ **Not taken** (owner): accepted rollback limitation; recovery = maintenance mode + fix forward (see `c0-containment-report.md` §3b) |
 | A4 checksum | ✅ `AFAA7902…5C9E7F09E` matched |
 | A2 Vercel rollback point | `https://wazzuf-jobs-ft0mo1g3a-abdullahrezk2s-projects.vercel.app` |
 | B backend | ✅ Deployed by owner; `/health` Healthy |

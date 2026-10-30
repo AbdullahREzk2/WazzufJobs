@@ -145,7 +145,7 @@ No existing work was discarded. The pre-C0 snapshot and archive are unchanged. T
 | Backend (MonsterASP, `wazzufjobs.runasp.net`) | `WazzufJobs.API-C0-win-x86.zip`, SHA-256 `afaa79026432e86e5c2d79e4e542f9eb80a17a842154d439d92e7ce5c9e7f09e`, built from commit `d1d27d9` (embedded `1.0.0+d1d27d9…`). Deployed by the owner via File Manager per the go-live document (maintenance page, extract-and-overwrite, no deletions, server configuration preserved). |
 | Frontend (Vercel, project `wazzuf-jobs`, team `abdullahrezk2s-projects`) | Deployment `https://wazzuf-jobs-dyjyoank4-abdullahrezk2s-projects.vercel.app`, **Ready** (≈1 min), aliased to `https://wazzuf-jobs.vercel.app`. Deployed with `npx vercel --prod` from branch `security/c0-emergency-containment` (HEAD `64221c7`; frontend code identical to `d1d27d9`). |
 | Frontend rollback point | Previous production deployment `https://wazzuf-jobs-ft0mo1g3a-abdullahrezk2s-projects.vercel.app` (Vercel → Deployments → *Promote to Production*) |
-| Backend rollback point | Owner's site-file zip from step A1 (pre-C0 build) **plus** the restricted-rollback rules (`tools/c0/deploy/restricted-rollback.web.config.snippet.xml`). Plain restoration of the pre-C0 build requires separate approval. |
+| Backend rollback point | **No site-file backup was taken** (step A1 skipped; owner confirmed 2026-10-31). **Accepted rollback limitation:** the exact pre-C0 backend files cannot be restored. Remaining recovery options: maintenance mode (`app_offline.htm`) plus fix forward with the C0 package; if the pre-C0 build were ever required, it would have to be rebuilt from `master` commit `4aa438c` (not byte-identical to the previous deployment), deployed only with the restricted-rollback rules, and only with separate approval. |
 | Database | No changes by C0. No backup exists (G1 waived; accepted risk). |
 
 ### Production verification results
@@ -171,7 +171,7 @@ No existing work was discarded. The pre-C0 snapshot and archive are unchanged. T
 | G3 admin password | ✅ Changed by owner |
 | G4 admin email unchanged | ✅ Unchanged (change allowed after 7 stable days) |
 | G5 configuration / environment | ✅ Production; verified by Swagger 404 and Google/upload behaviour |
-| G6 site-file backup | Owner step A1 (keep until 2026-11-07) |
+| G6 site-file backup | **Not taken** (owner): accepted rollback limitation; see the backend rollback point above |
 | G7 CV uploads disabled | ✅ Verified (503 `CV.UploadsDisabled`) |
 | G8 Vercel / GitHub | ✅ Manual deployment; rollback point recorded |
 | G9 test data | ✅ Used for the authenticated checks |
@@ -201,7 +201,7 @@ No existing work was discarded. The pre-C0 snapshot and archive are unchanged. T
 - [x] G2 owner confirmed disposable test data
 - [x] G3 production admin password changed (owner confirmed)
 - [x] G5 `ASPNETCORE_ENVIRONMENT=Production`; Cloudinary and other secrets configured server-side
-- [ ] G6 deployment-day step A1: download a copy of the current site files
+- [ ] ~~G6 deployment-day step A1: download a copy of the current site files~~ **not taken** (accepted rollback limitation)
 - [x] G7 CV uploads stay disabled
 - [x] G8 GitHub ↔ Vercel not connected; manual Vercel CLI deployment (note the current deployment id on deployment day)
 - [x] Cloudinary credentials configured (owner)
@@ -260,7 +260,7 @@ No existing work was discarded. The pre-C0 snapshot and archive are unchanged. T
 | # | Item | Due |
 |---|---|---|
 | 1 | Monitor `/health` and `App_Data/lifecycle.log`; share the `started …` and `first-request …` lines (VER-03 data: remote address class, restarts) | 2026-10-31 → 2026-11-07 |
-| 2 | Keep the step A1 site-file zip (restricted-rollback source) | until 2026-11-07 |
+| 2 | No site-file backup exists (accepted limitation): on failure use maintenance mode and fix forward; any pre-C0 rebuild needs separate approval | n/a |
 | 3 | **.NET 9 reaches end of support on 2026-11-10.** Production keeps running but receives no security patches afterwards. The .NET 10 upgrade is the first task of Phase 02, so start Phase 00 promptly. | before / around 2026-11-10 |
 
 ### Deferred items (each needs separate approval)

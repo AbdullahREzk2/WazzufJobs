@@ -39,7 +39,7 @@ Location: `F:\.NET study\Projects\WazzufJobs_release\C0-2026-10-30\`
 | G3 | **Done (owner, 2026-10-30):** production admin password changed. Accounts and data are disposable test data; the disabled test account stays until the future database reset. | Owner confirmation |
 | G4 | **Do not change the admin email before deployment** (see §5.4 hazard) | n/a |
 | G5 | **Done (owner, 2026-10-30):** `ASPNETCORE_ENVIRONMENT=Production`; Cloudinary credentials and the other secrets are configured server-side. The package never overwrites server configuration. | Owner confirmation |
-| G6 | **Deployment-day step A1:** download the current site files before deploying (needed for the restricted rollback). | Zip saved |
+| G6 | **Not taken (owner, 2026-10-31): accepted rollback limitation.** No copy of the pre-C0 site files exists. Recovery is maintenance mode plus fix forward; a pre-C0 rebuild from `master` `4aa438c` would need separate approval. | Owner statement |
 | G7 | **Done (owner):** CV uploads stay disabled. The code default is `false`; startup and lifecycle log confirm it. | Owner confirmation + M5 |
 | G8 | **Resolved (2026-10-30):** GitHub and Vercel are not connected, so pushing to GitHub deploys nothing. The frontend is deployed manually with the Vercel CLI. Note the current production deployment id for rollback. | Deployment id |
 | G9 | **Deployment-day step A3:** one test candidate login, plus the id of another user's application and its job id (read-only SQL in the go-live document). | Ids noted |
@@ -101,7 +101,7 @@ Failure detected (health not OK, 5xx, core flow broken, security check failing)
 ### 5.2 Restricted rollback (pre-C0 build + IIS deny rules)
 1. Keep `app_offline.htm` in place.
 2. Check the **seeder hazard** (§5.4): an account with email `admin@wazzuf.com` must exist and carry the rotated password. If it does not, **do not roll back**; stay offline.
-3. Restore the pre-C0 site files from the G6 zip, **except** `web.config`.
+3. Restore the pre-C0 site files from the G6 zip, **except** `web.config`. *(For the 2026-10-30 C0 deployment no G6 zip exists: rebuild the pre-C0 build from `master` `4aa438c` instead, only with separate approval.)*
 4. Download the server's current `web.config`. Insert the `<security>` block from `tools/c0/deploy/restricted-rollback.web.config.snippet.xml` inside `<system.webServer>`, keeping everything else (including any `<environmentVariables>`). Upload it.
 5. Remove `app_offline.htm`. Verify that all of the following return **404**:
    - `/api/Applications/1`
