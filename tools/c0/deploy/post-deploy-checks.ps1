@@ -24,6 +24,8 @@ $s = Status "$Api/index.html";              Check "Swagger UI hidden" ($s -eq 40
 $s = Status "$Api/hangfire";                Check "Hangfire dashboard gone" ($s -eq 404) "HTTP $s"
 $s = Status "$Api/hangfire?u=admin&p=2003"; Check "Hangfire hardcoded login gone" ($s -eq 404) "HTTP $s"
 try { $h = Invoke-WebRequest "$Api/health" -UseBasicParsing; Check "Health" ($h.Content -eq "Healthy") $h.Content } catch { Check "Health" $false "$_" }
+try { Invoke-WebRequest "$Api/api/Auth/google" -Method Post -ContentType "application/json" -Body '{"idToken":"c0-probe"}' -UseBasicParsing -ErrorAction Stop | Out-Null; Check "Google sign-in disabled" $false "unexpected 2xx" }
+catch { $code = [int]$_.Exception.Response.StatusCode; Check "Google sign-in disabled (Google:ClientId not configured)" ($code -eq 503) "HTTP $code" }
 
 if ($OtherApplicationId -le 0) { Write-Host "Skipping authenticated checks (pass -OtherApplicationId and -JobId)."; return }
 

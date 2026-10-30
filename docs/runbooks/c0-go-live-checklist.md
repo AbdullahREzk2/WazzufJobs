@@ -16,12 +16,12 @@
 | ✔ | G8 | GitHub ↔ Vercel not connected; manual `npx vercel --prod`. Note the current deployment id for rollback ☐ |
 | ☐ | G9 | Two test candidates with applications; ids noted |
 | ☐ | G11 | D24 decided: ship C0 together with the earlier uncommitted features (not yet live) or C0-only |
-| ☐ | G12 | `Google:ClientId` on server known (empty means Google sign-in is disabled) |
+| ✔ | G12 | Google sign-in **not configured on MonsterASP**, so disabled (backend 503, no button, no Google script) |
 | ✔ | Cloudinary | Credentials in user secrets; spike 10/10 PASS; the 13 legacy test CV assets deleted (D21) and verified (0 raw assets) |
 | ☐ | G10 | D20 approval received |
 
 ## B. Deployment (≈15 min)
-1. ☐ `certutil -hashfile WazzufJobs.API-C0-win-x86.zip SHA256` gives `a088f67b207d5226193d5cf3dd47e5b1f0cbe7e2887044893569cb8927da803b`
+1. ☐ `certutil -hashfile WazzufJobs.API-C0-win-x86.zip SHA256` gives `6d6cc4609fa34dd97922a08eb390b844f4c1925af4d87a57a32df9040a68ea76`
 2. ☐ Upload `app_offline.htm` to the site root
 3. ☐ Upload the **contents** of `backend-package\`, overwriting; delete nothing (`web.config`, `appsettings*.json`, `App_Data`, `logs`, `.well-known` stay). **Never** use the VS publish profile for this release.
 4. ☐ Delete `app_offline.htm`
@@ -31,13 +31,13 @@
 ## C. Security verification (≈15 min)
 | ✔ | Check | Expected |
 |---|---|---|
-| ☐ | `post-deploy-checks.ps1` anonymous part | Swagger 404, `/index.html` 404, `/hangfire` 404, `/health` Healthy |
+| ☐ | `post-deploy-checks.ps1` anonymous part | Swagger 404, `/index.html` 404, `/hangfire` 404, `/health` Healthy, `POST /api/Auth/google` 503 |
 | ☐ | `post-deploy-checks.ps1 -OtherApplicationId … -JobId …` (test candidate) | 403 ×3; no AI fields; CV metadata without URL; upload returns 503 |
 | ☐ | `verify-rate-limit.ps1` (non-existent emails only) | First 429 after request 20; wait 60 s before logging in |
 | ☐ | Admin → Applications → Download CV | PDF or a clear "unavailable" message |
 | ☐ | Admin → Account security → change password → sign in again | Works |
-| ☐ | `App_Data/lifecycle.log` | `started  cvUploadsEnabled=False` and a `first-request` line (note `remoteAddressClass`) |
-| ☐ | Frontend | Demo notice visible; no score anywhere; core flows work |
+| ☐ | `App_Data/lifecycle.log` | `started  cvUploadsEnabled=False  googleSignInEnabled=False` and a `first-request` line (note `remoteAddressClass`) |
+| ☐ | Frontend | Demo notice visible; no score anywhere; **no Google button** on the login page; email/password login works; core flows work |
 
 ## D. Failure / rollback
 | Situation | Action |

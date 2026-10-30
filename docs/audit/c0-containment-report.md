@@ -27,7 +27,7 @@ Revision 4 (2026-10-30): owner decisions applied (no administrator seeding, data
 | S3 / B15 | Public CV uploads; URLs returned to clients; deletes probably never removed raw files | Code-verified; inventory 2026-10-30: 13 raw/upload test assets (owner's own); anonymous access to public raw PDFs returns 401 on this account (free-tier PDF block) | No public upload path; new uploads `authenticated`-only and **disabled by default**; URLs removed from every DTO; files served via authorized API (60 s signed server-side download); legacy assets untouched until D21 **Remediated 2026-10-30: all 13 legacy assets deleted (D21); 0 raw assets remain.** |
 | S13 | Swagger publicly served | Live: `/swagger/v1/swagger.json` returns 200 | Swagger mapped only in Development |
 | S7 | Rate limiting not configured | Code-verified | 20 req/min per client IP on `/api/Auth/*` |
-| S8 | Google sign-in (part of the previously uncommitted work shipped with this release) accepted unverified Google emails and linked to unconfirmed local accounts (pre-hijack) | Code-verified; active only if `Google:ClientId` is set on the server | Requires `email_verified`; refuses to link to unconfirmed accounts (409); audience check kept |
+| S8 | Google sign-in (part of the previously uncommitted work shipped with this release) accepted unverified Google emails and linked to unconfirmed local accounts (pre-hijack) | Code-verified; active only if `Google:ClientId` is set on the server | Requires `email_verified`; refuses to link to unconfirmed accounts (409); audience check kept. **Google sign-in is not configured on MonsterASP for C0, so it is disabled end to end:** the API returns 503 without contacting Google or creating accounts (tested, including a whitespace-only client id); the login page hides the button and never loads Google's script (6 frontend tests); startup logs `googleSignInEnabled=False`. Email/password login is unaffected (tested). |
 | Deps | `System.Security.Cryptography.Pkcs 8.0.1` (High, CVE-2026-84008, via MimeKit; not reachable: no S/MIME verification) and Angular 21.2.13 (High: XSS sanitization bypasses, DoS) | Scanner-verified | Pkcs pinned to 8.0.2; Angular patched to 21.2.25 (build 21.2.29); unused `@microsoft/signalr` (+ vulnerable `ws`) removed. Both scans now 0 for shipped dependencies. |
 | (new) | Password change/reset did not revoke refresh tokens | Code-verified | All active refresh tokens revoked |
 | (new) | No admin password-change UI | Code-verified | Admin → **Account security** |
@@ -113,13 +113,13 @@ No existing work was discarded. The pre-C0 snapshot and archive are unchanged. T
 | Suite | Result |
 |---|---|
 | Backend build | Success. 0 errors; only the 6 pre-existing `NU1701` (PdfiumViewer) warnings. |
-| `WazzufJobs.Tests` | **56/56 passed** (rev 4: seeder tests replaced by fail-safe tests: no automatic admin even with old bootstrap settings, admin endpoints fail closed without an administrator, self-registration never grants Admin, no default credentials in the shipped DLLs). Previously 54/54: 41 (rev 1) + 5 (rev 2: admin safety on SQL Server, rate-limit probe safety, endpoint leak sweep) + 8 (rev 3: Google sign-in hardening against a fake tokeninfo endpoint) |
+| `WazzufJobs.Tests` | **58/58 passed** (rev 5: +2 for disabled Google sign-in and email/password login; frontend `login.spec.ts` 6/6, run with `ng test --include`) (rev 4: seeder tests replaced by fail-safe tests: no automatic admin even with old bootstrap settings, admin endpoints fail closed without an administrator, self-registration never grants Admin, no default credentials in the shipped DLLs). Previously 54/54: 41 (rev 1) + 5 (rev 2: admin safety on SQL Server, rate-limit probe safety, endpoint leak sweep) + 8 (rev 3: Google sign-in hardening against a fake tokeninfo endpoint) |
 | Mutation checks | S1 reverted: 5 authorization tests + the leak sweep fail. Swagger guard removed: 2 tests fail. Google guards removed: 4 tests fail. All fixes restored. |
 | Dependency scans | `dotnet list package --vulnerable --include-transitive`: 0. `npm audit --omit=dev`: 0. Dev-only tooling advisories (test runner, jsdom, CLI) are not shipped; deferred to Phase 02. |
 | Frontend production build | Success on Angular 21.2.25 (463 kB initial) |
 | SQL assessment script | Validated without errors on a throwaway database built from the project's EF migrations (same schema as production) with synthetic data, with and without a Hangfire schema; database dropped. Made portable (no `STRING_AGG`); needs `sqlcmd -I` or SSMS. |
 | Cloudinary tool | Verified end to end against a local fake Cloudinary (`tools/c0/verification`): inventory sent 0 mutating requests and joined correctly; spike passed all 10 checks and touched only its own synthetic assets. Real-account behaviour still needs your run. |
-| Release artifacts | Zip SHA-256 `a088f67b…8927da803b` matches the 94-file manifest; no config, `.pdb` or test files; runtime, `web.config` and file set identical to pre-C0; no legacy credential strings in the C0 DLLs; frontend bundle has the production API URL, no localhost, and the demo notice; `aiScore` only in the admin chunk. |
+| Release artifacts | Zip SHA-256 `6d6cc460…0a68ea76` matches the 94-file manifest; no config, `.pdb` or test files; runtime, `web.config` and file set identical to pre-C0; no legacy credential strings in the C0 DLLs; frontend bundle has the production API URL, no localhost, and the demo notice; `aiScore` only in the admin chunk. |
 | Frontend unit tests | Pre-existing breakage unchanged (does not compile at baseline); planned for Phase 02/04 |
 | Script syntax | 3 PowerShell scripts parse OK; IIS snippet is well-formed XML |
 
@@ -153,7 +153,7 @@ No existing work was discarded. The pre-C0 snapshot and archive are unchanged. T
 - [ ] Run the Cloudinary `inventory` (read-only) and `spike` (synthetic) with credentials entered in your own terminal; share summaries only
 - [ ] Do **not** change the admin email before deployment (G4)
 - [ ] **G11 / D24**: decide the release content. Verified: the 44 earlier uncommitted changes are **not** in production (production API spec has no `POST /api/auth/google`), so this release would ship them for the first time. Options: ship together (recommended; security-relevant paths reviewed and tested) or a C0-only rebuild on `master`.
-- [ ] **G12**: tell me whether `Google:ClientId` is set on the server
+- [x] G12 Google sign-in not configured on MonsterASP, so it is disabled (backend 503, no frontend button), with tests
 - [ ] Push the prepared branch only after the phase is approved (pushing does not deploy)
 
 ### Unresolved risks (accepted or tracked)

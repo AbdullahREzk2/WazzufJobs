@@ -21,7 +21,7 @@ Rules:
 | `AISettings:ApiKey` | **yes** | yes | Groq key |
 | `AISettings:Model`, `BaseUrl`, `MaxTokens` | no | no | Defaults in `appsettings.json` |
 | `AppURL:BaseUrl`, `AppURL:FrontendUrl` | no | yes | |
-| `Google:ClientId` | no | no | Empty means Google sign-in is disabled |
+| `Google:ClientId` | no | no | **Not configured in C0, so Google sign-in is disabled** (API 503, no call to Google). To enable it in a later phase, set the same OAuth client id on the server **and** in `environment.production.ts` (`googleClientId`, a public value), then rebuild and redeploy the frontend. |
 | `Storage:DocumentProvider` | no | no | `Cloudinary` (default). Unknown values stop the app at startup (fail closed). |
 | `Features:CvUploadsEnabled` | no | no | **false** (default). Set to true only after the private-storage spike passes **and** approval (D21b). |
 | `RateLimiting:AuthPermitLimitPerMinute` | no | no | 20 |

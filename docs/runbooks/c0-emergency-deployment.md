@@ -9,7 +9,7 @@ Location: `F:\.NET study\Projects\WazzufJobs_release\C0-2026-10-30\`
 
 | Artifact | Content |
 |---|---|
-| `WazzufJobs.API-C0-win-x86.zip` | Release build. SHA-256 `a088f67b207d5226193d5cf3dd47e5b1f0cbe7e2887044893569cb8927da803b` (also in `.sha256`). Verify before uploading: `certutil -hashfile WazzufJobs.API-C0-win-x86.zip SHA256`. |
+| `WazzufJobs.API-C0-win-x86.zip` | Release build. SHA-256 `6d6cc4609fa34dd97922a08eb390b844f4c1925af4d87a57a32df9040a68ea76` (also in `.sha256`). Verify before uploading: `certutil -hashfile WazzufJobs.API-C0-win-x86.zip SHA256`. |
 | `backend-package\` | Same content unzipped: 94 files. **Excludes** `appsettings*.json`, `web.config` and `*.pdb`. |
 | `backend-package-manifest.txt` | SHA-256 + path of every package file (input for §6) |
 | `frontend-dist\browser\` | Angular production build, Angular 21.2.25 (API base `https://wazzufjobs.runasp.net/api`). Reference only: Vercel builds from source. |
@@ -44,7 +44,7 @@ Location: `F:\.NET study\Projects\WazzufJobs_release\C0-2026-10-30\`
 | G8 | **Resolved (2026-10-30):** GitHub and Vercel are not connected, so pushing to GitHub deploys nothing. The frontend is deployed manually with the Vercel CLI. Note the current production deployment id for rollback. | Deployment id |
 | G9 | Two test accounts on production: a candidate with an application, and a second candidate with an application whose id you note | Ids noted (no passwords recorded) |
 | G11 | **Release content decision (D24).** Verified 2026-10-30 by comparing the public production API spec (47 endpoints): production runs the **committed** code, so the 44 previously uncommitted changes (Google sign-in, profile photo, admin user/application details, status-update email template) are **not live**. This release would ship them for the first time, together with C0. New endpoints: `POST /api/auth/google`, `GET /api/cv/file`, `GET /api/applications/{id}/cv`, `GET /health`. Choose: (a) ship together, as built and tested (recommended); or (b) a C0-only rebuild on top of `master` (extra work and retest). | Your choice |
-| G12 | Google sign-in configuration known: if the server sets `Google:ClientId`, Google sign-in becomes active. It is now hardened (verified emails only; no linking to unconfirmed accounts). | Note |
+| G12 | **Resolved (2026-10-30): Google sign-in is not configured on MonsterASP**, so it is disabled. The backend returns 503 `Google.Disabled` before any call to Google and creates no account; the frontend hides the button and never loads Google's script (production bundle has `googleClientId:""`). Email/password sign-in is unaffected. The implementation is kept and hardened for a later phase. Tests: 2 backend, 6 frontend. | Owner statement |
 | G10 | D20 final approval given | Approval message |
 
 ## 2. Deploy backend (≈10 min)
@@ -75,7 +75,7 @@ The old frontend works against the new backend: score widgets and CV links are s
 | M2 | Candidate dashboard | No score anywhere; status and applied date shown |
 | M3 | Candidate Profile → upload CV | "CV uploads are temporarily unavailable…" |
 | M4 | Admin → **Account security** → change password → sign out → sign in | Works |
-| M5 | File Manager → `App_Data/lifecycle.log` | `started  cvUploadsEnabled=False` and a `first-request` line |
+| M5 | File Manager → `App_Data/lifecycle.log` | `started  cvUploadsEnabled=False  googleSignInEnabled=False` and a `first-request` line |
 | M6 | `https://wazzuf-jobs.vercel.app` | Demo notice visible and dismissible |
 | M7 | Core flows: register/login, browse jobs, apply with an existing CV, admin job/category management | Unchanged |
 
