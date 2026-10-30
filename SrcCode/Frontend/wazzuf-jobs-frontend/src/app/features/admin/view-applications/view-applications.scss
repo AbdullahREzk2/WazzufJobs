@@ -1,3 +1,43 @@
+.status-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.filter-pill {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &.active,
+  &:hover {
+    border-color: var(--secondary);
+    color: var(--secondary);
+    background: rgba(0, 212, 255, 0.08);
+  }
+}
+
+.applicant-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.salary-line {
+  margin-top: 12px;
+
+  &.muted {
+    color: var(--text-muted) !important;
+  }
+}
+
 .apps-layout {
   display: grid;
   gap: 24px;

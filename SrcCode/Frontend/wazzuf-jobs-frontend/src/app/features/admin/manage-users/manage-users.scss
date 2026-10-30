@@ -19,8 +19,48 @@
   }
 }
 
+.search-row {
+  margin-top: 20px;
+  max-width: 420px;
+}
+
+.search-row .input-field {
+  width: 100%;
+}
+
 .modal-wide {
   max-width: 520px;
+}
+
+.user-preview {
+  display: grid;
+  grid-template-columns: 84px 1fr;
+  gap: 18px;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.user-preview .profile-avatar {
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--border);
+
+  &.placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    font-weight: 700;
+    background: var(--surface-elevated);
+    color: var(--text-secondary);
+  }
+}
+
+.user-details p {
+  margin: 0 0 8px;
+  color: var(--text-secondary);
 }
 
 .modal-actions {

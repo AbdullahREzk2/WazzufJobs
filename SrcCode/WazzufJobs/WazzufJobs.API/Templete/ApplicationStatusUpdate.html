@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Status Update — Wazzuf Jobs</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #050818;
+            color: #ffffff;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #0d1b3e;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+        }
+        .header {
+            background: linear-gradient(135deg, #0a0e27, #1a1f4e);
+            padding: 36px 40px 28px;
+            text-align: center;
+        }
+        .logo { font-size: 28px; font-weight: 900; letter-spacing: 2px; }
+        .logo span { color: #00d4ff; }
+        .content { padding: 36px 40px; line-height: 1.7; color: #cbd5e1; }
+        .status-pill {
+            display: inline-block;
+            margin: 18px 0;
+            padding: 10px 18px;
+            border-radius: 999px;
+            background: rgba(0, 212, 255, 0.12);
+            border: 1px solid rgba(0, 212, 255, 0.35);
+            color: #00d4ff;
+            font-weight: 700;
+        }
+        .job-title { color: #ffffff; font-size: 20px; font-weight: 700; margin: 12px 0; }
+        .cta {
+            display: inline-block;
+            margin-top: 24px;
+            padding: 14px 28px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #00d4ff, #7c3aed);
+            color: #ffffff !important;
+            text-decoration: none;
+            font-weight: 700;
+        }
+        .footer {
+            padding: 24px 40px 32px;
+            font-size: 12px;
+            color: #64748b;
+            text-align: center;
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">Wazzuf<span>Jobs</span></div>
+            <p style="margin-top:10px;color:#94a3b8;">Application status update</p>
+        </div>
+        <div class="content">
+            <p>Hi {name},</p>
+            <p>Your application status has been updated by our hiring team.</p>
+            <div class="job-title">{jobTitle}</div>
+            <div class="status-pill">{status}</div>
+            <p>{message}</p>
+            <a class="cta" href="{appUrl}">View your dashboard</a>
+        </div>
+        <div class="footer">
+            You received this email because you applied for a job on Wazzuf Jobs.
+        </div>
+    </div>
+</body>
+</html>

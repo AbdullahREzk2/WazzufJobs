@@ -31,14 +31,24 @@
 
 .footer-links {
   display: flex;
-  gap: 24px;
+  flex-wrap: wrap;
+  gap: 14px;
+  justify-content: center;
 
-  a {
+  a,
+  .footer-button {
     color: var(--text-secondary);
     text-decoration: none;
     font-size: 14px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-weight: 500;
+  }
 
-    &:hover { color: var(--secondary); }
+  a:hover,
+  .footer-button:hover {
+    color: var(--secondary);
   }
 }
 

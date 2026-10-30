@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { Navbar } from '../../shared/components/navbar/navbar';
 import { Footer } from '../../shared/components/footer/footer';
 import { LoadingSpinner } from '../../shared/components/loading-spinner/loading-spinner';
@@ -8,6 +9,7 @@ import { PasswordCriteria } from '../../shared/components/password-criteria/pass
 import { AuthService } from '../../core/services/auth.service';
 import { CvService } from '../../core/services/cv.service';
 import { AccountService } from '../../core/services/account.service';
+import { ProfilePhotoService } from '../../core/services/profile-photo.service';
 import { CVResponse } from '../../core/models/application.models';
 import { UserProfile } from '../../core/models/account.models';
 import {
@@ -21,6 +23,7 @@ import {
   imports: [
     CommonModule,
     FormsModule,
+    RouterLink,
     Navbar,
     Footer,
     LoadingSpinner,
@@ -51,6 +54,7 @@ export class Profile implements OnInit {
   constructor(
     private cvService: CvService,
     private accountService: AccountService,
+    private profilePhoto: ProfilePhotoService,
     public auth: AuthService
   ) {}
 
@@ -168,6 +172,7 @@ export class Profile implements OnInit {
         this.accountService.getUserInfo().subscribe({
           next: p => {
             this.profile = p;
+            this.profilePhoto.setPhotoUrl(p.profilePhotoUrl || null);
             this.success = 'Profile photo updated.';
           },
           error: () => {

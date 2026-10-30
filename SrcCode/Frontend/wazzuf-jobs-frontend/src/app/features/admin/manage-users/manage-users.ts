@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { LoadingSpinner } from '../../../shared/components/loading-spinner/loading-spinner';
 import { UsersAdminService } from '../../../core/services/users-admin.service';
 import { RolesAdminService } from '../../../core/services/roles-admin.service';
-import { AdminUserRow, RoleSummary } from '../../../core/models/account.models';
+import { AdminCreateUserPayload, AdminUserRow, RoleSummary } from '../../../core/models/account.models';
 
 @Component({
   selector: 'app-manage-users',
@@ -19,11 +19,15 @@ export class ManageUsers implements OnInit {
   loading = true;
   showModal = false;
   editing: AdminUserRow | null = null;
+  viewingUser: AdminUserRow | null = null;
+  viewLoading = false;
   error = '';
 
+  searchTerm = '';
   formFirst = '';
   formLast = '';
   formEmail = '';
+  formPassword = '';
   selectedRoles: string[] = [];
 
   constructor(
@@ -39,6 +43,15 @@ export class ManageUsers implements OnInit {
     this.loadUsers();
   }
 
+  get filteredUsers(): AdminUserRow[] {
+    const term = this.searchTerm.trim().toLowerCase();
+    if (!term) return this.users;
+    return this.users.filter(u =>
+      `${u.firstName} ${u.lastName}`.toLowerCase().includes(term) ||
+      u.email.toLowerCase().includes(term)
+    );
+  }
+
   loadUsers() {
     this.loading = true;
     this.usersApi.getAll().subscribe({
@@ -50,19 +63,51 @@ export class ManageUsers implements OnInit {
     });
   }
 
+  openCreate() {
+    this.editing = null;
+    this.viewingUser = null;
+    this.formFirst = '';
+    this.formLast = '';
+    this.formEmail = '';
+    this.formPassword = '';
+    this.selectedRoles = [];
+    this.showModal = true;
+    this.error = '';
+  }
+
   openEdit(u: AdminUserRow) {
     this.editing = u;
+    this.viewingUser = null;
     this.formFirst = u.firstName ?? '';
     this.formLast = u.lastName ?? '';
     this.formEmail = u.email ?? '';
+    this.formPassword = '';
     this.selectedRoles = [...(u.roles ?? [])];
     this.showModal = true;
     this.error = '';
   }
 
+  openView(u: AdminUserRow) {
+    this.viewLoading = true;
+    this.showModal = true;
+    this.editing = null;
+    this.viewingUser = null;
+    this.usersApi.getById(u.id).subscribe({
+      next: detail => {
+        this.viewingUser = detail;
+        this.viewLoading = false;
+      },
+      error: () => {
+        this.viewLoading = false;
+        this.error = 'Unable to load user details.';
+      }
+    });
+  }
+
   closeModal() {
     this.showModal = false;
     this.editing = null;
+    this.viewingUser = null;
     this.error = '';
   }
 
@@ -77,7 +122,6 @@ export class ManageUsers implements OnInit {
   }
 
   save() {
-    if (!this.editing) return;
     const first = this.formFirst.trim();
     const last = this.formLast.trim();
     const email = this.formEmail.trim();
@@ -89,22 +133,31 @@ export class ManageUsers implements OnInit {
       this.error = 'Select at least one role.';
       return;
     }
-    this.usersApi
-      .update(this.editing.id, {
-        firstName: first,
-        lastName: last,
-        email,
-        roles: this.selectedRoles
-      })
-      .subscribe({
-        next: () => {
-          this.closeModal();
-          this.loadUsers();
-        },
-        error: err => {
-          this.error = err.error?.detail || 'Update failed.';
-        }
-      });
+
+    const payload: AdminCreateUserPayload = {
+      firstName: first,
+      lastName: last,
+      email,
+      roles: this.selectedRoles
+    };
+
+    if (!this.editing && this.formPassword.trim()) {
+      payload.password = this.formPassword.trim();
+    }
+
+    const request = this.editing
+      ? this.usersApi.update(this.editing.id, payload)
+      : this.usersApi.create(payload);
+
+    request.subscribe({
+      next: () => {
+        this.closeModal();
+        this.loadUsers();
+      },
+      error: err => {
+        this.error = err.error?.detail || 'Save failed.';
+      }
+    });
   }
 
   toggleStatus(u: AdminUserRow) {

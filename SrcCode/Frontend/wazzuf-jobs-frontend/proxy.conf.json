@@ -1,12 +1,12 @@
 {
-  "/api": {
-    "target": "https://wazzufjobs.runasp.net",
-    "secure": true,
+  "/api/**": {
+    "target": "https://localhost:7154",
+    "secure": false,
     "changeOrigin": true
   },
-  "/hubs": {
-    "target": "https://wazzufjobs.runasp.net",
-    "secure": true,
+  "/hubs/**": {
+    "target": "https://localhost:7154",
+    "secure": false,
     "changeOrigin": true,
     "ws": true
   }

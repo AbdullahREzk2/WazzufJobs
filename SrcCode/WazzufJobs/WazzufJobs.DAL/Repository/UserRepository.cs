@@ -130,4 +130,10 @@ public class UserRepository : IUserRepository
     await _dbcontext.Users
         .Include(u => u.Preference)
         .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+
+    public async Task<AppUser?> FindByIdWithProfileAsync(string userId, CancellationToken cancellationToken) =>
+        await _dbcontext.Users
+            .Include(u => u.CV)
+            .Include(u => u.Preference)
+            .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
 }

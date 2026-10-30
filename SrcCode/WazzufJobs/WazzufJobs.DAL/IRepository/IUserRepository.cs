@@ -39,4 +39,5 @@ public interface IUserRepository
     Task<IdentityResult> ChangePasswordAsync(AppUser user, string currentPassword, string newPassword);
 
     Task<AppUser?> FindByIdWithPreferenceAsync(string userId,CancellationToken cancellationToken);
+    Task<AppUser?> FindByIdWithProfileAsync(string userId, CancellationToken cancellationToken);
 }

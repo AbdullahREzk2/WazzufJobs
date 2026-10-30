@@ -104,6 +104,11 @@
             <span *ngIf="loading" class="spinner"></span>
           </button>
 
+          @if (googleEnabled) {
+            <div class="divider">or continue with</div>
+            <div id="google-signin-btn" class="google-btn-wrap"></div>
+          }
+
         </div>
       </div>
     </div>

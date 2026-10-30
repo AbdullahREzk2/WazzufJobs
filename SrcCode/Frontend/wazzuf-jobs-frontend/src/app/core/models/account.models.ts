@@ -27,6 +27,10 @@ export interface AdminUserRow {
   email: string;
   isDisabled: boolean;
   roles: string[];
+  profilePhotoUrl?: string;
+  cvUrl?: string;
+  desiredSalary?: number | null;
+  showSalary?: boolean;
 }
 
 /** PUT api/users/{id} */
@@ -35,6 +39,10 @@ export interface AdminUpdateUserPayload {
   lastName: string;
   email: string;
   roles: string[];
+}
+
+export interface AdminCreateUserPayload extends AdminUpdateUserPayload {
+  password?: string;
 }
 
 /** GET api/roles */

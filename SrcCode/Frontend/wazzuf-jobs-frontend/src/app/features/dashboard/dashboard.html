@@ -18,6 +18,15 @@
         </div>
         <a routerLink="/onboarding" class="btn-glow"><span>Complete profile</span></a>
       </div>
+    } @else {
+      <div class="tip-banner glass-card interactive subtle-banner">
+        <div class="tip-icon">⚙️</div>
+        <div class="tip-body">
+          <strong>Job preferences</strong>
+          <p>Update experience, categories, or salary expectations to improve matches.</p>
+        </div>
+        <a routerLink="/onboarding" class="btn-outline">Edit preferences</a>
+      </div>
     }
 
     <div class="quick-actions">
@@ -59,6 +68,26 @@
         <a routerLink="/jobs" class="link">Explore more jobs →</a>
       </div>
 
+      <div class="status-filter-row">
+        <button
+          type="button"
+          class="filter-pill"
+          [class.active]="selectedStatus === null"
+          (click)="setStatusFilter(null)">
+          All
+        </button>
+
+        @for (filter of statusFilters; track filter.value) {
+          <button
+            type="button"
+            class="filter-pill"
+            [class.active]="selectedStatus === filter.value"
+            (click)="setStatusFilter(filter.value)">
+            {{ filter.label }}
+          </button>
+        }
+      </div>
+
       @if (loading) {
         <app-loading-spinner message="Loading your applications..." />
       } @else if (applications.length === 0) {
@@ -68,9 +97,15 @@
           <p>You haven't applied yet. Pick a job you like — we'll score your CV in seconds.</p>
           <a routerLink="/jobs" class="btn-glow btn-large"><span>Browse open roles</span></a>
         </div>
+      } @else if (filteredApplications.length === 0) {
+        <div class="empty-state glass-card friendly-empty">
+          <div class="empty-icon">🔍</div>
+          <h3>No applications found</h3>
+          <p>There are no applications matching the selected status.</p>
+        </div>
       } @else {
         <div class="apps-list">
-          @for (app of applications; track app.id) {
+          @for (app of filteredApplications; track app.id) {
             <article class="app-row glass-card interactive">
               <div class="app-info">
                 <h3>{{ app.jobTitle }}</h3>

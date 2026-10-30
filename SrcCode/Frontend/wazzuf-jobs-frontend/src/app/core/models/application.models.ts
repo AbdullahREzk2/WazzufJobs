@@ -24,8 +24,10 @@ export interface ApplicationResponse {
 
 export interface ApplicationDetail {
   id: number;
+  applicantUserId: string;
   applicantName: string;
   applicantEmail: string;
+  applicantProfilePhotoUrl?: string;
   cvUrl: string;
   jobTitle: string;
   status: string;
@@ -33,6 +35,8 @@ export interface ApplicationDetail {
   aiFeedback: string | null;
   isAIScored: boolean;
   appliedAt: string;
+  desiredSalary?: number | null;
+  showSalary?: boolean;
 }
 
 export interface CVResponse {

@@ -260,6 +260,38 @@
   }
 }
 
+.btn-google {
+  background: #ffffff;
+  color: #111827;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.02);
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 18px 0 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.google-btn-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+  min-height: 44px;
+}
+
 // ── Spinner ───────────────────────────────────────────
 .spinner {
   display: inline-block;

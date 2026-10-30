@@ -71,6 +71,12 @@ export class AuthService {
       );
   }
 
+  googleLogin(idToken: string) {
+    return this.http
+      .post<AuthResponse>(`${environment.apiUrl}/auth/google`, { idToken })
+      .pipe(tap(response => this.storeAuth(response)));
+  }
+
   /** Update cached user after profile changes (token unchanged). */
   patchStoredUser(
     partial: Partial<

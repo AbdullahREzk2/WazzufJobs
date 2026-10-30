@@ -5,12 +5,22 @@ public class GetUserDetailQueryHandler(IUserRepository userRepository) : IReques
 
     public async Task<Result<UserResponse>> Handle(GetUserDetailQuery request, CancellationToken cancellationToken)
     {
-        var user = await _userrepository.FindByIdAsync(request.userId);
+        var user = await _userrepository.FindByIdWithProfileAsync(request.userId, cancellationToken);
         if (user is null)
             return Result.Failure<UserResponse>(UserErrors.UserNotFound);
 
         var userRoles = await _userrepository.GetRolesAsync(user);
-        var response = (user, userRoles).Adapt<UserResponse>();
+        var response = new UserResponse(
+            user.Id,
+            user.FirstName,
+            user.LastName,
+            user.Email!,
+            user.IsDisabled,
+            userRoles,
+            user.ProfilePhotoUrl,
+            user.CV?.Url,
+            user.Preference?.MinSalary,
+            user.ShowSalary);
 
         return Result.Success(response);
     }

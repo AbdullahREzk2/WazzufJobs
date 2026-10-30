@@ -25,7 +25,7 @@
 
       <div class="nav-user">
         <div class="user-chip">
-          <span class="avatar">{{ initials() }}</span>
+          <app-user-avatar size="sm" />
           <span class="user-name">{{ auth.currentUser()?.firstName }}</span>
           @if (auth.isAdmin()) {
             <span class="role-pill admin">Admin</span>

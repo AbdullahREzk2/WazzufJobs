@@ -24,6 +24,7 @@ export class Onboarding implements OnInit {
   step = 1;
   loading = true;
   saving = false;
+  isEditing = false;
   error = '';
   categories: Category[] = [];
 
@@ -54,13 +55,16 @@ export class Onboarding implements OnInit {
 
     this.onboardingService.getStatus().subscribe({
       next: status => {
-        if (status.isProfileComplete) {
-          this.experienceYears = status.experienceYears;
-          this.interestedCategoryIds = [...status.interestedCategoryIds];
-          this.interestedJobTitles = [...status.interestedJobTitles];
-          this.minSalary = status.minSalary;
-          this.showSalary = status.showSalary;
-        }
+        this.isEditing = status.isProfileComplete;
+        this.step = 1;
+        this.experienceYears = status.experienceYears;
+        this.careerLevel = Number(status.careerLevel) || CareerLevel.EntryLevel;
+        this.preferredJobTypes = status.preferredJobTypes.map(v => +v).filter(n => !Number.isNaN(n));
+        this.preferredWorkplaceTypes = status.preferredWorkplaceTypes.map(v => +v).filter(n => !Number.isNaN(n));
+        this.interestedCategoryIds = [...status.interestedCategoryIds];
+        this.interestedJobTitles = [...status.interestedJobTitles];
+        this.minSalary = status.minSalary;
+        this.showSalary = status.showSalary;
         this.loading = false;
       },
       error: () => this.loading = false

@@ -5,8 +5,20 @@
 
   <main class="page-main onboarding-main">
     <header class="page-header">
-      <h1>Complete Your <span class="gradient-text">Profile</span></h1>
-      <p>Help our AI find the perfect jobs for you</p>
+      <h1>
+        @if (isEditing) {
+          Edit Your <span class="gradient-text">Preferences</span>
+        } @else {
+          Complete Your <span class="gradient-text">Profile</span>
+        }
+      </h1>
+      <p>
+        @if (isEditing) {
+          Update your job preferences, categories, and salary expectations anytime.
+        } @else {
+          Help our AI find the perfect jobs for you
+        }
+      </p>
     </header>
 
     <div class="steps-indicator">
@@ -121,7 +133,7 @@
             <button type="button" class="btn-glow" (click)="next()"><span>Next →</span></button>
           } @else {
             <button type="button" class="btn-glow" (click)="submit()" [disabled]="saving">
-              <span *ngIf="!saving">Finish & Go to Dashboard</span>
+              <span *ngIf="!saving">{{ isEditing ? 'Save changes' : 'Finish & Go to Dashboard' }}</span>
               <span *ngIf="saving" class="spinner-inline"></span>
             </button>
           }
