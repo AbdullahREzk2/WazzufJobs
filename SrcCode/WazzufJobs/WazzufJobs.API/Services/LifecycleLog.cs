@@ -21,7 +21,10 @@ public static class LifecycleLog
     public static void Register(WebApplication app)
     {
         var cvUploadsEnabled = app.Services.GetRequiredService<IOptions<FeatureSettings>>().Value.CvUploadsEnabled;
-        app.Logger.LogInformation("Feature state: CV uploads enabled = {CvUploadsEnabled}.", cvUploadsEnabled);
+        // Google sign-in is disabled (HTTP 503, no call to Google) while Google:ClientId is not configured
+        var googleSignInEnabled = !string.IsNullOrWhiteSpace(app.Configuration["Google:ClientId"]);
+        app.Logger.LogInformation("Feature state: CV uploads enabled = {CvUploadsEnabled}; Google sign-in enabled = {GoogleSignInEnabled}.",
+            cvUploadsEnabled, googleSignInEnabled);
 
         if (!app.Configuration.GetValue("Diagnostics:LifecycleLogEnabled", true))
             return;
@@ -50,7 +53,7 @@ public static class LifecycleLog
             }
         }
 
-        app.Lifetime.ApplicationStarted.Register(() => Write($"started\tcvUploadsEnabled={cvUploadsEnabled}"));
+        app.Lifetime.ApplicationStarted.Register(() => Write($"started\tcvUploadsEnabled={cvUploadsEnabled}\tgoogleSignInEnabled={googleSignInEnabled}"));
         app.Lifetime.ApplicationStopping.Register(() => Write("stopping"));
         app.Lifetime.ApplicationStopped.Register(() => Write("stopped"));
 

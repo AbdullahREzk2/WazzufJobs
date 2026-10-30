@@ -6,6 +6,7 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { ProfilePhotoService } from '../../../core/services/profile-photo.service';
 import { environment } from '../../../../environments/environment';
+import { isGoogleSignInEnabled } from '../../../core/utils/google-sign-in';
 
 declare global {
   interface Window {
@@ -33,7 +34,8 @@ export class Login implements AfterViewInit {
   loading  = false;
   error    = '';
   showPass = false;
-  googleEnabled = !!environment.googleClientId;
+  // false while no Google client id is configured: no button is rendered and Google's script is never loaded
+  googleEnabled = isGoogleSignInEnabled();
 
   constructor(
     private authService: AuthService,

@@ -2,8 +2,9 @@
 import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { map, tap } from 'rxjs';
+import { map, tap, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { isGoogleSignInEnabled } from '../utils/google-sign-in';
 import {
   AuthResponse,
   LoginRequest,
@@ -72,6 +73,9 @@ export class AuthService {
   }
 
   googleLogin(idToken: string) {
+    if (!isGoogleSignInEnabled())
+      return throwError(() => new Error('Google sign-in is not configured.'));
+
     return this.http
       .post<AuthResponse>(`${environment.apiUrl}/auth/google`, { idToken })
       .pipe(tap(response => this.storeAuth(response)));
