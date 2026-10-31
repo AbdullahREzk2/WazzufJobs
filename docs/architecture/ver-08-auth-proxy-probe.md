@@ -5,7 +5,9 @@ Probe sources: `tools/p02/ver-08-probe/`.
 Design under test: architecture §5.3–§5.5.
 
 ## Verdict
-**The httpOnly-cookie design is viable, with one required amendment (A1) to the client-IP source.**
+**The httpOnly-cookie design is viable.**
+- Amendment A1 (trusting forwarded client-IP headers) was **rejected** after security review on 2026-10-31.
+- The adopted architecture is **D-PROXY-IP v2**: no client IP is ever derived from headers. Credential endpoints connect directly to MonsterASP, keyed by the TCP peer. Only the high-entropy cookie endpoints use the authenticated proxy, with a browser-bound single-use session hand-off. See architecture §5.3–5.4.
 
 **Passed:**
 - Cookie handling in Chromium and Firefox.
@@ -50,16 +52,36 @@ Design under test: architecture §5.3–§5.5.
 | P9 | 10 s origin delay through the proxy | 200 in 10.3 s. Longer delays untested (echo cap). |
 | P10 | Header names received by the origin | `Accept`, `Accept-Encoding`, `Accept-Language`, `Forwarded`, `Host`, `Sec-Fetch-Mode`, `User-Agent`, `X-Forwarded-Host`, `X-Vercel-Forwarded-For`, `X-Vercel-Id`, `X-Vercel-Ja4-Digest`, `X-Vercel-Proxied-For`, `X-Vercel-Proxy-Signature`, `X-Vercel-Proxy-Signature-Ts`, `X-Wj-Proxy-Secret` |
 
-## Required design amendments (for owner approval)
-- **A1, trusted client-IP source.** `TrustedProxyMiddleware` (with a valid secret) derives the client IP from **`Forwarded: for=`** and **`X-Vercel-Proxied-For`**.
+## Security review of A1 and decision (2026-10-31)
+**New evidence:** the production lifecycle log shows `remoteAddressClass=public` and `xForwardedForPresent=False`. MonsterASP has no proxy in front of the API, so `Connection.RemoteIpAddress` is the real client's TCP address. A TLS connection's source address can't be forged by headers.
+
+**Why A1 was rejected:**
+- `Forwarded` and `X-Vercel-Proxied-For` were correct in about 90 forged requests, but they are **not documented** as an origin-facing contract.
+- Vercel's documentation for the related `X-Vercel-Forwarded-For` was **contradicted** by observation (F1).
+- The documented headers (`X-Real-IP`, `X-Forwarded-For`) could not be observed at an origin.
+- A per-IP limit derived from any of them can't be proven unbypassable, so it is not acceptable as a security boundary.
+
+**Adopted: D-PROXY-IP v2** (owner approval 2026-10-31):
+1. **No header is ever used as a client IP.** `ForwardedHeaders` middleware stays off.
+2. **Split routing:**
+   - credential and email endpoints are **direct**, with C0 `ipLimit` keyed by the TCP peer (IPv6 per /64);
+   - only `session/prepare`, `session`, `refresh` and `logout` are **proxied**. They accept only ≥ 256-bit secrets and use per-token and failure-budget limits.
+3. **Proxy gate:** cookie endpoints require exactly one valid secret, otherwise 403. Credential endpoints reached with a secret or `X-Vercel-Id` → 403.
+4. **Browser-bound, single-use hand-off** (`__Secure-wj_bind` + `bindingHash`) replaces setting the cookie in the login response. Approved subject to full local security and concurrency tests.
+5. **Vercel WAF per-IP rule:** optional and **not configured in production**.
+6. **Real Safari:** an open compatibility risk, to be tested before production deployment where possible.
+
+## Superseded proposal (kept for the record)
+The following amendments were proposed before the review. **A1 is rejected.** A2–A4 are folded into D-PROXY-IP v2 as noted.
+- **A1 (REJECTED), trusted client-IP source.** `TrustedProxyMiddleware` (with a valid secret) derives the client IP from **`Forwarded: for=`** and **`X-Vercel-Proxied-For`**.
   - Each must be present, single-valued and parseable as an `IPAddress`, and **both must be equal**. If `X-Real-IP` is present, it must also be equal.
   - **`X-Vercel-Forwarded-For` is never read.**
   - Any missing, multi-valued or disagreeing value → **403 `Proxy.Untrusted`** (fail closed). This replaces "`X-Real-IP`, falling back to `X-Vercel-Forwarded-For`" in §5.4.
-- **A2, verification at the real API.**
+- **A2 (replaced by the S11 two-network and header-forgery checks), verification at the real API.**
   - S6b integration tests cover A1, including disagreement → 403.
   - The S10 rehearsal cannot exercise Vercel. At S11, a production check sends forged `Forwarded`, `X-Vercel-*`, `X-Real-IP` and `X-Forwarded-For` through the proxy and confirms that the rate-limit partition stays on the real IP.
   - The API logs, without values, which of the three headers were present on the first proxied request, so the owner can confirm what IIS receives.
-- **A3, marker rule.** `X-Vercel-Id` reaches the origin. The rule "Vercel markers without a valid secret → 403" uses `X-Vercel-Id`.
+- **A3 (adopted: credential endpoints with `X-Vercel-Id` → 403), marker rule.** `X-Vercel-Id` reaches the origin. The rule "Vercel markers without a valid secret → 403" uses `X-Vercel-Id`.
 - **A4, unchanged elements, now evidenced:**
   - delete-then-set transform;
   - caching disabled on the route plus `no-store` from the API;
@@ -72,7 +94,7 @@ Design under test: architecture §5.3–§5.5.
 ## Remaining risks
 | Risk | Handling |
 |---|---|
-| The A1 headers are observed behaviour, not documented contract, and Vercel could change them | Fail closed (403) on absence or disagreement. Re-verified at every deployment (S11 check). |
+| Vercel changes route or transform behaviour | Cookie endpoints fail closed (403). No IP trust exists to be subverted. S11 and post-deploy checks. |
 | Real Safari / iOS unverified | Optional owner check with `selftest.html`. CSRF defences don't rely on SameSite alone. |
 | Origin latency above 10 s through the proxy is unmeasured | The SPA never signs out on 5xx (§5.2). The cold-start risk stays in the risk register. |
 | `vercel.json` is publicly downloadable (route shape and env var *name* visible) | Contains no secret value. Acceptable. |

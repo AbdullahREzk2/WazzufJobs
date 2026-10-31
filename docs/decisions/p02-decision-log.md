@@ -21,7 +21,7 @@ Each entry records what was decided, by whom and when, and where the design is s
 |---|---|---|
 | P02-FE | Minimal Angular changes in P02 only: 2FA login step, TOTP enrollment, auth service and interceptor, read-only Roles page. No redesign. | Approved |
 | P02-VERIFY | Post-deployment checks use synthetic verification data. CV uploads stay disabled. | Approved |
-| P02-COOKIE | Move the refresh token to an httpOnly cookie in P02, gated by VER-08 | Approved. **VER-08 (S0): viable, subject to amendment A1** (`docs/architecture/ver-08-auth-proxy-probe.md`) |
+| P02-COOKIE | Move the refresh token to an httpOnly cookie in P02, gated by VER-08 | Approved. VER-08 (S0): **viable** under D-PROXY-IP v2 (`docs/architecture/ver-08-auth-proxy-probe.md`) |
 
 ## Architecture decisions
 | ID | Decision | § | Status |
@@ -32,8 +32,13 @@ Each entry records what was decided, by whom and when, and where the design is s
 | D-404 | A resource outside the caller's tenant or ownership returns 404. A missing permission returns 403. | 4 | Approved |
 | D-SESSION-TTL | Access token 15 min. Candidate/company refresh 14 d sliding, 30 d absolute. Staff refresh 8 h sliding, 24 h absolute. Rotation grace 10 s with no credentials issued. Session-check cache 30 s. | 5.1–5.2 | Approved |
 | D-ROTATION | Compare-and-swap rotation. A filtered unique index allows at most one usable refresh token per session. Reuse after the grace period revokes the session. | 5.2 | Approved |
-| D-PROXY | Only `/api/auth/*` goes through a static `vercel.json` route (delete-then-set secret transform, caching off, no middleware). The API trusts the client IP only with a valid secret, and fails closed with 403. | 5.4 | Approved; VER-08 passed for routing, secret, caching and cookie |
-| **D-PROXY-IP** | **Amendment A1:** client IP from `Forwarded: for=` **and** `X-Vercel-Proxied-For` (+ `X-Real-IP` if present), all equal and single-valued, else 403. **`X-Vercel-Forwarded-For` is never trusted** (client-spoofable, VER-08 F1). | 5.4 | **Pending owner decision** |
+| D-PROXY | Only the four cookie endpoints (`session/prepare`, `session`, `refresh`, `logout`) go through a static `vercel.json` route (delete-then-set secret transform, caching off, no middleware). Cookie endpoints require the secret, otherwise 403. | 5.4 | Approved; verified by VER-08 |
+| ~~A1~~ | Trust `Forwarded` / `X-Vercel-Proxied-For` as the client IP when the proxy secret is valid | 5.4 | **Rejected 2026-10-31.** Forwarded client-IP headers can't be established as a reliable security boundary (undocumented; a related documented header proved spoofable). |
+| **D-PROXY-IP v2** | **No client IP is ever read from headers.** **Split routing:** credential and email endpoints direct to MonsterASP, keyed by the TCP peer (IPv6 /64); cookie endpoints proxied behind the secret gate. Credential endpoints reached with a secret or `X-Vercel-Id` → 403. | 5.3–5.4 | **Approved 2026-10-31** |
+| D-HANDOFF | Browser-bound, single-use session hand-off (`__Secure-wj_bind` + `bindingHash`, 60 s, CAS consume). The first refresh token is issued only via the proxy. | 5.3 | **Approved**, subject to full local security and concurrency tests (S6b) |
+| D-INVARIANTS-P02 | Re-word C0-7 and replace P02-7 without weakening protections | invariants | **Approved 2026-10-31** |
+| D-WAF-RATELIMIT | Vercel WAF per-IP rate-limit rule on `/api/auth/*` (documented; Hobby: one rule) | 5.4 | Optional. **Not to be configured in production yet.** |
+| R-SAFARI | Real Safari / iOS cookie behaviour unverified (VER-08 F3) | 5.5 | **Open risk.** Test before production deployment where possible. |
 | D-FAILCLOSED | If VER-08 fails, the owner decides the transport. Body transport is **not** selected automatically, and none of the prohibited fallbacks is ever used. | 5.5 | Approved |
 | D-VER08 | The probe runs in a throwaway Vercel project with a disposable secret and synthetic data only | 5.5 | Approved (S0) |
 | D-2FA | Mandatory TOTP for Super Admin and Moderator (Demo Admin exempt). Replay protection, encrypted key, 10 hashed recovery codes, break-glass SQL script. | 6 | Approved |
