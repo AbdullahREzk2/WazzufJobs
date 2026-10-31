@@ -42,6 +42,9 @@ public static class DependencyInjection
                     maxRetryDelay: TimeSpan.FromSeconds(10),
                     errorNumbersToAdd: null)));
 
+        // Phase 02 (S2a): data partition for the demo-isolation query filters; real data only until demo is enabled
+        services.AddScoped<IDataScope, DefaultDataScope>();
+
         services.Configure<AppURLSetting>(
                 configuration.GetSection("AppURL"));
 
@@ -282,6 +285,8 @@ public static class DependencyInjection
 
     public static IServiceCollection AddHealthCheckServices(this IServiceCollection services)
     {
+        services.AddSingleton<SchemaCompatibility>();
+
         services.AddHealthChecks()
             .AddCheck<DatabaseHealthCheck>("database");
 

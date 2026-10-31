@@ -60,7 +60,9 @@ public static class LifecycleLog
             }
         }
 
-        app.Lifetime.ApplicationStarted.Register(() => Write($"started\truntime={runtime}\tarch={architecture}\tcvUploadsEnabled={cvUploadsEnabled}\tgoogleSignInEnabled={googleSignInEnabled}"));
+        // schema status is read when the host has started (after the startup schema check)
+        var schema = app.Services.GetRequiredService<SchemaCompatibility>();
+        app.Lifetime.ApplicationStarted.Register(() => Write($"started\truntime={runtime}\tarch={architecture}\tschema={schema.Status}\tcvUploadsEnabled={cvUploadsEnabled}\tgoogleSignInEnabled={googleSignInEnabled}"));
         app.Lifetime.ApplicationStopping.Register(() => Write("stopping"));
         app.Lifetime.ApplicationStopped.Register(() => Write("stopped"));
 

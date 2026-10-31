@@ -90,8 +90,17 @@ public class Program
 
         LifecycleLog.Register(app);
 
+        // Phase 02 (S2a): fail-closed schema check. The database is never migrated automatically; with an unexpected
+        // schema nothing is seeded and every endpoint except /health returns 503.
+        var schema = app.Services.GetRequiredService<SchemaCompatibility>();
+        var schemaStatus = await schema.CheckAsync();
+        app.Logger.LogInformation("Schema: {SchemaStatus} (expected migration {ExpectedMigration}).", schemaStatus, schema.ExpectedMigration ?? "n/a");
+
         // ── Seed data ────────────────────────────────────
-        await SeedDataAsync(app);
+        if (schema.IsOperational)
+            await SeedDataAsync(app);
+        else
+            app.Logger.LogWarning("Seeding skipped: the database schema is not compatible with this build.");
         // ─────────────────────────────────────────────────
 
         // API documentation is only exposed in Development (Phase C0, S13).
@@ -109,6 +118,7 @@ public class Program
         // processing still runs, but the dashboard is not reachable over HTTP.
         app.UseExceptionHandler();
         app.UseCors("AllowFrontend");
+        app.UseSchemaGuard();
         app.UseHttpsRedirection();
         app.UseRateLimiter();
         app.UseAuthentication();
