@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="robots" content="noindex"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WJ cookie self-test</title>
+<style>body{font:16px system-ui;margin:24px;max-width:640px}li{margin:6px 0}.ok{color:#0a7a3a}.bad{color:#b00020}button{font-size:18px;padding:10px 16px}</style></head>
+<body>
+<h1>Cookie self-test (synthetic)</h1>
+<p>Temporary WazzufJobs test page. It stores one test cookie and checks how this browser handles it. No personal data is used.</p>
+<button id="run">Run test</button>
+<ol id="out"></ol>
+<p id="summary"></p>
+<script>
+const ALIAS = 'https://wj-auth-probe.vercel.app';
+const out = document.getElementById('out');
+const line = (ok, text) => { const li = document.createElement('li'); li.className = ok ? 'ok' : 'bad'; li.textContent = (ok ? 'PASS  ' : 'FAIL  ') + text; out.appendChild(li); return ok; };
+const echoCookie = async (url, init) => { const r = await fetch(url, init); const j = await r.json(); return j.headers.Cookie || j.headers.cookie || ''; };
+document.getElementById('run').onclick = async () => {
+  out.textContent = ''; const results = [];
+  try {
+    if (location.origin === ALIAS) {
+      const v = 'selftest-' + Math.random().toString(36).slice(2, 8);
+      await fetch('/api/auth/response-headers?Set-Cookie=' + encodeURIComponent('__Secure-wj_rt=' + v + '; Path=/api/auth; HttpOnly; Secure; SameSite=Strict; Max-Age=600'), { credentials: 'same-origin' });
+      results.push(line(!document.cookie.includes('wj_rt'), 'HttpOnly: cookie hidden from JavaScript'));
+      const sent = await echoCookie('/api/auth/anything', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'X-WJ-CSRF': '1' }, body: '{}' });
+      results.push(line(sent.includes(v), 'Cookie stored and sent back on same-site /api/auth request'));
+      const crossUrl = 'https://wj-auth-probe-xsite.vercel.app/selftest.html';
+      const a = document.createElement('p'); a.innerHTML = 'Now open the cross-site step: <a href="' + crossUrl + '">' + crossUrl + '</a>'; out.after(a);
+    } else {
+      const sent = await echoCookie(ALIAS + '/api/auth/anything', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json', 'X-WJ-CSRF': '1' }, body: '{}' });
+      results.push(line(!sent.includes('wj_rt'), 'Cross-site request (other *.vercel.app site) does NOT carry the cookie (SameSite=Strict)'));
+    }
+  } catch (e) { results.push(line(false, 'Error: ' + e)); }
+  document.getElementById('summary').textContent = results.every(Boolean) ? 'RESULT: ALL PASS' : 'RESULT: FAILED';
+};
+</script>
+</body></html>

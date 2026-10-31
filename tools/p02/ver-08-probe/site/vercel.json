@@ -1,0 +1,108 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "routes": [
+    {
+      "src": "^/api/auth/(.*)$",
+      "methods": [
+        "GET",
+        "POST",
+        "OPTIONS"
+      ],
+      "dest": "https://httpbin.org/$1",
+      "transforms": [
+        {
+          "type": "request.headers",
+          "op": "delete",
+          "target": {
+            "key": "x-wj-proxy-secret"
+          }
+        },
+        {
+          "type": "request.headers",
+          "op": "set",
+          "target": {
+            "key": "x-wj-proxy-secret"
+          },
+          "args": "$WJ_PROXY_SECRET",
+          "env": [
+            "WJ_PROXY_SECRET"
+          ]
+        }
+      ],
+      "headers": {
+        "Cache-Control": "no-store",
+        "x-vercel-enable-rewrite-caching": "0"
+      }
+    },
+    {
+      "src": "^/api/auth-pm/(.*)$",
+      "methods": [
+        "GET",
+        "POST",
+        "OPTIONS"
+      ],
+      "dest": "https://postman-echo.com/$1",
+      "transforms": [
+        {
+          "type": "request.headers",
+          "op": "delete",
+          "target": {
+            "key": "x-wj-proxy-secret"
+          }
+        },
+        {
+          "type": "request.headers",
+          "op": "set",
+          "target": {
+            "key": "x-wj-proxy-secret"
+          },
+          "args": "$WJ_PROXY_SECRET",
+          "env": [
+            "WJ_PROXY_SECRET"
+          ]
+        }
+      ],
+      "headers": {
+        "Cache-Control": "no-store",
+        "x-vercel-enable-rewrite-caching": "0"
+      }
+    },
+    {
+      "src": "^/api/auth-missing/(.*)$",
+      "methods": [
+        "GET"
+      ],
+      "dest": "https://httpbin.org/$1",
+      "transforms": [
+        {
+          "type": "request.headers",
+          "op": "delete",
+          "target": {
+            "key": "x-wj-proxy-secret"
+          }
+        },
+        {
+          "type": "request.headers",
+          "op": "set",
+          "target": {
+            "key": "x-wj-proxy-secret"
+          },
+          "args": "$WJ_UNSET_SECRET",
+          "env": [
+            "WJ_UNSET_SECRET"
+          ]
+        }
+      ],
+      "headers": {
+        "Cache-Control": "no-store",
+        "x-vercel-enable-rewrite-caching": "0"
+      }
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
