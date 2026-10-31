@@ -1,6 +1,6 @@
 # Phase 02: domain model, identity & authorization core (architecture)
 
-> Status: **APPROVED for staged local implementation (2026-10-31).** Stage S0 complete; S1 and later not started.
+> Status: **APPROVED for staged local implementation (2026-10-31).** Stages S0 and S1 complete (local); S2 and later not started.
 > Branch `phase/02-domain-identity` (from `master` `282a7a2`). Decisions: `docs/decisions/p02-decision-log.md`. Invariants: `docs/architecture/security-invariants.md`. VER-08 results: `docs/architecture/ver-08-auth-proxy-probe.md`.
 > Production reset (D-RESET), deployment and publication each still require separate approval.
 
@@ -523,7 +523,7 @@ The dev DB `WazzufJobsDB` and production are **never** touched.
 | # | Stage | Gate |
 |---|---|---|
 | S0 | Branch, ADRs (`docs/decisions`), test harness generalization (no behavior change). **VER-08 probe** (§5.5; throwaway Vercel project + httpbin; approval D-VER08). The owner reads the MonsterASP `remoteAddressClass` (result: `public`, no XFF). **Done 2026-10-31:** D-PROXY-IP v2 adopted. | 59 green; probe report |
-| S1 | `ValidationBehavior` (validators run today in name only) + consistent ProblemDetails; review every validator for compatibility | Full suite; contract snapshot unchanged |
+| S1 | `ValidationBehavior` (validators run today in name only) + consistent ProblemDetails; review every validator for compatibility. **Done 2026-10-31** (`docs/architecture/p02-s1-validation.md`). | Full suite (95/95); contract unchanged for valid requests |
 | S2a | Entities, configurations, named filters, `Baseline_v2` migration, schema guard | Model tests; idempotent script ×2 |
 | S2b | Port repositories and handlers to the new model behind the legacy adapters | 58 green; contract snapshot |
 | S2c | `db/p02` scripts 01–04 and 90 + local rehearsal #1 | Rehearsal test |

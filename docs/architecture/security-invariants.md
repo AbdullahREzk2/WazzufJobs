@@ -35,6 +35,7 @@ These properties must hold after every stage of every phase.
 | P02-10 | Demo users never see or alter non-demo data, and real users never see demo data (except demo-badged public jobs when `Demo:Enabled`) | S9 |
 | P02-11 | The API refuses to run against an unexpected schema (`/health` Unhealthy, fail closed). `Database.Migrate()` never runs at startup. | S2a |
 | P02-12 | The legacy `/api/*` contract changes only as documented in the contract snapshot | S2b |
+| P02-13 | Request validation runs for every request that has validators, **after** authentication, authorization and rate limiting. Failures return RFC 9457 400 with field names and fixed messages only. **Attempted values are never returned or logged.** A validator never rejects input the product, Identity or the schema accepts, except for the documented differences in `docs/architecture/p02-s1-validation.md`. | **S1 (implemented):** `RequestValidationTests`, `ValidationBehaviorTests`, `ValidationCompatibilityTests` |
 
 ## Test infrastructure (S0)
 - `ApiFactory`: the production pipeline with fakes and the InMemory store. `SqlServerApiFactory`: throwaway SQL Server databases, dropped on dispose and refused for any non-prefixed name.

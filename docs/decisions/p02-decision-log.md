@@ -44,7 +44,7 @@ Each entry records what was decided, by whom and when, and where the design is s
 | D-2FA | Mandatory TOTP for Super Admin and Moderator (Demo Admin exempt). Replay protection, encrypted key, 10 hashed recovery codes, break-glass SQL script. | 6 | Approved |
 | D-BOOTSTRAP | One-time Super Admin bootstrap: hashed token plus password plus a confirmed account. The endpoint returns 404 when inactive. The C0 SQL script is archived. | 7 | Approved |
 | D-AUDIT | Append-only audit log (trigger). Unknown-email login failures are not audited. IP addresses are stored as HMACs. | 7 | Approved |
-| D-VALIDATION | `ValidationBehavior` is carried into P02 as stage S1 | 12 | Approved |
+| D-VALIDATION | `ValidationBehavior` is carried into P02 as stage S1. Existing validators are made compatible with current clients before enabling them; responses use RFC 9457 `ValidationProblemDetails` with `detail` = the first message. | 12 | Approved; **implemented in S1** (`docs/architecture/p02-s1-validation.md`) |
 | D-CATEGORIES | Seed the current category list without icons | 9 | Approved |
 | D-REHEARSAL-MAIL | Pickup-directory email sender for the local rehearsal only. Startup refuses it in Production. | 9.1 | Approved |
 | D-CONFIG | New server secrets (`Security:DataKey`, `Proxy:SharedSecret`) and the Vercel env var `WJ_PROXY_SECRET`. The owner generates and sets them; the values are never shared. | 5.4, 6 | Approved; owner action at S11 |
