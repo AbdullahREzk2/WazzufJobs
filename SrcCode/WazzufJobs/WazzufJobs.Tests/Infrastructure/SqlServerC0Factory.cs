@@ -8,8 +8,9 @@ namespace WazzufJobs.Tests.Infrastructure;
 /// <summary>
 /// Same pipeline as <see cref="ApiFactory"/>, backed by a THROWAWAY database on a local SQL Server
 /// (needed for relational behaviour such as transactions, ExecuteDelete and concurrency). The database is
-/// uniquely named "<see cref="DatabasePrefix"/>*", created from the EF model and dropped on dispose; the drop is
-/// refused for any database without that prefix. No other database is touched.
+/// uniquely named "<see cref="DatabasePrefix"/>*", built by applying the EF migrations (Baseline_v2, including its seed
+/// data and the audit trigger) and dropped on dispose; the drop is refused for any database without that prefix.
+/// No other database is touched.
 /// Connection: env WAZZUF_TEST_SQLSERVER or "Server=.;Trusted_Connection=True;TrustServerCertificate=True".
 /// </summary>
 public class SqlServerApiFactory : ApiFactory
@@ -34,17 +35,20 @@ public class SqlServerApiFactory : ApiFactory
         if (!SqlServerFactAttribute.IsAvailable)
             return; // tests using this factory are skipped
 
-        // create schema + HasData seed (roles, role permissions, categories) before the host starts
+        // schema + HasData seed (roles, role permissions, categories, platform state) before the host starts
         using var context = new ApplicationDBContext(Options());
-        context.Database.EnsureCreated();
+        PrepareDatabase(context);
     }
+
+    /// <summary>Builds the throwaway database. Default: apply all migrations, exactly as a deployment would.</summary>
+    protected virtual void PrepareDatabase(ApplicationDBContext context) => context.Database.Migrate();
 
     public string ConnectionString => _connectionString;
 
     protected override void ConfigureDatabase(IServiceCollection services) =>
         services.AddDbContext<ApplicationDBContext>(o => o.UseSqlServer(_connectionString, sql => sql.EnableRetryOnFailure()));
 
-    private DbContextOptions<ApplicationDBContext> Options() =>
+    protected DbContextOptions<ApplicationDBContext> Options() =>
         new DbContextOptionsBuilder<ApplicationDBContext>().UseSqlServer(_connectionString).Options;
 
     protected override void Dispose(bool disposing)
