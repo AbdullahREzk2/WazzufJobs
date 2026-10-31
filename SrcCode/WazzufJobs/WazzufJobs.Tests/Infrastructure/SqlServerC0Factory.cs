@@ -6,12 +6,13 @@ using WazzufJobs.DAL.Persistence;
 namespace WazzufJobs.Tests.Infrastructure;
 
 /// <summary>
-/// Same pipeline as <see cref="C0WebApplicationFactory"/>, backed by a THROWAWAY database on a local SQL Server
-/// (needed for relational behaviour such as transactions and ExecuteDelete). The database is uniquely named
-/// "WazzufJobs_C0Test_*", created from the EF model and dropped on dispose. No other database is touched.
+/// Same pipeline as <see cref="ApiFactory"/>, backed by a THROWAWAY database on a local SQL Server
+/// (needed for relational behaviour such as transactions, ExecuteDelete and concurrency). The database is
+/// uniquely named "<see cref="DatabasePrefix"/>*", created from the EF model and dropped on dispose; the drop is
+/// refused for any database without that prefix. No other database is touched.
 /// Connection: env WAZZUF_TEST_SQLSERVER or "Server=.;Trusted_Connection=True;TrustServerCertificate=True".
 /// </summary>
-public class SqlServerC0Factory : C0WebApplicationFactory
+public class SqlServerApiFactory : ApiFactory
 {
     public static string ServerConnection =>
         Environment.GetEnvironmentVariable("WAZZUF_TEST_SQLSERVER")
@@ -19,11 +20,14 @@ public class SqlServerC0Factory : C0WebApplicationFactory
 
     private readonly string _connectionString;
 
-    public SqlServerC0Factory()
+    /// <summary>Prefix of the throwaway database name; must start with "WazzufJobs_" and end with "Test_".</summary>
+    protected virtual string DatabasePrefix => "WazzufJobs_ApiTest_";
+
+    public SqlServerApiFactory()
     {
         var builder = new SqlConnectionStringBuilder(ServerConnection)
         {
-            InitialCatalog = $"WazzufJobs_C0Test_{Guid.NewGuid():N}"
+            InitialCatalog = $"{DatabasePrefix}{Guid.NewGuid():N}"
         };
         _connectionString = builder.ConnectionString;
 
@@ -34,6 +38,8 @@ public class SqlServerC0Factory : C0WebApplicationFactory
         using var context = new ApplicationDBContext(Options());
         context.Database.EnsureCreated();
     }
+
+    public string ConnectionString => _connectionString;
 
     protected override void ConfigureDatabase(IServiceCollection services) =>
         services.AddDbContext<ApplicationDBContext>(o => o.UseSqlServer(_connectionString, sql => sql.EnableRetryOnFailure()));
@@ -47,9 +53,15 @@ public class SqlServerC0Factory : C0WebApplicationFactory
         if (!disposing || !SqlServerFactAttribute.IsAvailable) return;
 
         using var context = new ApplicationDBContext(Options());
-        if (context.Database.GetDbConnection().Database.StartsWith("WazzufJobs_C0Test_", StringComparison.Ordinal))
+        if (context.Database.GetDbConnection().Database.StartsWith(DatabasePrefix, StringComparison.Ordinal))
             context.Database.EnsureDeleted();
     }
+}
+
+/// <summary>The Phase C0 relational test host (database prefix unchanged: "WazzufJobs_C0Test_").</summary>
+public class SqlServerC0Factory : SqlServerApiFactory
+{
+    protected override string DatabasePrefix => "WazzufJobs_C0Test_";
 }
 
 /// <summary>A fact that is skipped (not failed) when no local SQL Server is reachable.</summary>
@@ -61,7 +73,7 @@ public sealed class SqlServerFactAttribute : FactAttribute
     {
         try
         {
-            using var connection = new SqlConnection(SqlServerC0Factory.ServerConnection);
+            using var connection = new SqlConnection(SqlServerApiFactory.ServerConnection);
             connection.Open();
             return true;
         }

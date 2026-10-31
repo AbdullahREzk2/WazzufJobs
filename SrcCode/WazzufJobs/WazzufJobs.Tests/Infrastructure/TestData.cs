@@ -1,11 +1,8 @@
-using System.Net.Http.Headers;
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
-using WazzufJobs.BLL.Authentication;
 using WazzufJobs.DAL.Entities;
 using WazzufJobs.DAL.Enums;
 using WazzufJobs.DAL.Persistence;
-using WazzufJobs.DAL.Persistence.Seeders;
 
 namespace WazzufJobs.Tests.Infrastructure;
 
@@ -83,18 +80,10 @@ public static class TestData
     }
 
     public static HttpClient AsAdmin(this HttpClient client, IServiceProvider services, AppUser admin) =>
-        client.WithToken(services, admin, [AppRoles.Admin.Name], Permissions.GetAllPermissions());
+        client.As(services, TestPersonas.Admin, admin);
 
     public static HttpClient AsCandidate(this HttpClient client, IServiceProvider services, AppUser candidate) =>
-        client.WithToken(services, candidate, [AppRoles.User.Name], Permissions.GetUserPermissions());
-
-    private static HttpClient WithToken(this HttpClient client, IServiceProvider services, AppUser user, string[] roles, IEnumerable<string> permissions)
-    {
-        var jwt = services.GetRequiredService<IJwtProvider>();
-        var (token, _) = jwt.GenerateToken(user, roles, permissions);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        return client;
-    }
+        client.As(services, TestPersonas.Candidate, candidate);
 
     /// <summary>Collects every JSON property name (any depth, lower-cased) so tests can assert a field is absent.</summary>
     public static HashSet<string> PropertyNames(string json)
