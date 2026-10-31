@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using Microsoft.Extensions.Options;
 using WazzufJobs.BLL.Setting;
 
@@ -25,6 +26,12 @@ public static class LifecycleLog
         var googleSignInEnabled = !string.IsNullOrWhiteSpace(app.Configuration["Google:ClientId"]);
         app.Logger.LogInformation("Feature state: CV uploads enabled = {CvUploadsEnabled}; Google sign-in enabled = {GoogleSignInEnabled}.",
             cvUploadsEnabled, googleSignInEnabled);
+
+        // runtime identification only (e.g. ".NET 10.0.x" and "X86"): verifies the hosting runtime and the
+        // 32-bit application pool after deployment; contains no paths, host names, users or configuration
+        var runtime = RuntimeInformation.FrameworkDescription;
+        var architecture = RuntimeInformation.ProcessArchitecture;
+        app.Logger.LogInformation("Runtime: {Runtime}; process architecture: {Architecture}.", runtime, architecture);
 
         if (!app.Configuration.GetValue("Diagnostics:LifecycleLogEnabled", true))
             return;
@@ -53,7 +60,7 @@ public static class LifecycleLog
             }
         }
 
-        app.Lifetime.ApplicationStarted.Register(() => Write($"started\tcvUploadsEnabled={cvUploadsEnabled}\tgoogleSignInEnabled={googleSignInEnabled}"));
+        app.Lifetime.ApplicationStarted.Register(() => Write($"started\truntime={runtime}\tarch={architecture}\tcvUploadsEnabled={cvUploadsEnabled}\tgoogleSignInEnabled={googleSignInEnabled}"));
         app.Lifetime.ApplicationStopping.Register(() => Write("stopping"));
         app.Lifetime.ApplicationStopped.Register(() => Write("stopped"));
 
