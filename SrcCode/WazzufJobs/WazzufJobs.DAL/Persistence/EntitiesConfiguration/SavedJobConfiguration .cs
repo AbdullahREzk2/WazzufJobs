@@ -9,6 +9,9 @@ public class SavedJobConfiguration : IEntityTypeConfiguration<SavedJob>
     {
         builder.HasKey(s => new { s.UserId, s.JobId });
 
+        builder.Property(s => s.UserId)
+            .HasColumnName("CandidateId");
+
         builder.Property(s => s.SavedAt)
             .HasDefaultValueSql("GETUTCDATE()");
 

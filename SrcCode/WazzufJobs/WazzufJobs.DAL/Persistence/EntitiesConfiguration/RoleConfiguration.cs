@@ -9,6 +9,8 @@ public class RoleConfiguration : IEntityTypeConfiguration<ApplicationRole>
 {
     public void Configure(EntityTypeBuilder<ApplicationRole> builder)
     {
+        builder.Property(r => r.Description).HasMaxLength(256);
+
         builder.HasData(
             new ApplicationRole
             {
@@ -17,7 +19,8 @@ public class RoleConfiguration : IEntityTypeConfiguration<ApplicationRole>
                 NormalizedName = AppRoles.Admin.Name.ToUpper(),
                 ConcurrencyStamp = AppRoles.Admin.RoleConcurrencyStamp,
                 IsDefault = false,
-                IsDeleted = false
+                IsDeleted = false,
+                IsSystem = true
             },
             new ApplicationRole
             {
@@ -26,7 +29,8 @@ public class RoleConfiguration : IEntityTypeConfiguration<ApplicationRole>
                 NormalizedName = AppRoles.User.Name.ToUpper(),
                 ConcurrencyStamp = AppRoles.User.RoleConcurrencyStamp,
                 IsDefault = true,
-                IsDeleted = false
+                IsDeleted = false,
+                IsSystem = true
             }
         );
     }

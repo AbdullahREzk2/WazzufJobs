@@ -60,6 +60,18 @@ public class JobConfiguration : IEntityTypeConfiguration<Job>
             .HasForeignKey(j => j.CategoryId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // Phase 02 (S2a): owning company (required after S2b), creator column name, concurrency, demo partition
+        builder.HasOne(j => j.Company)
+            .WithMany(c => c.Jobs)
+            .HasForeignKey(j => j.CompanyId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Property(j => j.PostedById)
+            .HasColumnName("CreatedById");
+
+        builder.Property(j => j.RowVersion)
+            .IsRowVersion();
+
         builder.HasOne(j => j.PostedBy)
             .WithMany(u => u.PostedJobs)
             .HasForeignKey(j => j.PostedById)
@@ -70,5 +82,7 @@ public class JobConfiguration : IEntityTypeConfiguration<Job>
         builder.HasIndex(j => j.Location);
         builder.HasIndex(j => j.Status);
         builder.HasIndex(j => j.CategoryId);
+        builder.HasIndex(j => new { j.Status, j.IsDemo, j.PublishedAt });
+        builder.HasIndex(j => new { j.CompanyId, j.Status });
     }
 }

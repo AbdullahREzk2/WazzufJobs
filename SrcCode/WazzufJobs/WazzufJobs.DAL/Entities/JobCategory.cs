@@ -7,6 +7,7 @@ public class JobCategory
 
     public string? IconUrl { get; set; }
     public string? IconPublicId { get; set; }
+    public bool IsActive { get; set; } = true;
     // Navigation
     public ICollection<Job> Jobs { get; set; } = [];
 }

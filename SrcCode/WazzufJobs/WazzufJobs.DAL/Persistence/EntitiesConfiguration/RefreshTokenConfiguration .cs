@@ -7,6 +7,9 @@ public class RefreshTokenConfiguration : IEntityTypeConfiguration<RefreshToken>
 {
     public void Configure(EntityTypeBuilder<RefreshToken> builder)
     {
+        // legacy plaintext tokens (C0), kept only until the session-based RefreshTokens replace them (S6a)
+        builder.ToTable("LegacyRefreshTokens");
+
         builder.HasKey(r => r.Id);
 
         builder.Property(r => r.Token)

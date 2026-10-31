@@ -33,6 +33,14 @@ public class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
             .HasForeignKey<CV>(c => c.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        // Phase 02 (S2a)
+        builder.HasIndex(u => u.AccountType);
+
+        builder.HasOne(u => u.CandidateProfile)
+            .WithOne(p => p.User)
+            .HasForeignKey<CandidateProfile>(p => p.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         builder.HasOne(u => u.Preference)
             .WithOne(p => p.User)
             .HasForeignKey<UserPreference>(p => p.UserId)
