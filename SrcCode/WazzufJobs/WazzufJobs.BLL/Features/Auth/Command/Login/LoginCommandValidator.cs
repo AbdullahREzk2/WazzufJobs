@@ -9,7 +9,7 @@ public class LoginCommandValidator : AbstractValidator<LoginCommand>
             .EmailAddress().WithMessage("Enter a valid email format.");
 
         RuleFor(x => x.Password)
-            .NotEmpty().WithMessage("Password is required.")
-            .MinimumLength(6).WithMessage("Password must be at least 6 characters long.");
+            // no length rule: a wrong password must stay an authentication failure (401), not a validation error
+            .NotEmpty().WithMessage("Password is required.");
     }
 }

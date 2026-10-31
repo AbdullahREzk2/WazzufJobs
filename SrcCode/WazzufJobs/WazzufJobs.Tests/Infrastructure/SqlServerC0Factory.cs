@@ -89,3 +89,13 @@ public sealed class SqlServerFactAttribute : FactAttribute
             Skip = "Local SQL Server not reachable (set WAZZUF_TEST_SQLSERVER to run relational tests).";
     }
 }
+
+/// <summary>A theory that is skipped (not failed) when no local SQL Server is reachable.</summary>
+public sealed class SqlServerTheoryAttribute : TheoryAttribute
+{
+    public SqlServerTheoryAttribute()
+    {
+        if (!SqlServerFactAttribute.IsAvailable)
+            Skip = "Local SQL Server not reachable (set WAZZUF_TEST_SQLSERVER to run relational tests).";
+    }
+}

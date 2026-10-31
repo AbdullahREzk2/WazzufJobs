@@ -6,11 +6,11 @@ public class CreateUserCommandValidator : AbstractValidator<CreateUserCommand>
     {
         RuleFor(x => x.userRequest.firstName)
             .NotEmpty().WithMessage("FirstName cannot be empty.")
-            .Length(3, 100).WithMessage("FirstName length must be between 3 and 100 characters.");
+            .MaximumLength(100).WithMessage("FirstName must not exceed 100 characters.");
 
         RuleFor(x => x.userRequest.lastName)
             .NotEmpty().WithMessage("LastName cannot be empty.")
-            .Length(3, 100).WithMessage("LastName length must be between 3 and 100 characters.");
+            .MaximumLength(100).WithMessage("LastName must not exceed 100 characters.");
 
         RuleFor(x => x.userRequest.Email)
             .NotEmpty().WithMessage("Email cannot be empty.")
@@ -21,9 +21,9 @@ public class CreateUserCommandValidator : AbstractValidator<CreateUserCommand>
             .Matches(RegexPatterns.Password)
             .WithMessage("Password must be at least 8 characters, containing at least 1 uppercase, 1 lowercase, 1 digit, and 1 special character.");
 
+        // an empty list is valid: it removes every role (covered by AdminAccountSafetyTests)
         RuleFor(x => x.userRequest.Roles)
-            .NotNull()
-            .NotEmpty().WithMessage("At least one role is required.");
+            .NotNull().WithMessage("Roles are required.");
 
         RuleFor(x => x.userRequest.Roles)
             .Must(x => x.Distinct().Count() == x.Count)

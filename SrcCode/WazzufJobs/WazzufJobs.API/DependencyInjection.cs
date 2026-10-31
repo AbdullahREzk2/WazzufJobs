@@ -13,6 +13,7 @@ using Microsoft.IdentityModel.Tokens;
 using WazzufJobs.API.Services;
 using WazzufJobs.API.Setting;
 using WazzufJobs.BLL.Authentication;
+using WazzufJobs.BLL.Behaviors;
 using WazzufJobs.BLL.Errors;
 using WazzufJobs.BLL.Helpers;
 using WazzufJobs.BLL.Services;
@@ -122,7 +123,11 @@ public static class DependencyInjection
     public static IServiceCollection AddMediatRServices(this IServiceCollection services)
     {
         services.AddMediatR(cfg =>
-            cfg.RegisterServicesFromAssembly(typeof(IJwtProvider).Assembly));
+        {
+            cfg.RegisterServicesFromAssembly(typeof(IJwtProvider).Assembly);
+            // Phase 02 S1: run the request's FluentValidation validators before its handler
+            cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
+        });
 
         return services;
     }

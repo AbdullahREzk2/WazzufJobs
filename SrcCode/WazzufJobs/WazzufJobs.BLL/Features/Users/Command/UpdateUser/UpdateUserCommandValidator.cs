@@ -9,19 +9,19 @@ public class UpdateUserCommandValidator : AbstractValidator<UpdateUserCommand>
 
         RuleFor(x => x.userRequest.firstName)
             .NotEmpty().WithMessage("FirstName cannot be empty.")
-            .Length(3, 100).WithMessage("FirstName must be between 3 and 100 characters.");
+            .MaximumLength(100).WithMessage("FirstName must not exceed 100 characters.");
 
         RuleFor(x => x.userRequest.lastName)
             .NotEmpty().WithMessage("LastName cannot be empty.")
-            .Length(3, 100).WithMessage("LastName must be between 3 and 100 characters.");
+            .MaximumLength(100).WithMessage("LastName must not exceed 100 characters.");
 
         RuleFor(x => x.userRequest.Email)
             .NotEmpty().WithMessage("Email cannot be empty.")
             .EmailAddress().WithMessage("Email must be a valid email format.");
 
+        // an empty list is valid: it removes every role (covered by AdminAccountSafetyTests)
         RuleFor(x => x.userRequest.Roles)
-            .NotNull()
-            .NotEmpty().WithMessage("At least one role is required.");
+            .NotNull().WithMessage("Roles are required.");
 
         RuleFor(x => x.userRequest.Roles)
             .Must(x => x.Distinct().Count() == x.Count)

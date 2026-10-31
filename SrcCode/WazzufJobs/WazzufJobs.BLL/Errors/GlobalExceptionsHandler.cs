@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Diagnostics;
+﻿using System.Diagnostics;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -18,24 +19,32 @@ public class GlobalExceptionsHandler : IExceptionHandler
         Exception exception,
         CancellationToken cancellationToken)
     {
-        _logger.LogError(exception, "Something Went Wrong: {Message}", exception.Message);
-
-        if (exception is FluentValidation.ValidationException validationException)
+        if (exception is ValidationException validationException)
         {
-            var validationProblemDetails = new
+            // Phase 02 S1: RFC 9457 validation response. Field names and messages only - attempted values are never
+            // returned or logged. "detail" carries the first message so existing clients that read "detail" show it.
+            var errors = ValidationErrors.ToDictionary(validationException.Errors);
+            _logger.LogInformation("Request validation failed for {Path}; fields: {Fields}.",
+                httpContext.Request.Path.Value, string.Join(", ", errors.Keys));
+
+            var validationProblem = new ValidationProblemDetails(errors)
             {
-                type = "https://tools.ietf.org/html/rfc9110#section-15.5.1",
-                title = "Validation Error",
-                status = StatusCodes.Status400BadRequest,
-                errors = validationException.Errors
-                    .Select(e => new { e.PropertyName, e.ErrorMessage })
+                Type = ValidationErrors.Type,
+                Title = ValidationErrors.Title,
+                Status = StatusCodes.Status400BadRequest,
+                Detail = validationException.Errors.First().ErrorMessage
             };
+            validationProblem.Extensions["code"] = ValidationErrors.Code;
+            validationProblem.Extensions["traceId"] = Activity.Current?.Id ?? httpContext.TraceIdentifier;
 
             httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
-            await httpContext.Response.WriteAsJsonAsync(validationProblemDetails, cancellationToken);
+            await httpContext.Response.WriteAsJsonAsync(validationProblem, validationProblem.GetType(),
+                options: null, contentType: "application/problem+json", cancellationToken);
 
             return true;
         }
+
+        _logger.LogError(exception, "Something Went Wrong: {Message}", exception.Message);
 
         var problemDetails = new ProblemDetails
         {

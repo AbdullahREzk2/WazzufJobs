@@ -18,17 +18,11 @@ public class CompleteOnboardingCommandValidator: AbstractValidator<CompleteOnboa
             .NotEmpty()
             .WithMessage("Select at least one preferred workplace type.");
 
-        RuleFor(x => x.Request.InterestedCategoryIds)
-            .NotEmpty()
-            .WithMessage("Select at least one job category.");
-
-        RuleFor(x => x.Request.InterestedJobTitles)
-            .NotEmpty()
-            .WithMessage("Enter at least one interested job title.");
+        // interested categories and job titles are optional in the onboarding UI
 
         RuleFor(x => x.Request.MinSalary)
-            .GreaterThan(0)
-            .WithMessage("Minimum salary must be greater than 0.")
+            .GreaterThanOrEqualTo(0)
+            .WithMessage("Minimum salary cannot be negative.")
             .When(x => x.Request.MinSalary.HasValue);
     }
 }

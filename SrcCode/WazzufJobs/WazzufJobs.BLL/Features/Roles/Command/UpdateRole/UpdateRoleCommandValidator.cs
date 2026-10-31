@@ -9,11 +9,11 @@ public class UpdateRoleCommandValidator : AbstractValidator<UpdateRoleCommand>
 
         RuleFor(x => x.roleRequest.Name)
             .NotEmpty().WithMessage("Role name is required.")
-            .Length(3, 200).WithMessage("Role name must be between 3 and 200 characters.");
+            .MaximumLength(256).WithMessage("Role name must not exceed 256 characters.");
 
+        // an empty list was always accepted by the API (a role without permissions)
         RuleFor(x => x.roleRequest.Permissions)
-            .NotNull()
-            .NotEmpty().WithMessage("At least one permission is required.");
+            .NotNull().WithMessage("Permissions are required.");
 
         RuleFor(x => x.roleRequest.Permissions)
             .Must(x => x.Distinct().Count() == x.Count)
