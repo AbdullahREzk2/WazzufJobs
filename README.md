@@ -3,7 +3,7 @@
 <div align="center">
 
 ![Wazzuf Jobs](https://img.shields.io/badge/Wazzuf-Jobs-00d4ff?style=for-the-badge&logo=lightning&logoColor=white)
-![.NET](https://img.shields.io/badge/.NET_9-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)
+![.NET](https://img.shields.io/badge/.NET_10-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)
 ![Angular](https://img.shields.io/badge/Angular_21-DD0031?style=for-the-badge&logo=angular&logoColor=white)
 ![Three.js](https://img.shields.io/badge/Three.js-000000?style=for-the-badge&logo=three.js&logoColor=white)
 ![SQL Server](https://img.shields.io/badge/SQL_Server-CC2927?style=for-the-badge&logo=microsoft-sql-server&logoColor=white)
@@ -50,7 +50,7 @@
 └────────────────────────┬────────────────────────────────┘
                          │ HTTPS / REST / WebSocket
 ┌────────────────────────▼────────────────────────────────┐
-│                  ASP.NET Core 9 API                      │
+│                  ASP.NET Core 10 API                     │
 │         CQRS + MediatR • JWT • Permissions              │
 ├──────────────┬──────────────────┬───────────────────────┤
 │  Application │  Infrastructure  │       Domain          │
@@ -76,7 +76,7 @@
 ### Backend
 | Technology | Purpose |
 |---|---|
-| ASP.NET Core 9 | Web API |
+| ASP.NET Core 10 (LTS) | Web API |
 | Entity Framework Core 9 | ORM |
 | SQL Server | Database |
 | ASP.NET Identity | Authentication & user management |
@@ -150,7 +150,7 @@ WazzufJobs/
 ## 🚀 Getting Started
 
 ### Prerequisites
-- .NET 9 SDK
+- .NET 10 SDK (pinned by `global.json`)
 - SQL Server
 - Node.js 18+
 - Angular CLI 18
