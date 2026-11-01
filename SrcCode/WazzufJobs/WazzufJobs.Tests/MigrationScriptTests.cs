@@ -78,6 +78,98 @@ public class MigrationScriptTests
         await command.ExecuteNonQueryAsync();
     }
 
+    /// <summary>The shared header every deployment script starts with (tools/p02/db/session-options.sql).</summary>
+    private static string SessionOptionsHeader()
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir is not null && !File.Exists(Path.Combine(dir.FullName, "tools", "p02", "db", "session-options.sql")))
+            dir = dir.Parent;
+        return File.ReadAllText(Path.Combine(dir?.FullName ?? throw new FileNotFoundException("session-options.sql not found"),
+            "tools", "p02", "db", "session-options.sql"));
+    }
+
+    private static async Task RunInSessionAsync(SqlConnection connection, string script)
+    {
+        foreach (var batch in Regex.Split(script, @"^\s*GO\s*$", RegexOptions.Multiline | RegexOptions.IgnoreCase))
+        {
+            if (string.IsNullOrWhiteSpace(batch))
+                continue;
+            await using var command = new SqlCommand(batch, connection) { CommandTimeout = 120 };
+            await command.ExecuteNonQueryAsync();
+        }
+    }
+
+    // finding F-S2a-1: sqlcmd starts sessions with QUOTED_IDENTIFIER OFF; the header must make the script independent of it
+    [SqlServerFact]
+    public async Task Script_with_the_session_header_applies_even_when_the_session_starts_with_quoted_identifier_off()
+    {
+        var database = $"{Prefix}{Guid.NewGuid():N}";
+        try
+        {
+            await CreateDatabaseAsync(database);
+            await using var connection = new SqlConnection(ConnectionFor(database));
+            await connection.OpenAsync();
+            await RunInSessionAsync(connection, "SET QUOTED_IDENTIFIER OFF; SET ANSI_NULLS OFF;");
+
+            await RunInSessionAsync(connection, SessionOptionsHeader() + "\nGO\n" + IdempotentScript());
+
+            await using var check = new ApplicationDBContext(new DbContextOptionsBuilder<ApplicationDBContext>()
+                .UseSqlServer(ConnectionFor(database)).Options);
+            Assert.Equal(check.Database.GetMigrations(), await check.Database.GetAppliedMigrationsAsync());
+        }
+        finally
+        {
+            await DropDatabaseAsync(database);
+        }
+    }
+
+    [SqlServerFact]
+    public async Task Without_the_header_the_script_fails_atomically_under_sqlcmd_defaults()
+    {
+        var database = $"{Prefix}{Guid.NewGuid():N}";
+        try
+        {
+            await CreateDatabaseAsync(database);
+            await using var connection = new SqlConnection(ConnectionFor(database));
+            await connection.OpenAsync();
+            await RunInSessionAsync(connection, "SET QUOTED_IDENTIFIER OFF;");
+
+            var error = await Assert.ThrowsAsync<SqlException>(() => RunInSessionAsync(connection, IdempotentScript()));
+            Assert.Equal(1934, error.Number);   // filtered index requires QUOTED_IDENTIFIER ON
+        }
+        finally
+        {
+            await DropDatabaseAsync(database);
+        }
+    }
+
+    [SqlServerFact]
+    public async Task Header_verification_stops_every_later_batch_when_an_option_is_wrong()
+    {
+        var database = $"{Prefix}{Guid.NewGuid():N}";
+        try
+        {
+            await CreateDatabaseAsync(database);
+            await using var connection = new SqlConnection(ConnectionFor(database));
+            await connection.OpenAsync();
+            await RunInSessionAsync(connection, "SET QUOTED_IDENTIFIER OFF;");
+
+            // run only the verification part of the header (as if the SET batch had been removed), then a change
+            var verification = SessionOptionsHeader();
+            verification = verification[verification.IndexOf("-- Verification.", StringComparison.Ordinal)..];
+            await Assert.ThrowsAsync<SqlException>(() => RunInSessionAsync(connection, verification));
+            await RunInSessionAsync(connection, "CREATE TABLE dbo.MustNotExist (Id int);");
+
+            await RunInSessionAsync(connection, "SET NOEXEC OFF;");
+            await using var probe = new SqlCommand("SELECT OBJECT_ID('dbo.MustNotExist')", connection);
+            Assert.Equal(DBNull.Value, await probe.ExecuteScalarAsync());
+        }
+        finally
+        {
+            await DropDatabaseAsync(database);
+        }
+    }
+
     [SqlServerFact]
     public async Task Idempotent_script_applies_twice_and_matches_the_migrated_schema()
     {
