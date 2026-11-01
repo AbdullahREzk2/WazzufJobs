@@ -2,6 +2,7 @@
 
 Status: **implemented and rehearsed on throwaway local databases (2026-11-01). Nothing has run against production or the development database.**
 - The production reset requires **D-RESET** approval and is performed only in the S11 deployment.
+- **S3 update (2026-11-01):** `Baseline_v2` was regenerated as `20261101075350_Baseline_v2` (fixed platform roles). `03` now also restores missing roles and permission claims, and `04` verifies them against `PermissionCatalog` (`docs/architecture/p02-s3-platform-roles.md` §9). The rehearsal results below are the S2c results.
 
 ## Scripts (`tools/p02/db/`)
 Every script starts with the required session header (`session-options.sql`). It works with plain `sqlcmd` (no `-I`); `-b` (stop on the first error) is still recommended.
@@ -23,7 +24,7 @@ Every script starts with the required session header (`session-options.sql`). It
 1. The connected database equals `wj.ExpectedDatabase` (never `master`, `model`, `msdb` or `tempdb`).
 2. The migration history is as expected:
    - `01`: only P01 migrations, and `20260429160411_initailCreate` must be present (`AddCVExtractedText` is optional, because the development database lacks it and production is unknown);
-   - `90`: exactly `20261101054955_Baseline_v2`.
+   - `90`: exactly the current `Baseline_v2` id (`20261101075350_Baseline_v2` since S3).
 3. Only allowlisted tables are dropped. **Every other table is preserved and listed.**
 4. **The script stops** if an unknown object depends on a table to be dropped (foreign key or schema-bound view or function), if an unknown table sits in the `HangFire` schema, or if an unknown table would collide with a table the next step creates.
 5. Views, procedures, functions and database DDL triggers are reported, never dropped.
@@ -88,8 +89,8 @@ Every script starts with the required session header (`session-options.sql`). It
 | 3 | `01` with `wj.Apply = 0` | Inventory as in the prerequisite dry run; `DRY RUN complete` |
 | 4 | `01` with `wj.Apply = 1` | `RESET APPLIED: 26 table(s) dropped` (15 + 11), preserved tables as expected |
 | 5 | `02_baseline_v2.sql` | Exit 0 |
-| 6 | `03` dry run, then `wj.Apply = 1` | `inserted 0 …` (already seeded by `02`) |
-| 7 | `04` | **`VERIFY: PASS`**, `info accounts: 0` |
+| 6 | `03` dry run, then `wj.Apply = 1` | `inserted 0 …` (already seeded by `02`); since S3 also `Platform roles: 5 of 5`, `Role permissions: 35 of 35` |
+| 7 | `04` | **`VERIFY: PASS`** (since S3 including `5 fixed platform roles; 35 role permission claims equal the catalog`), `info accounts: 0` |
 | 8 | Deploy the backend package, remove `app_offline.htm` | `/health` Healthy; lifecycle `schema=Compatible` |
 | 9 | Continue with the S11 steps (Super Admin bootstrap, verification) | — |
 

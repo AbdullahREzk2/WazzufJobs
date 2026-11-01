@@ -65,7 +65,7 @@ New enums (`WazzufJobs.DAL.Enums/Phase02Enums.cs`) are stored as **tinyint**, wi
 | T2 | `CVs`, `UserPreferences` and the onboarding columns on `AspNetUsers` remain | CV, onboarding and profile handlers use them | S2b (port to `Resumes` / `CandidateProfiles`, then drop) — **resolved in S2b** (`p02-s2b-port.md`) |
 | T3 | `LegacyRefreshTokens` (plaintext tokens) remains | Login, refresh and revoke handlers use it | S6a (session-based rotation) |
 | T4 | `Applications → Jobs` stays **Cascade** | `DeleteJob` deletes jobs that have applications | P04 (jobs are closed, not deleted) → Restrict |
-| T5 | `AspNetRoles.IsDefault/IsDeleted` remain; only Admin/User roles exist | Roles admin endpoints use them | S3 (fixed platform roles) |
+| T5 | `AspNetRoles.IsDefault/IsDeleted` remain; only Admin/User roles exist | Roles admin endpoints use them | S3 (fixed platform roles) — **resolved in S3** (`p02-s3-platform-roles.md`) |
 | T6 | Status and enum columns of legacy tables stay as strings; `CandidateProfiles.CareerLevel` is int | Legacy storage kept to avoid churn | S2b (aligned when ported) — **resolved in S2b** (`p02-s2b-port.md`) |
 
 ## Findings
