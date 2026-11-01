@@ -18,6 +18,19 @@
 
 ---
 
+## 📌 Development Status
+
+| Phase | Scope | Status |
+|---|---|---|
+| **C0** | Security containment | ✅ Completed and deployed |
+| **P01** | .NET 10 upgrade | ✅ Completed and deployed |
+| **P02** | Domain model, identity & authorization | 🚧 In development |
+
+- P02 is built in stages on the `phase/02-domain-identity` branch. Stages **S0–S6a** are complete locally; **S6b** (secure refresh-token transport) is next.
+- P02 is **not deployed to production**. The live site runs the C0 + P01 release.
+
+---
+
 ## ✨ Features
 
 ### 👤 For Job Seekers
