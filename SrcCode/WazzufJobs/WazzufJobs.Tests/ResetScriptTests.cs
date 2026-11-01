@@ -253,6 +253,28 @@ public class ResetScriptTests
         VALUES ('u-1', 'Staff', 'Account', 0, SYSUTCDATETIME(), 2, 0, 1, 0, 0, 1, 0);
         INSERT INTO dbo.AspNetUserRoles (UserId, RoleId) VALUES ('u-1', 'bf766c90-9e7c-4798-99c6-e90fe3a7960f'), ('u-1', '21eb5d41-fffb-4b7d-8c09-abb15d40187b');
         """, "more than one role")]
+    // Phase 02 (S4): active memberships only for company accounts, never in the platform company; an active owner per company
+    [InlineData("""
+        INSERT INTO dbo.AspNetUsers (Id, FirstName, LastName, IsDisabled, CreatedAt, AccountType, IsDemo, EmailConfirmed, PhoneNumberConfirmed, TwoFactorEnabled, LockoutEnabled, AccessFailedCount)
+        VALUES ('u-1', 'Member', 'Account', 0, SYSUTCDATETIME(), 0, 0, 1, 0, 0, 1, 0);
+        INSERT INTO dbo.Companies (Id, Name, Slug, VerificationStatus, Status, IsPlatform, IsDemo, CreatedAt)
+        VALUES ('11111111-1111-1111-1111-111111111111', 'Co', 'co-verify', 0, 0, 0, 0, SYSUTCDATETIME());
+        INSERT INTO dbo.CompanyMembers (CompanyId, UserId, Role, Status, CreatedAt) VALUES ('11111111-1111-1111-1111-111111111111', 'u-1', 0, 0, SYSUTCDATETIME());
+        """, "belong to a non-company account")]
+    [InlineData("""
+        INSERT INTO dbo.AspNetUsers (Id, FirstName, LastName, IsDisabled, CreatedAt, AccountType, IsDemo, EmailConfirmed, PhoneNumberConfirmed, TwoFactorEnabled, LockoutEnabled, AccessFailedCount)
+        VALUES ('u-1', 'Member', 'Account', 0, SYSUTCDATETIME(), 1, 0, 1, 0, 0, 1, 0);
+        INSERT INTO dbo.Companies (Id, Name, Slug, VerificationStatus, Status, IsPlatform, IsDemo, CreatedAt)
+        VALUES ('11111111-1111-1111-1111-111111111111', 'Co', 'co-verify', 0, 0, 0, 0, SYSUTCDATETIME());
+        INSERT INTO dbo.CompanyMembers (CompanyId, UserId, Role, Status, CreatedAt) VALUES ('6F1D2C3B-8A47-4E5F-9B0A-1C2D3E4F5A6B', 'u-1', 0, 0, SYSUTCDATETIME());
+        """, "the platform company")]
+    [InlineData("""
+        INSERT INTO dbo.AspNetUsers (Id, FirstName, LastName, IsDisabled, CreatedAt, AccountType, IsDemo, EmailConfirmed, PhoneNumberConfirmed, TwoFactorEnabled, LockoutEnabled, AccessFailedCount)
+        VALUES ('u-1', 'Member', 'Account', 0, SYSUTCDATETIME(), 1, 0, 1, 0, 0, 1, 0);
+        INSERT INTO dbo.Companies (Id, Name, Slug, VerificationStatus, Status, IsPlatform, IsDemo, CreatedAt)
+        VALUES ('11111111-1111-1111-1111-111111111111', 'Co', 'co-verify', 0, 0, 0, 0, SYSUTCDATETIME());
+        INSERT INTO dbo.CompanyMembers (CompanyId, UserId, Role, Status, CreatedAt) VALUES ('11111111-1111-1111-1111-111111111111', 'u-1', 1, 0, SYSUTCDATETIME());
+        """, "have no active owner")]
     public async Task Verification_fails_on_a_tampered_schema(string tamper, string reason)
     {
         await using var db = await ThrowawayDatabase.CreateAsync();
@@ -293,12 +315,20 @@ public class ResetScriptTests
                    ('d', 'D', 'A', 0, SYSUTCDATETIME(), 2, 1, 1, 0, 0, 1, 0), ('n', 'N', 'A', 0, SYSUTCDATETIME(), 0, 0, 1, 0, 0, 1, 0);
             INSERT INTO dbo.AspNetUserRoles (UserId, RoleId) VALUES ('s', 'bf766c90-9e7c-4798-99c6-e90fe3a7960f'),
                    ('c', 'eb935101-a57b-48a7-ad2d-ee21fc5e6ad1'), ('d', '6b2d257a-0e04-49aa-9d22-e893759ed0c9');
+            INSERT INTO dbo.AspNetUsers (Id, FirstName, LastName, IsDisabled, CreatedAt, AccountType, IsDemo, EmailConfirmed, PhoneNumberConfirmed, TwoFactorEnabled, LockoutEnabled, AccessFailedCount)
+            VALUES ('o', 'O', 'A', 0, SYSUTCDATETIME(), 1, 0, 1, 0, 0, 1, 0), ('r', 'R', 'A', 0, SYSUTCDATETIME(), 1, 0, 1, 0, 0, 1, 0);
+            INSERT INTO dbo.AspNetUserRoles (UserId, RoleId) VALUES ('o', 'f6d38004-b93a-4e15-80c0-824e87e50339'), ('r', 'f6d38004-b93a-4e15-80c0-824e87e50339');
+            INSERT INTO dbo.Companies (Id, Name, Slug, VerificationStatus, Status, IsPlatform, IsDemo, CreatedAt)
+            VALUES ('22222222-2222-2222-2222-222222222222', 'Co', 'co-pass', 2, 0, 0, 0, SYSUTCDATETIME());
+            INSERT INTO dbo.CompanyMembers (CompanyId, UserId, Role, Status, CreatedAt)
+            VALUES ('22222222-2222-2222-2222-222222222222', 'o', 0, 0, SYSUTCDATETIME()), ('22222222-2222-2222-2222-222222222222', 'r', 2, 0, SYSUTCDATETIME());
             """);
 
         var run = await Run(db, Verify);
 
         Assert.False(run.Failed, run.Output);
         Assert.Contains("ok   account roles match account types", run.Output);
+        Assert.Contains("ok   company memberships consistent", run.Output);
         Assert.Contains("VERIFY: PASS", run.Output);
     }
 

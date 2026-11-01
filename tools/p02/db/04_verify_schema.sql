@@ -27,7 +27,7 @@ END
 GO
 
 -- =====================================================================================================================
--- 04_verify_schema.sql  (WazzufJobs Phase 02, S2c; fixed platform roles added in S3)
+-- 04_verify_schema.sql  (WazzufJobs Phase 02, S2c; fixed platform roles added in S3, company memberships in S4)
 -- READ-ONLY verification of a Baseline_v2 database. Ends with "VERIFY: PASS" or raises "VERIFY: FAIL".
 -- Accounts and other data are counted, never shown.
 -- =====================================================================================================================
@@ -182,7 +182,25 @@ ELSE IF NOT EXISTS (SELECT 1 FROM dbo.PlatformState WHERE [Key] = N'SchemaBaseli
 BEGIN SET @failures += 1; PRINT N'FAIL: schema baseline marker missing.'; END
 ELSE PRINT N'ok   schema baseline marker v2';
 
--- 6. information only
+-- 6. company memberships (Phase 02, S4): only company accounts of the company's partition, never the platform company;
+--    every company with active members keeps an active owner
+IF @tablesPresent = 1
+BEGIN
+    DECLARE @badMemberships int = (SELECT COUNT(*) FROM dbo.CompanyMembers m
+        JOIN dbo.AspNetUsers u ON u.Id = m.UserId JOIN dbo.Companies c ON c.Id = m.CompanyId
+        WHERE m.Status = 0 AND (u.AccountType <> 1 OR u.IsDemo <> c.IsDemo OR c.IsPlatform = 1));
+    DECLARE @ownerless int = (SELECT COUNT(*) FROM dbo.Companies c
+        WHERE EXISTS (SELECT 1 FROM dbo.CompanyMembers m WHERE m.CompanyId = c.Id AND m.Status = 0)
+          AND NOT EXISTS (SELECT 1 FROM dbo.CompanyMembers m WHERE m.CompanyId = c.Id AND m.Status = 0 AND m.Role = 0));
+    IF @badMemberships > 0
+    BEGIN SET @failures += 1; PRINT N'FAIL: ' + CONVERT(nvarchar(10), @badMemberships) + N' active company membership(s) belong to a non-company account, another partition or the platform company.'; END
+    IF @ownerless > 0
+    BEGIN SET @failures += 1; PRINT N'FAIL: ' + CONVERT(nvarchar(10), @ownerless) + N' company(ies) with active members have no active owner.'; END
+    IF @badMemberships = 0 AND @ownerless = 0
+        PRINT N'ok   company memberships consistent (company accounts only, an active owner per company)';
+END
+
+-- 7. information only
 IF @tablesPresent = 1
     PRINT N'info accounts: ' + CONVERT(nvarchar(10), @accounts) + N' (0 expected directly after a reset)';
 DECLARE @unknown nvarchar(max) = (SELECT STRING_AGG(QUOTENAME(SCHEMA_NAME(t.schema_id)) + N'.' + QUOTENAME(t.name), N', ')

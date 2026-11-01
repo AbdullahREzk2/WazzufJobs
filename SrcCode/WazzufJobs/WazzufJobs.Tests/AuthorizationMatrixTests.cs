@@ -14,7 +14,9 @@ namespace WazzufJobs.Tests;
 /// Invariant P02-1 (Phase 02, S3): every endpoint has an explicit, reviewed authorization entry for every persona.
 /// An endpoint without an entry, or an entry without an endpoint, fails the build. Each cell is exercised over HTTP:
 /// "Y" means the request passes the authentication and authorization layer (any other status, including business
-/// errors); "-" means it is refused there (401 anonymous, 403 authenticated).
+/// errors); "-" means it is refused there (401 anonymous, 403 authenticated); "M" means company membership decides
+/// (S4): the persona is signed in but not a member of the requested company, so the answer must be 404 Company.NotFound.
+/// Tenant isolation itself is covered by <see cref="CompanyAccessTests"/>.
 /// </summary>
 public class AuthorizationMatrixTests(C0WebApplicationFactory factory) : IClassFixture<C0WebApplicationFactory>
 {
@@ -91,6 +93,10 @@ public class AuthorizationMatrixTests(C0WebApplicationFactory factory) : IClassF
         ["POST /api/Roles"] =                                "-Y----",
         ["PUT /api/Roles/{roleId}"] =                        "-Y----",
         ["PUT /api/Roles/{roleId}/toggle-status"] =          "-Y----",
+
+        // company module (S4): no platform permission; only an active membership in the route's company grants access
+        ["GET /api/v1/companies/{companyId:guid}"] =         "-MMMMM",
+        ["GET /api/v1/companies/{companyId:guid}/members"] = "-MMMMM",
     };
 
     [Fact]
@@ -103,7 +109,8 @@ public class AuthorizationMatrixTests(C0WebApplicationFactory factory) : IClassF
 
         Assert.True(missing.Count == 0, "Endpoints without an authorization-matrix entry: " + string.Join(", ", missing));
         Assert.True(stale.Count == 0, "Matrix entries without an endpoint: " + string.Join(", ", stale));
-        Assert.All(Matrix.Values, row => Assert.Matches("^[Y-]{6}$", row));
+        Assert.All(Matrix.Values, row => Assert.Matches("^[YM-]{6}$", row));
+        Assert.All(Matrix.Values.Where(row => row.Contains('M')), row => Assert.Equal('-', row[0]));
     }
 
     [Fact]
@@ -121,6 +128,12 @@ public class AuthorizationMatrixTests(C0WebApplicationFactory factory) : IClassF
             {
                 var (status, body) = await SendAsync(clients[Columns[column]], key, template, multipart);
                 var refused = status == HttpStatusCode.Unauthorized || (status == HttpStatusCode.Forbidden && body.Length == 0);
+                if (row[column] == 'M')
+                {
+                    if (status != HttpStatusCode.NotFound || !body.Contains("Company.NotFound"))
+                        violations.Add($"{key} as {Columns[column]}: expected 404 Company.NotFound (not a member), got {(int)status}");
+                    continue;
+                }
                 var expectedAllowed = row[column] == 'Y';
                 if (expectedAllowed == refused)
                     violations.Add($"{key} as {Columns[column]}: expected {(expectedAllowed ? "allowed" : "refused")}, got {(int)status}");
@@ -162,7 +175,7 @@ public class AuthorizationMatrixTests(C0WebApplicationFactory factory) : IClassF
     private static async Task<(HttpStatusCode, string)> SendAsync(HttpClient client, string key, string template, bool multipart)
     {
         var method = key.Split(' ')[0];
-        var url = Regex.Replace(template, "{(\\w+)[^}]*}", m => m.Groups[1].Value == "userId" || m.Groups[1].Value == "roleId"
+        var url = Regex.Replace(template, "{(\\w+)[^}]*}", m => m.Groups[1].Value is "userId" or "roleId" or "companyId"
             ? Guid.NewGuid().ToString()
             : "999999");
 

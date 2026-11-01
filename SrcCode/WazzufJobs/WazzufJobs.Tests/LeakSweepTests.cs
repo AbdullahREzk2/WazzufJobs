@@ -55,7 +55,8 @@ public class LeakSweepTests(C0WebApplicationFactory factory) : IClassFixture<C0W
             ["id"] = [s.ApplicationOfB.Id.ToString(), s.Job.Id.ToString(), s.Job.CategoryId.ToString(), PermissionCatalog.SuperAdmin.Id],
             ["jobId"] = [s.Job.Id.ToString()],
             ["userId"] = [s.CandidateB.Id, s.Admin.Id],
-            ["roleId"] = [PermissionCatalog.SuperAdmin.Id]
+            ["roleId"] = [PermissionCatalog.SuperAdmin.Id],
+            ["companyId"] = [s.Job.CompanyId.ToString()!]
         };
 
         var endpoints = factory.Services.GetRequiredService<EndpointDataSource>().Endpoints.OfType<RouteEndpoint>();
