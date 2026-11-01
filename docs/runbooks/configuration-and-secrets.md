@@ -26,6 +26,7 @@ Rules:
 | `Features:CvUploadsEnabled` | no | no | **false** (default). Set to true only after the private-storage spike passes **and** approval (D21b). |
 | `RateLimiting:AuthPermitLimitPerMinute` | no | no | 20 |
 | `Diagnostics:LifecycleLogEnabled` | no | no | true |
+| `Security:DataKey` | **yes** | **yes** (Phase 02 S5; not deployed yet) | 32 random bytes, base64. Keys the audit log's client-address HMAC (and later TOTP encryption, S7). Outside Development the API **refuses to start** without a valid key; Development uses an ephemeral key with a warning. The owner generates it locally, for example `[Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))` in PowerShell, and sets it only in the server configuration (D-CONFIG, S11). Never commit or share it. Rotating it makes old address hashes uncorrelatable with new ones. |
 | ~~`AdminBootstrap:*`~~ | n/a | n/a | **Removed.** Ignored if present; no account is ever created automatically. |
 
 Environment variables use `__` instead of `:` (for example `CloudinarySettings__ApiSecret`).
