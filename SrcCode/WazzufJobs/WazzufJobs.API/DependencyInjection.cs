@@ -236,6 +236,9 @@ public static class DependencyInjection
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
 
+        // company-level authorization (Phase 02, S4)
+        services.AddScoped<ICompanyAccessService, CompanyAccessService>();
+
         return services;
     }
 
