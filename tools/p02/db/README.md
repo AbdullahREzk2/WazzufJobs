@@ -9,8 +9,8 @@ Full procedure, guards, rehearsal results and risks: `docs/architecture/p02-s2c-
 | `New-MigrationScript.ps1` | Generates the idempotent EF Core migration script with the header and prints its SHA-256. It writes a file only and never connects to a database. |
 | `01_reset_drop_application_schema.sql` | **Destructive; dry run by default.** Guarded reset of the P01 schema and Hangfire (allowlists; unknown objects preserved or stop) |
 | `02_baseline_v2.sql` | Generated `Baseline_v2` migration (idempotent). Regenerate with `New-MigrationScript.ps1 -OutputPath tools\p02\db\02_baseline_v2.sql`. |
-| `03_reference_data.sql` | Insert-only reference data (categories, platform company, baseline marker); dry run by default |
-| `04_verify_schema.sql` | Read-only verification: `VERIFY: PASS` or `VERIFY: FAIL` |
+| `03_reference_data.sql` | Insert-only reference data (fixed platform roles and permission claims, categories, platform company, baseline marker); dry run by default. Stops if a role's id and name differ from `PermissionCatalog`. |
+| `04_verify_schema.sql` | Read-only verification: `VERIFY: PASS` or `VERIFY: FAIL`. Includes the exact roles and permission claims of `PermissionCatalog` and account-type compatibility of every account's role. |
 | `90_rollback_drop_baseline_v2.sql` | **Destructive; dry run by default.** Rollback step 1: guarded drop of Baseline_v2 and Hangfire. |
 | `91_p01_schema.sql` | Rollback step 2: the empty P01 schema, generated from tag `pre-baseline-v2` |
 

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.DependencyInjection;
+using WazzufJobs.DAL.Authorization;
 using WazzufJobs.DAL.Entities;
 using WazzufJobs.DAL.Persistence;
 using WazzufJobs.DAL.Persistence.Seeders;
@@ -71,7 +72,7 @@ public class ResetScriptTests
     }
 
     [SqlServerTheory]
-    [InlineData("INSERT INTO dbo.__EFMigrationsHistory VALUES ('20261101054955_Baseline_v2', '10.0.14')", "not P01 migrations")]
+    [InlineData("INSERT INTO dbo.__EFMigrationsHistory VALUES ('20261101075350_Baseline_v2', '10.0.14')", "not P01 migrations")]
     [InlineData("INSERT INTO dbo.__EFMigrationsHistory VALUES ('20990101000000_Unknown', '10.0.14')", "not P01 migrations")]
     [InlineData("DELETE FROM dbo.__EFMigrationsHistory WHERE MigrationId = '20260429160411_initailCreate'", "base migration")]
     [InlineData("DROP TABLE dbo.__EFMigrationsHistory", "not a P01 WazzufJobs database")]
@@ -190,11 +191,13 @@ public class ResetScriptTests
         var dryRun = await Run(db, ReferenceData);
         Assert.False(dryRun.Failed, dryRun.Output);
         Assert.Contains("8 of 8 present, 0 to insert", dryRun.Output);
+        Assert.Contains("Platform roles: 5 of 5 present, 0 to insert", dryRun.Output);
+        Assert.Contains("Role permissions: 35 of 35 present, 0 to insert", dryRun.Output);
         foreach (var _ in new[] { 1, 2 })   // idempotent, insert-only
         {
             var apply = await Run(db, ReferenceData, apply: true);
             Assert.False(apply.Failed, apply.Output);
-            Assert.Contains("inserted 0 categor(ies), 0 platform company, 0 baseline marker", apply.Output);
+            Assert.Contains("inserted 0 categor(ies), 0 platform company, 0 baseline marker, 0 role(s), 0 role permission(s)", apply.Output);
         }
 
         var verify = await Run(db, Verify);
@@ -216,12 +219,14 @@ public class ResetScriptTests
             DELETE FROM dbo.JobCategories WHERE Id IN (7, 8);
             UPDATE dbo.JobCategories SET Name = 'Renamed by admin' WHERE Id = 1;
             DELETE FROM dbo.Companies WHERE IsPlatform = 1;
+            DELETE FROM dbo.AspNetRoleClaims WHERE ClaimValue = 'users:read';
+            DELETE FROM dbo.AspNetRoles WHERE Name = 'DemoAdmin';
             """);
 
         var run = await Run(db, ReferenceData, apply: true);
 
         Assert.False(run.Failed, run.Output);
-        Assert.Contains("inserted 2 categor(ies), 1 platform company", run.Output);
+        Assert.Contains("inserted 2 categor(ies), 1 platform company, 0 baseline marker, 1 role(s), 4 role permission(s)", run.Output);
         Assert.Equal("Renamed by admin", await db.ScalarAsync<string>("SELECT Name FROM dbo.JobCategories WHERE Id = 1"));
         Assert.Equal(PlatformCompany.Id, await db.ScalarAsync<Guid>("SELECT Id FROM dbo.Companies WHERE IsPlatform = 1"));
         Assert.Contains("VERIFY: PASS", (await Run(db, Verify)).Output);
@@ -233,6 +238,21 @@ public class ResetScriptTests
     [InlineData("DROP INDEX UX_RefreshTokens_ActivePerSession ON dbo.RefreshTokens", "filtered unique")]
     [InlineData("DELETE FROM dbo.Companies WHERE IsPlatform = 1", "platform company")]
     [InlineData("CREATE TABLE dbo.CVs (Id int)", "legacy P01 tables")]
+    // Phase 02 (S3): roles and permissions must equal PermissionCatalog; accounts must hold a matching role
+    [InlineData("INSERT INTO dbo.AspNetRoleClaims (RoleId, ClaimType, ClaimValue) VALUES ('eb935101-a57b-48a7-ad2d-ee21fc5e6ad1', 'permissions', 'users:update')", "role permission claims differ")]
+    [InlineData("DELETE FROM dbo.AspNetRoleClaims WHERE ClaimValue = 'applications:update'", "role permission claims differ")]
+    [InlineData("INSERT INTO dbo.AspNetRoles (Id, Name, NormalizedName, IsSystem) VALUES ('legacy-admin', 'Admin', 'ADMIN', 1)", "platform roles differ")]
+    [InlineData("UPDATE dbo.AspNetRoles SET Name = 'Admin', NormalizedName = 'ADMIN' WHERE Name = 'SuperAdmin'", "platform roles differ")]
+    [InlineData("""
+        INSERT INTO dbo.AspNetUsers (Id, FirstName, LastName, IsDisabled, CreatedAt, AccountType, IsDemo, EmailConfirmed, PhoneNumberConfirmed, TwoFactorEnabled, LockoutEnabled, AccessFailedCount)
+        VALUES ('u-1', 'Candidate', 'Account', 0, SYSUTCDATETIME(), 0, 0, 1, 0, 0, 1, 0);
+        INSERT INTO dbo.AspNetUserRoles (UserId, RoleId) VALUES ('u-1', 'bf766c90-9e7c-4798-99c6-e90fe3a7960f');
+        """, "does not match their account type")]
+    [InlineData("""
+        INSERT INTO dbo.AspNetUsers (Id, FirstName, LastName, IsDisabled, CreatedAt, AccountType, IsDemo, EmailConfirmed, PhoneNumberConfirmed, TwoFactorEnabled, LockoutEnabled, AccessFailedCount)
+        VALUES ('u-1', 'Staff', 'Account', 0, SYSUTCDATETIME(), 2, 0, 1, 0, 0, 1, 0);
+        INSERT INTO dbo.AspNetUserRoles (UserId, RoleId) VALUES ('u-1', 'bf766c90-9e7c-4798-99c6-e90fe3a7960f'), ('u-1', '21eb5d41-fffb-4b7d-8c09-abb15d40187b');
+        """, "more than one role")]
     public async Task Verification_fails_on_a_tampered_schema(string tamper, string reason)
     {
         await using var db = await ThrowawayDatabase.CreateAsync();
@@ -244,6 +264,42 @@ public class ResetScriptTests
         Assert.True(run.Failed);
         Assert.Contains("VERIFY: FAIL", run.Output);
         Assert.Contains(reason, run.Output);
+    }
+
+    [SqlServerFact]
+    public async Task Reference_data_script_stops_when_a_role_id_and_name_do_not_match_the_catalog()
+    {
+        await using var db = await ThrowawayDatabase.CreateAsync();
+        await ScriptDatabases.BuildBaselineV2Async(db, withHangfire: false);
+        await db.ExecuteAsync("UPDATE dbo.AspNetRoles SET Name = 'Renamed', NormalizedName = 'RENAMED' WHERE Name = 'Moderator'");
+        var before = await db.FingerprintAsync();
+
+        var run = await Run(db, ReferenceData, apply: true);
+
+        Assert.True(run.Failed);
+        Assert.Contains("role id/name pairs differ from the catalog: Moderator", run.Output);
+        Assert.DoesNotContain("REFERENCE DATA APPLIED", run.Output);
+        Assert.Equal(before, await db.FingerprintAsync());
+    }
+
+    [SqlServerFact]
+    public async Task Verification_passes_for_accounts_holding_matching_roles()
+    {
+        await using var db = await ThrowawayDatabase.CreateAsync();
+        await ScriptDatabases.BuildBaselineV2Async(db, withHangfire: false);
+        await db.ExecuteAsync("""
+            INSERT INTO dbo.AspNetUsers (Id, FirstName, LastName, IsDisabled, CreatedAt, AccountType, IsDemo, EmailConfirmed, PhoneNumberConfirmed, TwoFactorEnabled, LockoutEnabled, AccessFailedCount)
+            VALUES ('s', 'S', 'A', 0, SYSUTCDATETIME(), 2, 0, 1, 0, 0, 1, 0), ('c', 'C', 'A', 0, SYSUTCDATETIME(), 0, 0, 1, 0, 0, 1, 0),
+                   ('d', 'D', 'A', 0, SYSUTCDATETIME(), 2, 1, 1, 0, 0, 1, 0), ('n', 'N', 'A', 0, SYSUTCDATETIME(), 0, 0, 1, 0, 0, 1, 0);
+            INSERT INTO dbo.AspNetUserRoles (UserId, RoleId) VALUES ('s', 'bf766c90-9e7c-4798-99c6-e90fe3a7960f'),
+                   ('c', 'eb935101-a57b-48a7-ad2d-ee21fc5e6ad1'), ('d', '6b2d257a-0e04-49aa-9d22-e893759ed0c9');
+            """);
+
+        var run = await Run(db, Verify);
+
+        Assert.False(run.Failed, run.Output);
+        Assert.Contains("ok   account roles match account types", run.Output);
+        Assert.Contains("VERIFY: PASS", run.Output);
     }
 
     [SqlServerFact]
@@ -312,7 +368,7 @@ public class ResetScriptTests
         var p01Before = await p01.FingerprintAsync();
         var onP01 = await Run(p01, RollbackDrop, apply: true);
         Assert.True(onP01.Failed);
-        Assert.Contains("exactly 20261101054955_Baseline_v2", onP01.Output);
+        Assert.Contains("exactly 20261101075350_Baseline_v2", onP01.Output);
         Assert.Equal(p01Before, await p01.FingerprintAsync());
 
         await using var v2 = await ThrowawayDatabase.CreateAsync();
@@ -361,6 +417,29 @@ public class ResetScriptTests
         var platform = context.GetService<IDesignTimeModel>().Model.FindEntityType(typeof(Company))!.GetSeedData().Single();
         Assert.Contains(((Guid)platform["Id"]!).ToString().ToUpperInvariant(), script);
         Assert.Contains($"N'{platform["Name"]}', N'{platform["Slug"]}'", script);
+    }
+
+    [Fact]
+    public void Role_scripts_match_the_permission_catalog()
+    {
+        static string Sql(string value) => $"N'{value.Replace("'", "''")}'";
+        var roles = string.Join(",\n", PermissionCatalog.Roles.Select(r =>
+            $"    ({Sql(r.Id)}, {Sql(r.Name)}, {Sql(r.ConcurrencyStamp)}, {(byte)r.AccountType}, {(r.DemoOnly ? 1 : 0)}, " +
+            $"{(r.IsStaff && !r.DemoOnly ? 1 : 0)}, {Sql(r.Description)})")) + ";";
+        var permissions = string.Join(",\n", PermissionCatalog.Roles.SelectMany(r => r.Permissions, (r, p) => $"    ({Sql(r.Name)}, {Sql(p)})")) + ";";
+        var claimCount = PermissionCatalog.Roles.Sum(r => r.Permissions.Count);
+
+        foreach (var file in new[] { ReferenceData, Verify })
+        {
+            var script = Normalize(SqlScripts.Load(file));
+            Assert.Contains(roles, script);
+            Assert.Contains(permissions, script);
+            Assert.Contains($"{claimCount}", script);
+            Assert.Contains($"{PermissionCatalog.Roles.Count}", script);
+        }
+        Assert.Contains($"of {PermissionCatalog.Roles.Count} present", SqlScripts.Load(ReferenceData));
+        Assert.Contains($"of {claimCount} present", SqlScripts.Load(ReferenceData));
+        Assert.Contains($"@claims <> {claimCount}", SqlScripts.Load(Verify));
     }
 
     private static string Normalize(string s) =>

@@ -39,13 +39,11 @@ GO
 BEGIN TRANSACTION;
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE TABLE [AspNetRoles] (
         [Id] nvarchar(450) NOT NULL,
-        [IsDefault] bit NOT NULL,
-        [IsDeleted] bit NOT NULL,
         [IsSystem] bit NOT NULL,
         [Description] nvarchar(256) NULL,
         [Name] nvarchar(256) NULL,
@@ -57,7 +55,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE TABLE [AspNetUsers] (
@@ -92,7 +90,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE TABLE [AuditLogs] (
@@ -116,7 +114,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE TABLE [JobCategories] (
@@ -132,7 +130,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE TABLE [PlatformState] (
@@ -145,7 +143,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE TABLE [AspNetRoleClaims] (
@@ -160,7 +158,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE TABLE [AspNetUserClaims] (
@@ -175,7 +173,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE TABLE [AspNetUserLogins] (
@@ -190,7 +188,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE TABLE [AspNetUserRoles] (
@@ -204,7 +202,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE TABLE [AspNetUserTokens] (
@@ -219,7 +217,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE TABLE [CandidateProfiles] (
@@ -245,7 +243,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE TABLE [Companies] (
@@ -272,7 +270,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE TABLE [LegacyRefreshTokens] (
@@ -289,7 +287,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE TABLE [Resumes] (
@@ -313,7 +311,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE TABLE [UserRecoveryCodes] (
@@ -329,7 +327,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE TABLE [UserSessions] (
@@ -351,7 +349,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE TABLE [CompanyMembers] (
@@ -371,7 +369,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE TABLE [Jobs] (
@@ -404,7 +402,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE TABLE [ResumeTexts] (
@@ -417,7 +415,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE TABLE [AuthChallenges] (
@@ -439,7 +437,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE TABLE [RefreshTokens] (
@@ -459,7 +457,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE TABLE [Applications] (
@@ -486,7 +484,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE TABLE [SavedJobs] (
@@ -502,7 +500,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE TABLE [ApplicationStatusHistory] (
@@ -521,21 +519,24 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
-    IF EXISTS (SELECT * FROM [sys].[identity_columns] WHERE [name] IN (N'Id', N'ConcurrencyStamp', N'Description', N'IsDefault', N'IsDeleted', N'IsSystem', N'Name', N'NormalizedName') AND [object_id] = OBJECT_ID(N'[AspNetRoles]'))
+    IF EXISTS (SELECT * FROM [sys].[identity_columns] WHERE [name] IN (N'Id', N'ConcurrencyStamp', N'Description', N'IsSystem', N'Name', N'NormalizedName') AND [object_id] = OBJECT_ID(N'[AspNetRoles]'))
         SET IDENTITY_INSERT [AspNetRoles] ON;
-    EXEC(N'INSERT INTO [AspNetRoles] ([Id], [ConcurrencyStamp], [Description], [IsDefault], [IsDeleted], [IsSystem], [Name], [NormalizedName])
-    VALUES (N''C1E2A3D4-E5F6-7890-ABCD-EF1234567890'', N''A1B2C3D4-E5F6-7890-ABCD-EF1234567891'', NULL, CAST(0 AS bit), CAST(0 AS bit), CAST(1 AS bit), N''Admin'', N''ADMIN''),
-    (N''D2E3B4C5-F6A7-8901-BCDE-F01234567892'', N''B2C3D4E5-F6A7-8901-BCDE-F01234567893'', NULL, CAST(1 AS bit), CAST(0 AS bit), CAST(1 AS bit), N''User'', N''USER'')');
-    IF EXISTS (SELECT * FROM [sys].[identity_columns] WHERE [name] IN (N'Id', N'ConcurrencyStamp', N'Description', N'IsDefault', N'IsDeleted', N'IsSystem', N'Name', N'NormalizedName') AND [object_id] = OBJECT_ID(N'[AspNetRoles]'))
+    EXEC(N'INSERT INTO [AspNetRoles] ([Id], [ConcurrencyStamp], [Description], [IsSystem], [Name], [NormalizedName])
+    VALUES (N''21eb5d41-fffb-4b7d-8c09-abb15d40187b'', N''0de9d4f3-4fb2-4bac-bf7e-f5cd60efc2b0'', N''Platform moderation and the user list (read-only). Never CVs, applications or AI assessments.'', CAST(1 AS bit), N''Moderator'', N''MODERATOR''),
+    (N''6b2d257a-0e04-49aa-9d22-e893759ed0c9'', N''cb1d55b7-5d07-4845-9c1f-fba303e9f9c4'', N''Demo staff: public reference data only until demo scope exists. Never real users, CVs or AI assessments.'', CAST(1 AS bit), N''DemoAdmin'', N''DEMOADMIN''),
+    (N''bf766c90-9e7c-4798-99c6-e90fe3a7960f'', N''17291d98-8355-4440-a359-d4138485b8e6'', N''Platform owner: every platform permission, including users, roles (read-only) and applications.'', CAST(1 AS bit), N''SuperAdmin'', N''SUPERADMIN''),
+    (N''eb935101-a57b-48a7-ad2d-ee21fc5e6ad1'', N''304deecb-d38e-43eb-aad3-b0476d91b2a3'', N''Job seeker: own profile, CV, saved jobs and applications.'', CAST(1 AS bit), N''Candidate'', N''CANDIDATE''),
+    (N''f6d38004-b93a-4e15-80c0-824e87e50339'', N''7dcedc97-bb94-4df4-9744-3fa4b6870d12'', N''Company account: no platform permissions; rights come from company membership.'', CAST(1 AS bit), N''CompanyUser'', N''COMPANYUSER'')');
+    IF EXISTS (SELECT * FROM [sys].[identity_columns] WHERE [name] IN (N'Id', N'ConcurrencyStamp', N'Description', N'IsSystem', N'Name', N'NormalizedName') AND [object_id] = OBJECT_ID(N'[AspNetRoles]'))
         SET IDENTITY_INSERT [AspNetRoles] OFF;
 END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     IF EXISTS (SELECT * FROM [sys].[identity_columns] WHERE [name] IN (N'Id', N'CreatedAt', N'CreatedById', N'Description', N'Industry', N'IsDemo', N'IsPlatform', N'Location', N'LogoKey', N'Name', N'Size', N'Slug', N'Status', N'VerificationStatus', N'Website') AND [object_id] = OBJECT_ID(N'[Companies]'))
@@ -548,7 +549,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     IF EXISTS (SELECT * FROM [sys].[identity_columns] WHERE [name] IN (N'Id', N'IconPublicId', N'IconUrl', N'IsActive', N'Name', N'Slug') AND [object_id] = OBJECT_ID(N'[JobCategories]'))
@@ -568,7 +569,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     IF EXISTS (SELECT * FROM [sys].[identity_columns] WHERE [name] IN (N'Key', N'UpdatedAt', N'Value') AND [object_id] = OBJECT_ID(N'[PlatformState]'))
@@ -581,52 +582,54 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     IF EXISTS (SELECT * FROM [sys].[identity_columns] WHERE [name] IN (N'Id', N'ClaimType', N'ClaimValue', N'RoleId') AND [object_id] = OBJECT_ID(N'[AspNetRoleClaims]'))
         SET IDENTITY_INSERT [AspNetRoleClaims] ON;
     EXEC(N'INSERT INTO [AspNetRoleClaims] ([Id], [ClaimType], [ClaimValue], [RoleId])
-    VALUES (1, N''permissions'', N''jobs:read'', N''C1E2A3D4-E5F6-7890-ABCD-EF1234567890''),
-    (2, N''permissions'', N''jobs:create'', N''C1E2A3D4-E5F6-7890-ABCD-EF1234567890''),
-    (3, N''permissions'', N''jobs:update'', N''C1E2A3D4-E5F6-7890-ABCD-EF1234567890''),
-    (4, N''permissions'', N''jobs:delete'', N''C1E2A3D4-E5F6-7890-ABCD-EF1234567890''),
-    (5, N''permissions'', N''applications:read'', N''C1E2A3D4-E5F6-7890-ABCD-EF1234567890''),
-    (6, N''permissions'', N''applications:create'', N''C1E2A3D4-E5F6-7890-ABCD-EF1234567890''),
-    (7, N''permissions'', N''applications:update'', N''C1E2A3D4-E5F6-7890-ABCD-EF1234567890''),
-    (8, N''permissions'', N''categories:read'', N''C1E2A3D4-E5F6-7890-ABCD-EF1234567890''),
-    (9, N''permissions'', N''categories:create'', N''C1E2A3D4-E5F6-7890-ABCD-EF1234567890''),
-    (10, N''permissions'', N''categories:update'', N''C1E2A3D4-E5F6-7890-ABCD-EF1234567890''),
-    (11, N''permissions'', N''categories:delete'', N''C1E2A3D4-E5F6-7890-ABCD-EF1234567890''),
-    (12, N''permissions'', N''users:read'', N''C1E2A3D4-E5F6-7890-ABCD-EF1234567890''),
-    (13, N''permissions'', N''users:create'', N''C1E2A3D4-E5F6-7890-ABCD-EF1234567890''),
-    (14, N''permissions'', N''users:update'', N''C1E2A3D4-E5F6-7890-ABCD-EF1234567890''),
-    (15, N''permissions'', N''users:delete'', N''C1E2A3D4-E5F6-7890-ABCD-EF1234567890''),
-    (16, N''permissions'', N''roles:read'', N''C1E2A3D4-E5F6-7890-ABCD-EF1234567890''),
-    (17, N''permissions'', N''roles:create'', N''C1E2A3D4-E5F6-7890-ABCD-EF1234567890''),
-    (18, N''permissions'', N''roles:update'', N''C1E2A3D4-E5F6-7890-ABCD-EF1234567890''),
-    (19, N''permissions'', N''roles:delete'', N''C1E2A3D4-E5F6-7890-ABCD-EF1234567890''),
-    (20, N''permissions'', N''cv:upload'', N''C1E2A3D4-E5F6-7890-ABCD-EF1234567890''),
-    (21, N''permissions'', N''cv:delete'', N''C1E2A3D4-E5F6-7890-ABCD-EF1234567890''),
-    (22, N''permissions'', N''savedjobs:read'', N''C1E2A3D4-E5F6-7890-ABCD-EF1234567890''),
-    (23, N''permissions'', N''savedjobs:create'', N''C1E2A3D4-E5F6-7890-ABCD-EF1234567890''),
-    (24, N''permissions'', N''savedjobs:delete'', N''C1E2A3D4-E5F6-7890-ABCD-EF1234567890''),
-    (25, N''permissions'', N''jobs:read'', N''D2E3B4C5-F6A7-8901-BCDE-F01234567892''),
-    (26, N''permissions'', N''applications:read'', N''D2E3B4C5-F6A7-8901-BCDE-F01234567892''),
-    (27, N''permissions'', N''applications:create'', N''D2E3B4C5-F6A7-8901-BCDE-F01234567892''),
-    (28, N''permissions'', N''categories:read'', N''D2E3B4C5-F6A7-8901-BCDE-F01234567892''),
-    (29, N''permissions'', N''cv:upload'', N''D2E3B4C5-F6A7-8901-BCDE-F01234567892''),
-    (30, N''permissions'', N''cv:delete'', N''D2E3B4C5-F6A7-8901-BCDE-F01234567892''),
-    (31, N''permissions'', N''savedjobs:read'', N''D2E3B4C5-F6A7-8901-BCDE-F01234567892''),
-    (32, N''permissions'', N''savedjobs:create'', N''D2E3B4C5-F6A7-8901-BCDE-F01234567892''),
-    (33, N''permissions'', N''savedjobs:delete'', N''D2E3B4C5-F6A7-8901-BCDE-F01234567892'')');
+    VALUES (1, N''permissions'', N''jobs:read'', N''bf766c90-9e7c-4798-99c6-e90fe3a7960f''),
+    (2, N''permissions'', N''jobs:create'', N''bf766c90-9e7c-4798-99c6-e90fe3a7960f''),
+    (3, N''permissions'', N''jobs:update'', N''bf766c90-9e7c-4798-99c6-e90fe3a7960f''),
+    (4, N''permissions'', N''jobs:delete'', N''bf766c90-9e7c-4798-99c6-e90fe3a7960f''),
+    (5, N''permissions'', N''applications:read'', N''bf766c90-9e7c-4798-99c6-e90fe3a7960f''),
+    (6, N''permissions'', N''applications:create'', N''bf766c90-9e7c-4798-99c6-e90fe3a7960f''),
+    (7, N''permissions'', N''applications:update'', N''bf766c90-9e7c-4798-99c6-e90fe3a7960f''),
+    (8, N''permissions'', N''categories:read'', N''bf766c90-9e7c-4798-99c6-e90fe3a7960f''),
+    (9, N''permissions'', N''categories:create'', N''bf766c90-9e7c-4798-99c6-e90fe3a7960f''),
+    (10, N''permissions'', N''categories:update'', N''bf766c90-9e7c-4798-99c6-e90fe3a7960f''),
+    (11, N''permissions'', N''categories:delete'', N''bf766c90-9e7c-4798-99c6-e90fe3a7960f''),
+    (12, N''permissions'', N''users:read'', N''bf766c90-9e7c-4798-99c6-e90fe3a7960f''),
+    (13, N''permissions'', N''users:create'', N''bf766c90-9e7c-4798-99c6-e90fe3a7960f''),
+    (14, N''permissions'', N''users:update'', N''bf766c90-9e7c-4798-99c6-e90fe3a7960f''),
+    (15, N''permissions'', N''users:delete'', N''bf766c90-9e7c-4798-99c6-e90fe3a7960f''),
+    (16, N''permissions'', N''roles:read'', N''bf766c90-9e7c-4798-99c6-e90fe3a7960f''),
+    (17, N''permissions'', N''cv:upload'', N''bf766c90-9e7c-4798-99c6-e90fe3a7960f''),
+    (18, N''permissions'', N''cv:delete'', N''bf766c90-9e7c-4798-99c6-e90fe3a7960f''),
+    (19, N''permissions'', N''savedjobs:read'', N''bf766c90-9e7c-4798-99c6-e90fe3a7960f''),
+    (20, N''permissions'', N''savedjobs:create'', N''bf766c90-9e7c-4798-99c6-e90fe3a7960f''),
+    (21, N''permissions'', N''savedjobs:delete'', N''bf766c90-9e7c-4798-99c6-e90fe3a7960f''),
+    (22, N''permissions'', N''jobs:read'', N''21eb5d41-fffb-4b7d-8c09-abb15d40187b''),
+    (23, N''permissions'', N''categories:read'', N''21eb5d41-fffb-4b7d-8c09-abb15d40187b''),
+    (24, N''permissions'', N''users:read'', N''21eb5d41-fffb-4b7d-8c09-abb15d40187b''),
+    (25, N''permissions'', N''jobs:read'', N''eb935101-a57b-48a7-ad2d-ee21fc5e6ad1''),
+    (26, N''permissions'', N''applications:read'', N''eb935101-a57b-48a7-ad2d-ee21fc5e6ad1''),
+    (27, N''permissions'', N''applications:create'', N''eb935101-a57b-48a7-ad2d-ee21fc5e6ad1''),
+    (28, N''permissions'', N''categories:read'', N''eb935101-a57b-48a7-ad2d-ee21fc5e6ad1''),
+    (29, N''permissions'', N''cv:upload'', N''eb935101-a57b-48a7-ad2d-ee21fc5e6ad1''),
+    (30, N''permissions'', N''cv:delete'', N''eb935101-a57b-48a7-ad2d-ee21fc5e6ad1''),
+    (31, N''permissions'', N''savedjobs:read'', N''eb935101-a57b-48a7-ad2d-ee21fc5e6ad1''),
+    (32, N''permissions'', N''savedjobs:create'', N''eb935101-a57b-48a7-ad2d-ee21fc5e6ad1''),
+    (33, N''permissions'', N''savedjobs:delete'', N''eb935101-a57b-48a7-ad2d-ee21fc5e6ad1''),
+    (34, N''permissions'', N''jobs:read'', N''6b2d257a-0e04-49aa-9d22-e893759ed0c9''),
+    (35, N''permissions'', N''categories:read'', N''6b2d257a-0e04-49aa-9d22-e893759ed0c9'')');
     IF EXISTS (SELECT * FROM [sys].[identity_columns] WHERE [name] IN (N'Id', N'ClaimType', N'ClaimValue', N'RoleId') AND [object_id] = OBJECT_ID(N'[AspNetRoleClaims]'))
         SET IDENTITY_INSERT [AspNetRoleClaims] OFF;
 END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE INDEX [IX_Applications_CandidateId] ON [Applications] ([CandidateId]);
@@ -634,7 +637,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE INDEX [IX_Applications_CompanyId_Status] ON [Applications] ([CompanyId], [Status]);
@@ -642,7 +645,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE UNIQUE INDEX [IX_Applications_JobId_CandidateId] ON [Applications] ([JobId], [CandidateId]);
@@ -650,7 +653,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE INDEX [IX_Applications_JobId_CompanyId] ON [Applications] ([JobId], [CompanyId]);
@@ -658,7 +661,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE INDEX [IX_Applications_ResumeId_CandidateId] ON [Applications] ([ResumeId], [CandidateId]);
@@ -666,7 +669,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE INDEX [IX_ApplicationStatusHistory_ApplicationId_ChangedAt] ON [ApplicationStatusHistory] ([ApplicationId], [ChangedAt]);
@@ -674,7 +677,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE INDEX [IX_ApplicationStatusHistory_ChangedById] ON [ApplicationStatusHistory] ([ChangedById]);
@@ -682,7 +685,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE INDEX [IX_AspNetRoleClaims_RoleId] ON [AspNetRoleClaims] ([RoleId]);
@@ -690,7 +693,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     EXEC(N'CREATE UNIQUE INDEX [RoleNameIndex] ON [AspNetRoles] ([NormalizedName]) WHERE [NormalizedName] IS NOT NULL');
@@ -698,7 +701,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE INDEX [IX_AspNetUserClaims_UserId] ON [AspNetUserClaims] ([UserId]);
@@ -706,7 +709,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE INDEX [IX_AspNetUserLogins_UserId] ON [AspNetUserLogins] ([UserId]);
@@ -714,7 +717,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE INDEX [IX_AspNetUserRoles_RoleId] ON [AspNetUserRoles] ([RoleId]);
@@ -722,7 +725,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE INDEX [EmailIndex] ON [AspNetUsers] ([NormalizedEmail]);
@@ -730,7 +733,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE INDEX [IX_AspNetUsers_AccountType] ON [AspNetUsers] ([AccountType]);
@@ -738,7 +741,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     EXEC(N'CREATE UNIQUE INDEX [UserNameIndex] ON [AspNetUsers] ([NormalizedUserName]) WHERE [NormalizedUserName] IS NOT NULL');
@@ -746,7 +749,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE INDEX [IX_AuditLogs_Action_OccurredAt] ON [AuditLogs] ([Action], [OccurredAt]);
@@ -754,7 +757,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE INDEX [IX_AuditLogs_ActorUserId_OccurredAt] ON [AuditLogs] ([ActorUserId], [OccurredAt]);
@@ -762,7 +765,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE INDEX [IX_AuditLogs_CompanyId_OccurredAt] ON [AuditLogs] ([CompanyId], [OccurredAt]);
@@ -770,7 +773,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE INDEX [IX_AuditLogs_OccurredAt] ON [AuditLogs] ([OccurredAt]);
@@ -778,7 +781,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE INDEX [IX_AuthChallenges_ExpiresAt] ON [AuthChallenges] ([ExpiresAt]);
@@ -786,7 +789,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE INDEX [IX_AuthChallenges_SessionId] ON [AuthChallenges] ([SessionId]);
@@ -794,7 +797,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE UNIQUE INDEX [IX_AuthChallenges_TokenHash] ON [AuthChallenges] ([TokenHash]);
@@ -802,7 +805,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE INDEX [IX_AuthChallenges_UserId_Purpose] ON [AuthChallenges] ([UserId], [Purpose]);
@@ -810,7 +813,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE INDEX [IX_Companies_CreatedById] ON [Companies] ([CreatedById]);
@@ -818,7 +821,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE UNIQUE INDEX [IX_Companies_Slug] ON [Companies] ([Slug]);
@@ -826,7 +829,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE INDEX [IX_Companies_Status_VerificationStatus] ON [Companies] ([Status], [VerificationStatus]);
@@ -834,7 +837,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     EXEC(N'CREATE UNIQUE INDEX [UX_Companies_SinglePlatform] ON [Companies] ([IsPlatform]) WHERE [IsPlatform] = 1');
@@ -842,7 +845,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE INDEX [IX_CompanyMembers_AddedById] ON [CompanyMembers] ([AddedById]);
@@ -850,7 +853,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     EXEC(N'CREATE UNIQUE INDEX [UX_CompanyMembers_ActivePerUser] ON [CompanyMembers] ([UserId]) WHERE [Status] = 0');
@@ -858,7 +861,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE UNIQUE INDEX [IX_JobCategories_Slug] ON [JobCategories] ([Slug]);
@@ -866,7 +869,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE INDEX [IX_Jobs_CategoryId] ON [Jobs] ([CategoryId]);
@@ -874,7 +877,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE INDEX [IX_Jobs_CompanyId_Status] ON [Jobs] ([CompanyId], [Status]);
@@ -882,7 +885,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE INDEX [IX_Jobs_CreatedById] ON [Jobs] ([CreatedById]);
@@ -890,7 +893,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE INDEX [IX_Jobs_Location] ON [Jobs] ([Location]);
@@ -898,7 +901,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE INDEX [IX_Jobs_Status] ON [Jobs] ([Status]);
@@ -906,7 +909,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE INDEX [IX_Jobs_Status_IsDemo_PublishedAt] ON [Jobs] ([Status], [IsDemo], [PublishedAt]);
@@ -914,7 +917,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE INDEX [IX_Jobs_Title] ON [Jobs] ([Title]);
@@ -922,7 +925,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE INDEX [IX_LegacyRefreshTokens_UserId] ON [LegacyRefreshTokens] ([UserId]);
@@ -930,7 +933,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE INDEX [IX_RefreshTokens_ParentId] ON [RefreshTokens] ([ParentId]);
@@ -938,7 +941,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE UNIQUE INDEX [IX_RefreshTokens_TokenHash] ON [RefreshTokens] ([TokenHash]);
@@ -946,7 +949,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     EXEC(N'CREATE UNIQUE INDEX [UX_RefreshTokens_ActivePerSession] ON [RefreshTokens] ([SessionId]) WHERE [ConsumedAt] IS NULL AND [RevokedAt] IS NULL');
@@ -954,7 +957,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE INDEX [IX_Resumes_CandidateId_Status] ON [Resumes] ([CandidateId], [Status]);
@@ -962,7 +965,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE UNIQUE INDEX [IX_Resumes_StorageKey] ON [Resumes] ([StorageKey]);
@@ -970,7 +973,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     EXEC(N'CREATE UNIQUE INDEX [UX_Resumes_DefaultPerCandidate] ON [Resumes] ([CandidateId]) WHERE [IsDefault] = 1');
@@ -978,7 +981,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE INDEX [IX_SavedJobs_JobId] ON [SavedJobs] ([JobId]);
@@ -986,7 +989,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE UNIQUE INDEX [IX_UserRecoveryCodes_UserId_CodeHash] ON [UserRecoveryCodes] ([UserId], [CodeHash]);
@@ -994,7 +997,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     CREATE INDEX [IX_UserSessions_UserId_RevokedAt] ON [UserSessions] ([UserId], [RevokedAt]);
@@ -1002,7 +1005,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     EXEC(N'CREATE TRIGGER [dbo].[TR_AuditLogs_AppendOnly] ON [dbo].[AuditLogs] INSTEAD OF UPDATE, DELETE AS BEGIN SET NOCOUNT ON; THROW 51000, N''AuditLogs is append-only.'', 1; END')
@@ -1010,11 +1013,11 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20261101054955_Baseline_v2'
+    WHERE [MigrationId] = N'20261101075350_Baseline_v2'
 )
 BEGIN
     INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20261101054955_Baseline_v2', N'10.0.14');
+    VALUES (N'20261101075350_Baseline_v2', N'10.0.14');
 END;
 
 COMMIT;

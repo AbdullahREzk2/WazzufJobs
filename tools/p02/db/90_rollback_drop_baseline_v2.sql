@@ -115,8 +115,8 @@ ELSE
 BEGIN
     DECLARE @history nvarchar(max) = (SELECT STRING_AGG(MigrationId, N', ') WITHIN GROUP (ORDER BY MigrationId) FROM dbo.__EFMigrationsHistory);
     PRINT N'Migration history: ' + ISNULL(@history, N'(empty)');
-    IF ISNULL(@history, N'') <> N'20261101054955_Baseline_v2'
-    BEGIN SET @problems += 1; PRINT N'STOP: the history must be exactly 20261101054955_Baseline_v2.'; END
+    IF ISNULL(@history, N'') <> N'20261101075350_Baseline_v2'
+    BEGIN SET @problems += 1; PRINT N'STOP: the history must be exactly 20261101075350_Baseline_v2.'; END
 END
 
 -- inventory of every user table
