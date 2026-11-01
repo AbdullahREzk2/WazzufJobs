@@ -97,7 +97,7 @@ public class PlatformRoleTests(C0WebApplicationFactory factory) : IClassFixture<
         // a validly signed token that claims every role but carries only candidate permissions
         var candidate = await CreateUserAsync(AccountType.Candidate, false, PlatformRoles.Candidate);
         var forged = new AccessGrant(AccountType.Staff, [], ["Admin", "SuperAdmin", "Moderator", "User"], PermissionCatalog.Candidate.Permissions, []);
-        var (token, _) = factory.Services.GetRequiredService<IJwtProvider>().GenerateToken(candidate, forged);
+        var (token, _) = factory.Services.GetRequiredService<IJwtProvider>().GenerateToken(candidate, forged, TestPersonas.StartSession(factory.Services, candidate), "pwd");
         var client = Bearer(token);
 
         foreach (var url in new[] { "/api/users", "/api/roles", $"/api/users/{candidate.Id}", "/api/applications/job/1" })

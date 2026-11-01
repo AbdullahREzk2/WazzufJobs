@@ -90,8 +90,10 @@ public class SuperAdminGuardTests(SqlServerC0Factory factory) : IClassFixture<Sq
             start.Release(2);
             var responses = await both;
 
-            var statuses = responses.Select(r => r.StatusCode).Order().ToList();
-            Assert.Equal([HttpStatusCode.NoContent, HttpStatusCode.BadRequest], statuses);
+            // the loser is refused by the last-Super-Admin guard (400), or, since S6a, already signed out because the
+            // winner's disable ended its sessions (401); either way exactly one Super Admin remains active
+            Assert.Single(responses, r => r.StatusCode == HttpStatusCode.NoContent);
+            Assert.Single(responses, r => r.StatusCode is HttpStatusCode.BadRequest or HttpStatusCode.Unauthorized);
             Assert.Equal(1, await ActiveSuperAdminsAsync());
         }
     }

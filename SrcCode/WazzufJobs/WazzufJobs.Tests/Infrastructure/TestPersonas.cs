@@ -4,6 +4,7 @@ using WazzufJobs.BLL.Authentication;
 using WazzufJobs.DAL.Authorization;
 using WazzufJobs.DAL.Entities;
 using WazzufJobs.DAL.Enums;
+using WazzufJobs.DAL.Persistence;
 
 namespace WazzufJobs.Tests.Infrastructure;
 
@@ -45,13 +46,39 @@ public static class TestPersonas
     /// <summary>Every authenticated persona that exists in the current role model.</summary>
     public static IReadOnlyList<Persona> All { get; } = [SuperAdmin, Moderator, Candidate, CompanyUser, DemoAdmin];
 
-    /// <summary>Authenticates the client as <paramref name="user"/> with the persona's catalog access.</summary>
+    /// <summary>
+    /// Authenticates the client as <paramref name="user"/> with the persona's catalog access, in a new server-side
+    /// session (Phase 02, S6a: the API accepts only tokens whose session is active).
+    /// </summary>
     public static HttpClient As(this HttpClient client, IServiceProvider services, Persona persona, AppUser user)
     {
         var jwt = services.GetRequiredService<IJwtProvider>();
-        var (token, _) = jwt.GenerateToken(user, persona.Grant);
+        var (token, _) = jwt.GenerateToken(user, persona.Grant, StartSession(services, user), "pwd");
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         return client;
+    }
+
+    /// <summary>
+    /// Creates an active session for the user, as a sign-in would. A user the test never stored is stored first (a copy,
+    /// so the caller's instance stays untracked).
+    /// </summary>
+    public static Guid StartSession(IServiceProvider services, AppUser user)
+    {
+        using var scope = services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDBContext>();
+        if (!db.Users.Any(u => u.Id == user.Id))
+            db.Users.Add(new AppUser
+            {
+                Id = user.Id, UserName = user.UserName, NormalizedUserName = user.NormalizedUserName ?? user.UserName?.ToUpperInvariant(),
+                Email = user.Email, NormalizedEmail = user.NormalizedEmail ?? user.Email?.ToUpperInvariant(), EmailConfirmed = user.EmailConfirmed,
+                FirstName = user.FirstName, LastName = user.LastName, AccountType = user.AccountType, IsDemo = user.IsDemo,
+                IsDisabled = user.IsDisabled, SecurityStamp = user.SecurityStamp ?? Guid.NewGuid().ToString()
+            });
+
+        var session = new UserSession { Id = Guid.NewGuid(), UserId = user.Id, AbsoluteExpiresAt = DateTime.UtcNow.AddDays(1), Amr = "pwd" };
+        db.UserSessions.Add(session);
+        db.SaveChanges();
+        return session.Id;
     }
 
     /// <summary>Removes any credentials: subsequent requests are anonymous.</summary>

@@ -183,7 +183,8 @@ public class CompanyAccessTests(SqlServerApiFactory factory) : IClassFixture<Sql
         }
 
         Assert.Equal(HttpStatusCode.NotFound, (await Client(TestPersonas.Candidate, candidate).GetAsync($"/api/v1/companies/{a.Company.Id}")).StatusCode);
-        Assert.Equal(HttpStatusCode.NotFound, (await Member(disabled).GetAsync($"/api/v1/companies/{a.Company.Id}")).StatusCode);
+        // S6a: a disabled account's token is refused by the session check, before company access is even evaluated
+        Assert.Equal(HttpStatusCode.Unauthorized, (await Member(disabled).GetAsync($"/api/v1/companies/{a.Company.Id}")).StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, (await Member(demo).GetAsync($"/api/v1/companies/{a.Company.Id}")).StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, (await Member(platformMember).GetAsync($"/api/v1/companies/{platform}")).StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, (await Member(platformMember).GetAsync($"/api/v1/companies/{platform}/members")).StatusCode);

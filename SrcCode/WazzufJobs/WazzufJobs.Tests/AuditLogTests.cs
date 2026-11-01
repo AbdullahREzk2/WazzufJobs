@@ -465,10 +465,12 @@ public class AuditLogTests(AuditApiFactory factory) : IClassFixture<AuditApiFact
                 Client(TestPersonas.SuperAdmin, a).PutAsync($"/api/users/{b.Id}/toggle-status", null),
                 Client(TestPersonas.SuperAdmin, b).PutAsync($"/api/users/{a.Id}/toggle-status", null));
 
+            // one change entry; the loser is either refused by the guard (one denial entry) or, since S6a, already signed
+            // out by the winner's disable (401 at the session check, nothing to audit)
             var entries = await EntriesAsync(e => e.TargetId == a.Id || e.TargetId == b.Id);
             Assert.Single(entries, e => e.Action == AuditActions.UserDisabled && e.Outcome == AuditOutcome.Success);
-            var denial = Assert.Single(entries, e => e.Action == AuditActions.UserChangeDenied);
-            Assert.Contains("User.LastAdministrator", denial.Details);
+            Assert.All(entries.Where(e => e.Action == AuditActions.UserChangeDenied), d => Assert.Contains("User.LastAdministrator", d.Details));
+            Assert.True(entries.Count(e => e.Action == AuditActions.UserChangeDenied) <= 1);
         }
     }
 

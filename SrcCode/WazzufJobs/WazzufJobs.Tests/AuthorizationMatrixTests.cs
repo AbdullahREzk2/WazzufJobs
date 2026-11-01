@@ -97,6 +97,12 @@ public class AuthorizationMatrixTests(C0WebApplicationFactory factory) : IClassF
         // company module (S4): no platform permission; only an active membership in the route's company grants access
         ["GET /api/v1/companies/{companyId:guid}"] =         "-MMMMM",
         ["GET /api/v1/companies/{companyId:guid}/members"] = "-MMMMM",
+
+        // the caller's own sessions (S6a): any signed-in account, own sessions only
+        ["GET /api/v1/me/sessions"] =                        "-YYYYY",
+        ["DELETE /api/v1/me/sessions/current"] =             "-YYYYY",
+        ["DELETE /api/v1/me/sessions/{sessionId:guid}"] =    "-YYYYY",
+        ["POST /api/v1/me/sessions/revoke-others"] =         "-YYYYY",
     };
 
     [Fact]
@@ -116,9 +122,13 @@ public class AuthorizationMatrixTests(C0WebApplicationFactory factory) : IClassF
     [Fact]
     public async Task Every_endpoint_enforces_its_matrix_row_for_every_persona()
     {
-        var clients = new Dictionary<string, HttpClient> { ["anonymous"] = factory.CreateClient() };
+        // a fresh session per request: some endpoints end the caller's session (S6a)
+        var users = new Dictionary<string, (Persona Persona, AppUser User)>();
         foreach (var persona in TestPersonas.All)
-            clients[persona.Name] = factory.CreateClient().As(factory.Services, persona, await CreateUserAsync(persona));
+            users[persona.Name] = (persona, await CreateUserAsync(persona));
+        HttpClient ClientFor(string column) => column == "anonymous"
+            ? factory.CreateClient()
+            : factory.CreateClient().As(factory.Services, users[column].Persona, users[column].User);
 
         var violations = new List<string>();
         foreach (var (key, template, multipart) in Endpoints())
@@ -126,7 +136,7 @@ public class AuthorizationMatrixTests(C0WebApplicationFactory factory) : IClassF
             var row = Matrix[key];
             for (var column = 0; column < Columns.Length; column++)
             {
-                var (status, body) = await SendAsync(clients[Columns[column]], key, template, multipart);
+                var (status, body) = await SendAsync(ClientFor(Columns[column]), key, template, multipart);
                 var refused = status == HttpStatusCode.Unauthorized || (status == HttpStatusCode.Forbidden && body.Length == 0);
                 if (row[column] == 'M')
                 {
@@ -175,7 +185,7 @@ public class AuthorizationMatrixTests(C0WebApplicationFactory factory) : IClassF
     private static async Task<(HttpStatusCode, string)> SendAsync(HttpClient client, string key, string template, bool multipart)
     {
         var method = key.Split(' ')[0];
-        var url = Regex.Replace(template, "{(\\w+)[^}]*}", m => m.Groups[1].Value is "userId" or "roleId" or "companyId"
+        var url = Regex.Replace(template, "{(\\w+)[^}]*}", m => m.Groups[1].Value is "userId" or "roleId" or "companyId" or "sessionId"
             ? Guid.NewGuid().ToString()
             : "999999");
 
