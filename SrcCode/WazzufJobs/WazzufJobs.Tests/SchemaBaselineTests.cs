@@ -4,6 +4,7 @@ using WazzufJobs.DAL.Entities;
 using WazzufJobs.DAL.Enums;
 using WazzufJobs.DAL.Persistence;
 using WazzufJobs.DAL.Persistence.EntitiesConfiguration;
+using WazzufJobs.DAL.Persistence.Seeders;
 using WazzufJobs.Tests.Infrastructure;
 
 namespace WazzufJobs.Tests;
@@ -54,10 +55,14 @@ public class SchemaBaselineTests(SqlServerApiFactory factory) : IClassFixture<Sq
             "Companies", "CompanyMembers",
             "JobCategories", "Jobs", "Applications", "ApplicationStatusHistory",
             "AuditLogs", "PlatformState",
-            // transitional, removed when handlers are ported (S2b, S6a)
-            "CVs", "UserPreferences", "LegacyRefreshTokens"
+            // transitional until the session-based refresh tokens replace it (S6a)
+            "LegacyRefreshTokens"
         ];
         Assert.Empty(expected.Except(tables));
+
+        // S2b: the legacy CV and preference tables are gone (Resumes and CandidateProfiles replace them)
+        Assert.DoesNotContain("CVs", tables);
+        Assert.DoesNotContain("UserPreferences", tables);
     }
 
     [SqlServerTheory]
@@ -249,8 +254,8 @@ public class SchemaBaselineTests(SqlServerApiFactory factory) : IClassFixture<Sq
         await Assert.ThrowsAsync<DbUpdateException>(() => db.SaveChangesAsync());
         db.ChangeTracker.Clear();
 
-        db.Add(new Company { Id = Guid.NewGuid(), Name = "Platform A", Slug = $"pa-{Guid.NewGuid():N}", IsPlatform = true });
-        await db.SaveChangesAsync();
+        // the platform company is seeded by Baseline_v2; a second one is rejected
+        Assert.Equal(PlatformCompany.Id, (await db.Companies.SingleAsync(c => c.IsPlatform)).Id);
         db.Add(new Company { Id = Guid.NewGuid(), Name = "Platform B", Slug = $"pb-{Guid.NewGuid():N}", IsPlatform = true });
         await Assert.ThrowsAsync<DbUpdateException>(() => db.SaveChangesAsync());
     }

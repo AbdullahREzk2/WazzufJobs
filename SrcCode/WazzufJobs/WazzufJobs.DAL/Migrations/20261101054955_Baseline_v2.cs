@@ -40,11 +40,7 @@ namespace WazzufJobs.DAL.Migrations
                     LastName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     ProfilePhotoUrl = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     ProfilePhotoPublicId = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
-                    IsProfileComplete = table.Column<bool>(type: "bit", nullable: false),
                     IsDisabled = table.Column<bool>(type: "bit", nullable: false),
-                    ExperienceYears = table.Column<int>(type: "int", nullable: false),
-                    CareerLevel = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    ShowSalary = table.Column<bool>(type: "bit", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
                     AccountType = table.Column<byte>(type: "tinyint", nullable: false),
                     IsDemo = table.Column<bool>(type: "bit", nullable: false),
@@ -239,7 +235,7 @@ namespace WazzufJobs.DAL.Migrations
                     Headline = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
                     Location = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
                     ExperienceYears = table.Column<int>(type: "int", nullable: false),
-                    CareerLevel = table.Column<int>(type: "int", nullable: false),
+                    CareerLevel = table.Column<byte>(type: "tinyint", nullable: false),
                     ShowSalary = table.Column<bool>(type: "bit", nullable: false),
                     IsProfileComplete = table.Column<bool>(type: "bit", nullable: false),
                     PreferredJobTypes = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -295,30 +291,6 @@ namespace WazzufJobs.DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "CVs",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Url = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
-                    PublicId = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
-                    FileName = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    ExtractedText = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    UploadedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_CVs", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_CVs_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "LegacyRefreshTokens",
                 columns: table => new
                 {
@@ -362,36 +334,13 @@ namespace WazzufJobs.DAL.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Resumes", x => x.Id);
+                    table.UniqueConstraint("AK_Resumes_Id_CandidateId", x => new { x.Id, x.CandidateId });
                     table.ForeignKey(
                         name: "FK_Resumes_AspNetUsers_CandidateId",
                         column: x => x.CandidateId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "UserPreferences",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    PreferredJobTypes = table.Column<string>(type: "nvarchar(200)", nullable: false),
-                    PreferredWorkplaceTypes = table.Column<string>(type: "nvarchar(100)", nullable: false),
-                    InterestedCategoryIds = table.Column<string>(type: "nvarchar(200)", nullable: false),
-                    InterestedJobTitles = table.Column<string>(type: "nvarchar(500)", nullable: false),
-                    MinSalary = table.Column<decimal>(type: "decimal(18,2)", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_UserPreferences", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_UserPreferences_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -488,16 +437,16 @@ namespace WazzufJobs.DAL.Migrations
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Location = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     Skills = table.Column<string>(type: "nvarchar(1000)", nullable: false),
-                    JobType = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    WorkplaceType = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    JobType = table.Column<byte>(type: "tinyint", nullable: false),
+                    WorkplaceType = table.Column<byte>(type: "tinyint", nullable: false),
+                    Status = table.Column<byte>(type: "tinyint", nullable: false),
                     SalaryMin = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
                     SalaryMax = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
                     CategoryId = table.Column<int>(type: "int", nullable: false),
                     CreatedById = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
                     ExpiresAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    CompanyId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    CompanyId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     PublishedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     IsDemo = table.Column<bool>(type: "bit", nullable: false),
@@ -506,6 +455,7 @@ namespace WazzufJobs.DAL.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Jobs", x => x.Id);
+                    table.UniqueConstraint("AK_Jobs_Id_CompanyId", x => new { x.Id, x.CompanyId });
                     table.ForeignKey(
                         name: "FK_Jobs_AspNetUsers_CreatedById",
                         column: x => x.CreatedById,
@@ -615,13 +565,13 @@ namespace WazzufJobs.DAL.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     CandidateId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     JobId = table.Column<int>(type: "int", nullable: false),
-                    Status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Status = table.Column<byte>(type: "tinyint", nullable: false),
                     AIScore = table.Column<float>(type: "real", nullable: true),
                     AIFeedback = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IsAIScored = table.Column<bool>(type: "bit", nullable: false),
                     AppliedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
-                    CompanyId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    ResumeId = table.Column<int>(type: "int", nullable: true),
+                    CompanyId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ResumeId = table.Column<int>(type: "int", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     IsDemo = table.Column<bool>(type: "bit", nullable: false),
                     RowVersion = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: false)
@@ -642,16 +592,16 @@ namespace WazzufJobs.DAL.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Applications_Jobs_JobId",
-                        column: x => x.JobId,
+                        name: "FK_Applications_Jobs_JobId_CompanyId",
+                        columns: x => new { x.JobId, x.CompanyId },
                         principalTable: "Jobs",
-                        principalColumn: "Id",
+                        principalColumns: new[] { "Id", "CompanyId" },
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Applications_Resumes_ResumeId",
-                        column: x => x.ResumeId,
+                        name: "FK_Applications_Resumes_ResumeId_CandidateId",
+                        columns: x => new { x.ResumeId, x.CandidateId },
                         principalTable: "Resumes",
-                        principalColumn: "Id",
+                        principalColumns: new[] { "Id", "CandidateId" },
                         onDelete: ReferentialAction.Restrict);
                 });
 
@@ -688,8 +638,8 @@ namespace WazzufJobs.DAL.Migrations
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     ApplicationId = table.Column<int>(type: "int", nullable: false),
-                    FromStatus = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    ToStatus = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    FromStatus = table.Column<byte>(type: "tinyint", nullable: true),
+                    ToStatus = table.Column<byte>(type: "tinyint", nullable: false),
                     ChangedById = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     ChangedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Reason = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true)
@@ -719,6 +669,11 @@ namespace WazzufJobs.DAL.Migrations
                     { "C1E2A3D4-E5F6-7890-ABCD-EF1234567890", "A1B2C3D4-E5F6-7890-ABCD-EF1234567891", null, false, false, true, "Admin", "ADMIN" },
                     { "D2E3B4C5-F6A7-8901-BCDE-F01234567892", "B2C3D4E5-F6A7-8901-BCDE-F01234567893", null, true, false, true, "User", "USER" }
                 });
+
+            migrationBuilder.InsertData(
+                table: "Companies",
+                columns: new[] { "Id", "CreatedAt", "CreatedById", "Description", "Industry", "IsDemo", "IsPlatform", "Location", "LogoKey", "Name", "Size", "Slug", "Status", "VerificationStatus", "Website" },
+                values: new object[] { new Guid("6f1d2c3b-8a47-4e5f-9b0a-1c2d3e4f5a6b"), new DateTime(2026, 11, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, null, null, false, true, null, null, "WazzufJobs", null, "wazzufjobs", (byte)0, (byte)2, null });
 
             migrationBuilder.InsertData(
                 table: "JobCategories",
@@ -797,9 +752,14 @@ namespace WazzufJobs.DAL.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Applications_ResumeId",
+                name: "IX_Applications_JobId_CompanyId",
                 table: "Applications",
-                column: "ResumeId");
+                columns: new[] { "JobId", "CompanyId" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Applications_ResumeId_CandidateId",
+                table: "Applications",
+                columns: new[] { "ResumeId", "CandidateId" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_ApplicationStatusHistory_ApplicationId_ChangedAt",
@@ -932,12 +892,6 @@ namespace WazzufJobs.DAL.Migrations
                 filter: "[Status] = 0");
 
             migrationBuilder.CreateIndex(
-                name: "IX_CVs_UserId",
-                table: "CVs",
-                column: "UserId",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
                 name: "IX_JobCategories_Slug",
                 table: "JobCategories",
                 column: "Slug",
@@ -1025,12 +979,6 @@ namespace WazzufJobs.DAL.Migrations
                 column: "JobId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_UserPreferences_UserId",
-                table: "UserPreferences",
-                column: "UserId",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
                 name: "IX_UserRecoveryCodes_UserId_CodeHash",
                 table: "UserRecoveryCodes",
                 columns: new[] { "UserId", "CodeHash" },
@@ -1084,9 +1032,6 @@ namespace WazzufJobs.DAL.Migrations
                 name: "CompanyMembers");
 
             migrationBuilder.DropTable(
-                name: "CVs");
-
-            migrationBuilder.DropTable(
                 name: "LegacyRefreshTokens");
 
             migrationBuilder.DropTable(
@@ -1100,9 +1045,6 @@ namespace WazzufJobs.DAL.Migrations
 
             migrationBuilder.DropTable(
                 name: "SavedJobs");
-
-            migrationBuilder.DropTable(
-                name: "UserPreferences");
 
             migrationBuilder.DropTable(
                 name: "UserRecoveryCodes");

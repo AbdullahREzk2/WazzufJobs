@@ -372,11 +372,6 @@ namespace WazzufJobs.DAL.Migrations
                     b.Property<byte>("AccountType")
                         .HasColumnType("tinyint");
 
-                    b.Property<string>("CareerLevel")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
@@ -393,9 +388,6 @@ namespace WazzufJobs.DAL.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
 
-                    b.Property<int>("ExperienceYears")
-                        .HasColumnType("int");
-
                     b.Property<string>("FirstName")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -405,9 +397,6 @@ namespace WazzufJobs.DAL.Migrations
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsDisabled")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsProfileComplete")
                         .HasColumnType("bit");
 
                     b.Property<DateTime?>("LastLoginAt")
@@ -451,9 +440,6 @@ namespace WazzufJobs.DAL.Migrations
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("ShowSalary")
-                        .HasColumnType("bit");
 
                     b.Property<long?>("TotpLastTimeStep")
                         .HasColumnType("bigint");
@@ -499,7 +485,7 @@ namespace WazzufJobs.DAL.Migrations
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETUTCDATE()");
 
-                    b.Property<Guid?>("CompanyId")
+                    b.Property<Guid>("CompanyId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<bool>("IsAIScored")
@@ -511,7 +497,7 @@ namespace WazzufJobs.DAL.Migrations
                     b.Property<int>("JobId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("ResumeId")
+                    b.Property<int>("ResumeId")
                         .HasColumnType("int");
 
                     b.Property<byte[]>("RowVersion")
@@ -520,10 +506,8 @@ namespace WazzufJobs.DAL.Migrations
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<byte>("Status")
+                        .HasColumnType("tinyint");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -535,14 +519,16 @@ namespace WazzufJobs.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ResumeId");
-
                     b.HasIndex("UserId");
 
                     b.HasIndex("CompanyId", "Status");
 
+                    b.HasIndex("JobId", "CompanyId");
+
                     b.HasIndex("JobId", "UserId")
                         .IsUnique();
+
+                    b.HasIndex("ResumeId", "UserId");
 
                     b.ToTable("Applications");
                 });
@@ -626,18 +612,15 @@ namespace WazzufJobs.DAL.Migrations
                     b.Property<string>("ChangedById")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("FromStatus")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<byte?>("FromStatus")
+                        .HasColumnType("tinyint");
 
                     b.Property<string>("Reason")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<string>("ToStatus")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<byte>("ToStatus")
+                        .HasColumnType("tinyint");
 
                     b.HasKey("Id");
 
@@ -777,56 +760,13 @@ namespace WazzufJobs.DAL.Migrations
                     b.ToTable("AuthChallenges");
                 });
 
-            modelBuilder.Entity("WazzufJobs.DAL.Entities.CV", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("ExtractedText")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("FileName")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<string>("PublicId")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<DateTime>("UploadedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETUTCDATE()");
-
-                    b.Property<string>("Url")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId")
-                        .IsUnique();
-
-                    b.ToTable("CVs");
-                });
-
             modelBuilder.Entity("WazzufJobs.DAL.Entities.CandidateProfile", b =>
                 {
                     b.Property<string>("UserId")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<int>("CareerLevel")
-                        .HasColumnType("int");
+                    b.Property<byte>("CareerLevel")
+                        .HasColumnType("tinyint");
 
                     b.Property<int>("ExperienceYears")
                         .HasColumnType("int");
@@ -958,6 +898,20 @@ namespace WazzufJobs.DAL.Migrations
                     b.HasIndex("Status", "VerificationStatus");
 
                     b.ToTable("Companies");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("6f1d2c3b-8a47-4e5f-9b0a-1c2d3e4f5a6b"),
+                            CreatedAt = new DateTime(2026, 11, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsDemo = false,
+                            IsPlatform = true,
+                            Name = "WazzufJobs",
+                            RowVersion = new byte[0],
+                            Slug = "wazzufjobs",
+                            Status = (byte)0,
+                            VerificationStatus = (byte)2
+                        });
                 });
 
             modelBuilder.Entity("WazzufJobs.DAL.Entities.CompanyMember", b =>
@@ -1009,7 +963,7 @@ namespace WazzufJobs.DAL.Migrations
                     b.Property<int>("CategoryId")
                         .HasColumnType("int");
 
-                    b.Property<Guid?>("CompanyId")
+                    b.Property<Guid>("CompanyId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
@@ -1027,10 +981,8 @@ namespace WazzufJobs.DAL.Migrations
                     b.Property<bool>("IsDemo")
                         .HasColumnType("bit");
 
-                    b.Property<string>("JobType")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<byte>("JobType")
+                        .HasColumnType("tinyint");
 
                     b.Property<string>("Location")
                         .IsRequired()
@@ -1061,10 +1013,8 @@ namespace WazzufJobs.DAL.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<byte>("Status")
+                        .HasColumnType("tinyint");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -1074,10 +1024,8 @@ namespace WazzufJobs.DAL.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("WorkplaceType")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<byte>("WorkplaceType")
+                        .HasColumnType("tinyint");
 
                     b.HasKey("Id");
 
@@ -1406,45 +1354,6 @@ namespace WazzufJobs.DAL.Migrations
                     b.ToTable("RefreshTokens", (string)null);
                 });
 
-            modelBuilder.Entity("WazzufJobs.DAL.Entities.UserPreference", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("InterestedCategoryIds")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("InterestedJobTitles")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<decimal?>("MinSalary")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("PreferredJobTypes")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("PreferredWorkplaceTypes")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId")
-                        .IsUnique();
-
-                    b.ToTable("UserPreferences");
-                });
-
             modelBuilder.Entity("WazzufJobs.DAL.Entities.UserRecoveryCode", b =>
                 {
                     b.Property<long>("Id")
@@ -1585,22 +1494,26 @@ namespace WazzufJobs.DAL.Migrations
                     b.HasOne("WazzufJobs.DAL.Entities.Company", "Company")
                         .WithMany()
                         .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WazzufJobs.DAL.Entities.AppUser", "User")
+                        .WithMany("Applications")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("WazzufJobs.DAL.Entities.Job", "Job")
                         .WithMany("Applications")
-                        .HasForeignKey("JobId")
+                        .HasForeignKey("JobId", "CompanyId")
+                        .HasPrincipalKey("Id", "CompanyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("WazzufJobs.DAL.Entities.Resume", "Resume")
                         .WithMany()
-                        .HasForeignKey("ResumeId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("WazzufJobs.DAL.Entities.AppUser", "User")
-                        .WithMany("Applications")
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("ResumeId", "UserId")
+                        .HasPrincipalKey("Id", "CandidateId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -1645,17 +1558,6 @@ namespace WazzufJobs.DAL.Migrations
                         .IsRequired();
 
                     b.Navigation("Session");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("WazzufJobs.DAL.Entities.CV", b =>
-                {
-                    b.HasOne("WazzufJobs.DAL.Entities.AppUser", "User")
-                        .WithOne("CV")
-                        .HasForeignKey("WazzufJobs.DAL.Entities.CV", "UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
 
                     b.Navigation("User");
                 });
@@ -1718,7 +1620,8 @@ namespace WazzufJobs.DAL.Migrations
                     b.HasOne("WazzufJobs.DAL.Entities.Company", "Company")
                         .WithMany("Jobs")
                         .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("WazzufJobs.DAL.Entities.AppUser", "PostedBy")
                         .WithMany("PostedJobs")
@@ -1803,17 +1706,6 @@ namespace WazzufJobs.DAL.Migrations
                     b.Navigation("Session");
                 });
 
-            modelBuilder.Entity("WazzufJobs.DAL.Entities.UserPreference", b =>
-                {
-                    b.HasOne("WazzufJobs.DAL.Entities.AppUser", "User")
-                        .WithOne("Preference")
-                        .HasForeignKey("WazzufJobs.DAL.Entities.UserPreference", "UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("WazzufJobs.DAL.Entities.UserRecoveryCode", b =>
                 {
                     b.HasOne("WazzufJobs.DAL.Entities.AppUser", "User")
@@ -1840,15 +1732,11 @@ namespace WazzufJobs.DAL.Migrations
                 {
                     b.Navigation("Applications");
 
-                    b.Navigation("CV");
-
                     b.Navigation("CandidateProfile");
 
                     b.Navigation("CompanyMemberships");
 
                     b.Navigation("PostedJobs");
-
-                    b.Navigation("Preference");
 
                     b.Navigation("RefreshTokens");
 
