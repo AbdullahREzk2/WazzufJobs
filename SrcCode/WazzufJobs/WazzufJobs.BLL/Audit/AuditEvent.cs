@@ -46,4 +46,5 @@ public static class AuditTargets
     public const string Category = "Category";
     public const string Application = "Application";
     public const string Endpoint = "Endpoint";
+    public const string Session = "Session";
 }

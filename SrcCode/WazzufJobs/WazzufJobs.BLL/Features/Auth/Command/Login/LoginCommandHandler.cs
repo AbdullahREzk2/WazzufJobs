@@ -3,7 +3,8 @@ public class LoginCommandHandler(
     IUserRepository userRepository,
     SignInManager<AppUser> signInManager,
     IJwtProvider jwtProvider,
-    IAuditLog audit
+    IAuditLog audit,
+    ISessionService sessions
     )
     : IRequestHandler<LoginCommand, Result<loginResponseDTO>>
 {
@@ -38,7 +39,10 @@ public class LoginCommandHandler(
             }, cancellationToken);
 
             var grant = PermissionCatalog.Resolve(user.AccountType, user.IsDemo, await _userrepository.GetRolesAsync(user));
-            var (token, expireIn) = _jwtprovider.GenerateToken(user, grant);
+            // Phase 02 (S6a): every sign-in is a server-side session; the access token names it (sid). The legacy refresh
+            // token below is unchanged until S6b moves refresh to the session engine (owner decision).
+            var session = await sessions.StartAsync(user, SessionPolicy.Amr.Password, cancellationToken);
+            var (token, expireIn) = _jwtprovider.GenerateToken(user, grant, session.Id, session.Amr);
             var refreshToken = GenerateRefreshTokenHelper.GenerateRefreshToken();
             var refreshTokenExpiration = DateTime.UtcNow.AddDays(_refreshTokenValidityInDays);
 

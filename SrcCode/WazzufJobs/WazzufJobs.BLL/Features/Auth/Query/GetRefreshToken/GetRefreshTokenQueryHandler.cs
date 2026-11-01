@@ -1,7 +1,7 @@
 ﻿using WazzufJobs.BLL.Features.Auth.Query.GetRefreshToken;
 
 namespace SurveyBasket.BLL.Features.Auth.Query.GetRefreshToken;
-public class GetRefreshTokenQueryHandler(IJwtProvider jwtProvider, IUserRepository userRepository, IAuditLog audit) : IRequestHandler<GetRefreshTokenQuery, Result<loginResponseDTO>>
+public class GetRefreshTokenQueryHandler(IJwtProvider jwtProvider, IUserRepository userRepository, IAuditLog audit, ISessionService sessions) : IRequestHandler<GetRefreshTokenQuery, Result<loginResponseDTO>>
 {
     private readonly IJwtProvider _jwtprovider = jwtProvider;
     private readonly IUserRepository _userrepository = userRepository;
@@ -33,7 +33,9 @@ public class GetRefreshTokenQueryHandler(IJwtProvider jwtProvider, IUserReposito
         userRefreshToken.RevokedOn = DateTime.UtcNow;
 
         var grant = PermissionCatalog.Resolve(user.AccountType, user.IsDemo, await _userrepository.GetRolesAsync(user));
-        var (newToken, expireIn) = _jwtprovider.GenerateToken(user, grant);
+        // legacy contract kept until S6b (owner decision); every access token still belongs to a session
+        var session = await sessions.StartAsync(user, SessionPolicy.Amr.Password, cancellationToken);
+        var (newToken, expireIn) = _jwtprovider.GenerateToken(user, grant, session.Id, session.Amr);
         var newRefreshToken = GenerateRefreshTokenHelper.GenerateRefreshToken();
         var refreshTokenExpiration = DateTime.UtcNow.AddDays(_refreshTokenValidityInDays);
 

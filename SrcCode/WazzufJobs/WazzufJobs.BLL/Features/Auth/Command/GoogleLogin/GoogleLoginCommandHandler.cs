@@ -11,7 +11,8 @@ public class GoogleLoginCommandHandler(
     IJwtProvider jwtProvider,
     IHttpClientFactory httpClientFactory,
     IConfiguration configuration,
-    IAuditLog audit) : IRequestHandler<GoogleLoginCommand, Result<loginResponseDTO>>
+    IAuditLog audit,
+    ISessionService sessions) : IRequestHandler<GoogleLoginCommand, Result<loginResponseDTO>>
 {
     private readonly IUserRepository _userRepository = userRepository;
     private readonly IJwtProvider _jwtProvider = jwtProvider;
@@ -76,7 +77,8 @@ public class GoogleLoginCommandHandler(
             .With(("newAccount", newAccount)) with { ActorUserId = user.Id, IsDemo = user.IsDemo }, cancellationToken);
 
         var grant = PermissionCatalog.Resolve(user.AccountType, user.IsDemo, await _userRepository.GetRolesAsync(user));
-        var (token, expireIn) = _jwtProvider.GenerateToken(user, grant);
+        var session = await sessions.StartAsync(user, SessionPolicy.Amr.External, cancellationToken);
+        var (token, expireIn) = _jwtProvider.GenerateToken(user, grant, session.Id, session.Amr);
         var refreshToken = GenerateRefreshTokenHelper.GenerateRefreshToken();
         var refreshTokenExpiration = DateTime.UtcNow.AddDays(_refreshTokenValidityInDays);
 

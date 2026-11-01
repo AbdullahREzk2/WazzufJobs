@@ -13,6 +13,9 @@ public static class AuditActions
     public const string PasswordResetRequested = "auth.password_reset.requested";
     public const string PasswordResetSucceeded = "auth.password_reset.succeeded";
     public const string PasswordResetFailed = "auth.password_reset.failed";
+    public const string RefreshReuseDetected = "auth.refresh.reuse_detected";
+    public const string SessionRevoked = "auth.session.revoked";
+    public const string OtherSessionsRevoked = "auth.sessions.revoked_others";
 
     // accounts
     public const string UserRegistered = "user.registered";

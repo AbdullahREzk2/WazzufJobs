@@ -6,6 +6,8 @@ public static class AccessTokenClaims
     /// <summary>Platform roles plus legacy aliases, for the frontend only. Never used for authorization.</summary>
     public const string Roles = "roles";
     public const string AccountType = "acct";
+    public const string SessionId = "sid";
+    public const string AuthenticationMethod = "amr";
     public const string Permissions = WazzufJobs.DAL.Authorization.Permissions.Type;
 
     /// <summary>

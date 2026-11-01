@@ -1,5 +1,5 @@
 ﻿namespace WazzufJobs.BLL.Features.Users.Command.UserToggleStatus;
-public class ToggleStatusCommandHandler(IUserRepository userRepository, IAuditLog audit) : IRequestHandler<ToggleStatusCommand, Result>
+public class ToggleStatusCommandHandler(IUserRepository userRepository, IAuditLog audit, ISessionService sessions) : IRequestHandler<ToggleStatusCommand, Result>
 {
     private readonly IUserRepository _userrepository = userRepository;
 
@@ -7,14 +7,19 @@ public class ToggleStatusCommandHandler(IUserRepository userRepository, IAuditLo
     public async Task<Result> Handle(ToggleStatusCommand request, CancellationToken cancellationToken)
     {
         var disabled = false;
+        var revokedSessions = 0;
         return await audit.RecordAsync(async () =>
             {
                 var result = await ToggleStatusAsync(request, cancellationToken);
                 disabled = result.IsSuccess && (await _userrepository.FindByIdAsync(request.userId))?.IsDisabled == true;
+                // Phase 02 (S6a): a disabled account's sessions end with the change
+                if (disabled)
+                    revokedSessions = (await sessions.RevokeAsync(request.userId, null, null, SessionPolicy.RevokedReason.Disabled, cancellationToken)).Count;
                 return result;
             },
             r => r.IsSuccess
                 ? AuditEvent.Success(disabled ? AuditActions.UserDisabled : AuditActions.UserEnabled).On(AuditTargets.User, request.userId)
+                    .With(("revokedSessions", revokedSessions))
                 : UserAudit.Denial(r, request.userId),
             cancellationToken);
     }

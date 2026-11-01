@@ -13,7 +13,7 @@ public class JwtProvider : IJwtProvider
     {
         _options = options.Value;
     }
-    public (string token, int expireIn) GenerateToken(AppUser user, AccessGrant grant)
+    public (string token, int expireIn) GenerateToken(AppUser user, AccessGrant grant, Guid sessionId, string amr)
     {
         Claim[] claims = [
             new(JwtRegisteredClaimNames.Sub, user.Id),
@@ -21,6 +21,9 @@ public class JwtProvider : IJwtProvider
             new(JwtRegisteredClaimNames.GivenName,user.FirstName!),
             new(JwtRegisteredClaimNames.FamilyName,user.LastName!),
             new(JwtRegisteredClaimNames.Jti,Guid.NewGuid().ToString()),
+            // Phase 02 (S6a): the session this token belongs to (checked on every request) and how it was authenticated
+            new(AccessTokenClaims.SessionId,sessionId.ToString()),
+            new(AccessTokenClaims.AuthenticationMethod,amr),
             // Phase 02 (S3): effective platform roles plus legacy aliases (display only: the API authorizes by
             // permission, never by role), the account type, and the catalog permissions of the effective roles
             new(AccessTokenClaims.Roles,JsonSerializer.Serialize(grant.TokenRoles),JsonClaimValueTypes.JsonArray),
@@ -33,15 +36,18 @@ public class JwtProvider : IJwtProvider
         var singingCredentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
 
+        // Phase 02 (S6a, D-SESSION-TTL): never longer than 15 minutes, whatever the configuration says
+        var minutes = Math.Min(_options.ExpiryMinutes, SessionPolicy.AccessTokenMaxMinutes);
+
         var token = new JwtSecurityToken(
             issuer: _options.Issuer,
             audience: _options.Audience,
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(_options.ExpiryMinutes),
+            expires: DateTime.UtcNow.AddMinutes(minutes),
             signingCredentials: singingCredentials
             );
 
-        return (token: new JwtSecurityTokenHandler().WriteToken(token), expireIn: _options.ExpiryMinutes * 60);
+        return (token: new JwtSecurityTokenHandler().WriteToken(token), expireIn: minutes * 60);
     }
 
     public string? validateToken(string token)

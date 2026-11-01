@@ -1,5 +1,5 @@
 ﻿namespace WazzufJobs.BLL.Features.Users.Command.UpdateUser;
-public class UpdateUserCommandHandler(IUserRepository userRepository, IAuditLog audit) : IRequestHandler<UpdateUserCommand, Result>
+public class UpdateUserCommandHandler(IUserRepository userRepository, IAuditLog audit, ISessionService sessions) : IRequestHandler<UpdateUserCommand, Result>
 {
     private readonly IUserRepository _userrepository = userRepository;
 
@@ -12,7 +12,8 @@ public class UpdateUserCommandHandler(IUserRepository userRepository, IAuditLog 
             r => r.IsSuccess
                 ? AuditEvent.Success(change.Added.Count + change.Removed.Count > 0 ? AuditActions.UserRolesChanged : AuditActions.UserUpdated)
                     .On(AuditTargets.User, request.userId)
-                    .With(("emailChanged", change.EmailChanged), ("rolesAdded", change.Added), ("rolesRemoved", change.Removed))
+                    .With(("emailChanged", change.EmailChanged), ("rolesAdded", change.Added), ("rolesRemoved", change.Removed),
+                        ("revokedSessions", change.RevokedSessions))
                 : UserAudit.Denial(r, request.userId),
             cancellationToken);
     }
@@ -22,6 +23,7 @@ public class UpdateUserCommandHandler(IUserRepository userRepository, IAuditLog 
         public bool EmailChanged;
         public List<string> Added = [];
         public List<string> Removed = [];
+        public int RevokedSessions;
     }
 
     private async Task<Result> UpdateAsync(UpdateUserCommand request, Change change, CancellationToken cancellationToken)
@@ -78,6 +80,10 @@ public class UpdateUserCommandHandler(IUserRepository userRepository, IAuditLog 
                 var rolesError = rolesResult.Errors.First();
                 return Result.Failure(new Error(rolesError.Code, rolesError.Description, StatusCodes.Status400BadRequest));
             }
+
+            // Phase 02 (S6a): tokens carry the roles and permissions, so a role change ends the account's sessions
+            if (change.Added.Count + change.Removed.Count > 0)
+                change.RevokedSessions = (await sessions.RevokeAsync(user.Id, null, null, SessionPolicy.RevokedReason.RolesChanged, cancellationToken)).Count;
 
             return Result.Success();
         }

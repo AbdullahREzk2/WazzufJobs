@@ -1,5 +1,5 @@
 ﻿namespace WazzufJobs.BLL.Features.Auth.Command.ResetPassword;
-public class ResetPasswordCommandHandler(IUserRepository userRepository, IAuditLog audit) : IRequestHandler<ResetPasswordCommand, Result>
+public class ResetPasswordCommandHandler(IUserRepository userRepository, IAuditLog audit, ISessionService sessions) : IRequestHandler<ResetPasswordCommand, Result>
 {
     private readonly IUserRepository _userrepository = userRepository;
 
@@ -22,6 +22,7 @@ public class ResetPasswordCommandHandler(IUserRepository userRepository, IAuditL
 
         // the new password, the revoked sessions and the audit entry are committed together
         var revoked = 0;
+        var revokedSessions = 0;
         return await audit.RecordAsync(async () =>
             {
                 var result = await _userrepository.ResetPasswordAsync(user, code, request.passRequest.NewPassword);
@@ -32,11 +33,12 @@ public class ResetPasswordCommandHandler(IUserRepository userRepository, IAuditL
                 }
 
                 revoked = await _userrepository.RevokeAllRefreshTokensAsync(user.Id, cancellationToken);
+                revokedSessions = (await sessions.RevokeAsync(user.Id, null, null, SessionPolicy.RevokedReason.PasswordReset, cancellationToken)).Count;
                 return Result.Success();
             },
             r => r.IsSuccess
                 ? AuditEvent.Success(AuditActions.PasswordResetSucceeded).On(AuditTargets.User, user.Id)
-                    .With(("revokedTokens", revoked)) with { Anonymous = true, IsDemo = user.IsDemo }
+                    .With(("revokedTokens", revoked), ("revokedSessions", revokedSessions)) with { Anonymous = true, IsDemo = user.IsDemo }
                 : AuditEvent.Failure(AuditActions.PasswordResetFailed).On(AuditTargets.User, user.Id)
                     .With(("reason", r.Error.Code)) with { Anonymous = true, IsDemo = user.IsDemo },
             cancellationToken);

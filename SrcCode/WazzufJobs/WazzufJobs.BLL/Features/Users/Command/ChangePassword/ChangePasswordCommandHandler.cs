@@ -1,7 +1,7 @@
 ﻿using WazzufJobs.BLL.Features.Users.Command.ChangePassword;
 
 namespace SurveyBasket.BLL.Features.Users.Command.ChangePassword;
-public class ChangePasswordCommandHandler(IUserRepository userRepository, IAuditLog audit) : IRequestHandler<ChangePasswordCommand, Result>
+public class ChangePasswordCommandHandler(IUserRepository userRepository, IAuditLog audit, ISessionService sessions) : IRequestHandler<ChangePasswordCommand, Result>
 {
     private readonly IUserRepository _userrepository = userRepository;
 
@@ -13,6 +13,7 @@ public class ChangePasswordCommandHandler(IUserRepository userRepository, IAudit
 
         // the new password, the revoked sessions and the audit entry are committed together
         var revoked = 0;
+        var revokedSessions = 0;
         return await audit.RecordAsync(async () =>
             {
                 var result = await _userrepository.ChangePasswordAsync(user, request.Passrequest.CurrentPassword, request.Passrequest.NewPassword);
@@ -24,10 +25,13 @@ public class ChangePasswordCommandHandler(IUserRepository userRepository, IAudit
 
                 // sign out other sessions: a rotated password must not leave old refresh tokens usable
                 revoked = await _userrepository.RevokeAllRefreshTokensAsync(user.Id, cancellationToken);
+                // Phase 02 (S6a): every session of the account ends, including the caller's
+                revokedSessions = (await sessions.RevokeAsync(user.Id, null, null, SessionPolicy.RevokedReason.PasswordChanged, cancellationToken)).Count;
                 return Result.Success();
             },
             r => r.IsSuccess
-                ? AuditEvent.Success(AuditActions.PasswordChanged).On(AuditTargets.User, user.Id).With(("revokedTokens", revoked))
+                ? AuditEvent.Success(AuditActions.PasswordChanged).On(AuditTargets.User, user.Id)
+                    .With(("revokedTokens", revoked), ("revokedSessions", revokedSessions))
                 : AuditEvent.Failure(AuditActions.PasswordChangeFailed).On(AuditTargets.User, user.Id).With(("reason", r.Error.Code)),
             cancellationToken);
     }

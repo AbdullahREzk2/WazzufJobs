@@ -22,7 +22,7 @@ public static partial class AuditDetails
         "permission", "permissions",
         "method", "route",  // endpoint template, never the concrete path or query
         "newAccount",
-        "revokedTokens"
+        "revokedTokens", "revokedSessions"
     };
 
     private const int MaxList = 10;

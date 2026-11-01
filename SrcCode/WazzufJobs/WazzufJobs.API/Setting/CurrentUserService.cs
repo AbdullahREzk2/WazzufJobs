@@ -13,4 +13,7 @@ public class CurrentUserService : ICurrentUserService
     public string? UserId =>
          _httpcontextaccessor.HttpContext?.User.GetUserId();
 
+    public Guid? SessionId =>
+        Guid.TryParse(_httpcontextaccessor.HttpContext?.User.GetSessionId(), out var id) ? id : null;
+
 }

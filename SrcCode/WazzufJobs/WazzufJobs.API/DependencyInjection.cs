@@ -13,6 +13,9 @@ using Microsoft.IdentityModel.Tokens;
 using WazzufJobs.API.Services;
 using WazzufJobs.API.Setting;
 using WazzufJobs.BLL.Audit;
+using WazzufJobs.BLL.Sessions;
+using WazzufJobs.API.Extensions;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using WazzufJobs.BLL.Authentication;
 using WazzufJobs.BLL.Behaviors;
 using WazzufJobs.BLL.Errors;
@@ -108,6 +111,17 @@ public static class DependencyInjection
 
             o.Events = new JwtBearerEvents
             {
+                // Phase 02 (S6a): a token is accepted only while its session is valid (not revoked or expired, account
+                // enabled). Tokens without a session are refused. Results are reused for at most 30 s (P02-5).
+                OnTokenValidated = async context =>
+                {
+                    var principal = context.Principal!;
+                    var userId = principal.GetUserId();
+                    if (userId is null || !Guid.TryParse(principal.GetSessionId(), out var sessionId)
+                        || !await context.HttpContext.RequestServices.GetRequiredService<ISessionService>()
+                            .IsActiveAsync(sessionId, userId, context.HttpContext.RequestAborted))
+                        context.Fail("The session is not active.");
+                },
                 OnMessageReceived = context =>
                 {
                     var accessToken = context.Request.Query["access_token"];
@@ -252,6 +266,12 @@ public static class DependencyInjection
         });
 
         services.AddScoped<IRequestInfo, HttpRequestInfo>();
+
+        // Phase 02 (S6a): server-side sessions and refresh-token rotation
+        services.TryAddSingleton(TimeProvider.System);
+        services.AddMemoryCache();
+        services.AddScoped<ISessionRepository, SessionRepository>();
+        services.AddScoped<ISessionService, SessionService>();
         services.AddScoped<IAuditRepository, AuditRepository>();
         services.AddScoped<IAuditLog, AuditLogService>();
         services.AddSingleton<Microsoft.AspNetCore.Authorization.IAuthorizationMiddlewareResultHandler, AuditingAuthorizationResultHandler>();
