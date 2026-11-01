@@ -20,7 +20,7 @@ public class AIScoringService(
         _logger.LogInformation("AI Scoring: Starting for application {Id}.", applicationId);
 
         var application = await _context.Applications
-            .Include(a => a.User).ThenInclude(u => u.CV)
+            .Include(a => a.Resume).ThenInclude(r => r.Text)
             .Include(a => a.Job)
             .FirstOrDefaultAsync(a => a.Id == applicationId, cancellationToken);
 
@@ -30,13 +30,13 @@ public class AIScoringService(
             return;
         }
 
-        if (application.User.CV is null)
+        if (application.Resume.Status != DAL.Enums.ResumeStatus.Active || application.Resume.Text is null)
         {
             _logger.LogWarning("AI Scoring: No CV for user {UserId}.", application.UserId);
             return;
         }
 
-        var cvText = application.User.CV.ExtractedText;
+        var cvText = application.Resume.Text.ExtractedText;
 
         _logger.LogInformation("AI Scoring: CV text length = {Length}.", cvText?.Length ?? 0);
 

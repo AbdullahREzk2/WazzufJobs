@@ -19,6 +19,9 @@ public class ToggleJobStatusCommandHandler(IJobRepository jobRepository)
         job.Status = job.Status == JobStatus.Active
             ? JobStatus.Closed
             : JobStatus.Active;
+        job.UpdatedAt = DateTime.UtcNow;
+        if (job.Status == JobStatus.Active)
+            job.PublishedAt ??= job.UpdatedAt;
 
         await _jobRepository.UpdateAsync(job);
         await _jobRepository.SaveChangesAsync(cancellationToken);

@@ -2,6 +2,7 @@
 
 public class CompleteOnboardingCommandHandler(
     IUserRepository userRepository,
+    ICandidateProfileRepository profileRepository,
     ICategoryRepository categoryRepository): IRequestHandler<CompleteOnboardingCommand, Result>
 {
     private readonly IUserRepository _userRepository = userRepository;
@@ -9,14 +10,15 @@ public class CompleteOnboardingCommandHandler(
 
     public async Task<Result> Handle(CompleteOnboardingCommand request,CancellationToken cancellationToken)
     {
-        var user = await _userRepository
-            .FindByIdWithPreferenceAsync(request.UserId, cancellationToken);
+        var user = await _userRepository.FindByIdAsync(request.UserId);
 
         if (user is null)
             return Result.Failure(UserErrors.UserNotFound);
 
+        var profile = await profileRepository.GetAsync(user.Id, cancellationToken);
+
         // check not already completed
-        if (user.IsProfileComplete)
+        if (profile?.IsProfileComplete == true)
             return Result.Failure(OnboardingErrors.AlreadyCompleted);
 
         // validate all category ids exist
@@ -29,35 +31,25 @@ public class CompleteOnboardingCommandHandler(
                 return Result.Failure(OnboardingErrors.InvalidCategory);
         }
 
-        // update user profile fields
-        user.ExperienceYears = request.Request.ExperienceYears;
-        user.CareerLevel = request.Request.CareerLevel;
-        user.ShowSalary = request.Request.ShowSalary;
-        user.IsProfileComplete = true;
-
-        // create or update preference
-        if (user.Preference is null)
+        // Phase 02 S2b: onboarding answers are stored in the candidate profile
+        if (profile is null)
         {
-            user.Preference = new UserPreference
-            {
-                UserId = user.Id,
-                PreferredJobTypes = request.Request.PreferredJobTypes,
-                PreferredWorkplaceTypes = request.Request.PreferredWorkplaceTypes,
-                InterestedCategoryIds = request.Request.InterestedCategoryIds,
-                InterestedJobTitles = request.Request.InterestedJobTitles,
-                MinSalary = request.Request.MinSalary
-            };
-        }
-        else
-        {
-            user.Preference.PreferredJobTypes = request.Request.PreferredJobTypes;
-            user.Preference.PreferredWorkplaceTypes = request.Request.PreferredWorkplaceTypes;
-            user.Preference.InterestedCategoryIds = request.Request.InterestedCategoryIds;
-            user.Preference.InterestedJobTitles = request.Request.InterestedJobTitles;
-            user.Preference.MinSalary = request.Request.MinSalary;
+            profile = new CandidateProfile { UserId = user.Id, IsDemo = user.IsDemo };
+            await profileRepository.AddAsync(profile, cancellationToken);
         }
 
-        await _userRepository.UpdateAsync(user);
+        profile.ExperienceYears = request.Request.ExperienceYears;
+        profile.CareerLevel = request.Request.CareerLevel;
+        profile.ShowSalary = request.Request.ShowSalary;
+        profile.PreferredJobTypes = request.Request.PreferredJobTypes;
+        profile.PreferredWorkplaceTypes = request.Request.PreferredWorkplaceTypes;
+        profile.InterestedCategoryIds = request.Request.InterestedCategoryIds;
+        profile.InterestedJobTitles = request.Request.InterestedJobTitles;
+        profile.MinSalary = request.Request.MinSalary;
+        profile.IsProfileComplete = true;
+        profile.UpdatedAt = DateTime.UtcNow;
+
+        await profileRepository.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }

@@ -12,9 +12,9 @@ public class ApplicationStatusHistoryConfiguration : IEntityTypeConfiguration<Ap
     {
         builder.ToTable("ApplicationStatusHistory");
         builder.HasKey(h => h.Id);
-        // same storage as Applications.Status
-        builder.Property(h => h.FromStatus).HasConversion<string>().HasMaxLength(50);
-        builder.Property(h => h.ToStatus).HasConversion<string>().HasMaxLength(50);
+        // same storage as Applications.Status (tinyint)
+        builder.Property(h => h.FromStatus).HasConversion<byte?>();
+        builder.Property(h => h.ToStatus).HasConversion<byte>();
         builder.Property(h => h.Reason).HasMaxLength(500);
 
         builder.HasIndex(h => new { h.ApplicationId, h.ChangedAt });

@@ -16,7 +16,6 @@ public interface IUserRepository
     Task<IList<string>> GetRolesAsync(AppUser user);
     Task<List<AppUser>> GetAllUsersAsync(CancellationToken cancellationToken);
     Task<List<UserWithRoles>> GetUsersWithRolesAsync(CancellationToken cancellationToken);
-    Task<AppUser?> FindByIdWithCVAsync(string userId, CancellationToken cancellationToken);
 
     // User lifecycle
     Task<IdentityResult> CreateAsync(AppUser user, string password);
@@ -43,6 +42,6 @@ public interface IUserRepository
     Task<int> RevokeAllRefreshTokensAsync(string userId, CancellationToken cancellationToken);
     Task<IdentityResult> ChangePasswordAsync(AppUser user, string currentPassword, string newPassword);
 
-    Task<AppUser?> FindByIdWithPreferenceAsync(string userId,CancellationToken cancellationToken);
+    /// <summary>User with candidate profile (admin user details).</summary>
     Task<AppUser?> FindByIdWithProfileAsync(string userId, CancellationToken cancellationToken);
 }

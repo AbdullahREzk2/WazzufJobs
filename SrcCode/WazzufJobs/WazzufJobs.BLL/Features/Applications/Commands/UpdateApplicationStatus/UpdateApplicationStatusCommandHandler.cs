@@ -1,12 +1,14 @@
 ﻿using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.Extensions.Logging;
 using WazzufJobs.BLL.Helpers;
+using WazzufJobs.Shared;
 
 namespace WazzufJobs.BLL.Features.Applications.Commands.UpdateApplicationStatus;
 
 public class UpdateApplicationStatusCommandHandler(
     IApplicationRepository applicationRepository,
     IEmailSender emailSender,
+    ICurrentUserService currentUser,
     ILogger<UpdateApplicationStatusCommandHandler> logger) : IRequestHandler<UpdateApplicationStatusCommand, Result>
 {
     private readonly IApplicationRepository _applicationRepository = applicationRepository;
@@ -21,7 +23,19 @@ public class UpdateApplicationStatusCommandHandler(
         if (application is null)
             return Result.Failure(ApplicationErrors.NotFound);
 
+        if (application.Status != request.Request.Status)
+        {
+            application.StatusHistory.Add(new ApplicationStatusHistory
+            {
+                FromStatus = application.Status,
+                ToStatus = request.Request.Status,
+                ChangedById = currentUser.UserId,
+                ChangedAt = DateTime.UtcNow
+            });
+        }
+
         application.Status = request.Request.Status;
+        application.UpdatedAt = DateTime.UtcNow;
 
         await _applicationRepository.UpdateAsync(application);
         await _applicationRepository.SaveChangesAsync(cancellationToken);

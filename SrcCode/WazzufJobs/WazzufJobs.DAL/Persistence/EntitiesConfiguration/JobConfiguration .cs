@@ -34,17 +34,15 @@ public class JobConfiguration : IEntityTypeConfiguration<Job>
                c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
                c => c.ToList()));
 
+        // tinyint (append-only enum numbering); the API still returns the names
         builder.Property(j => j.JobType)
-            .HasConversion<string>()
-            .HasMaxLength(50);
+            .HasConversion<byte>();
 
         builder.Property(j => j.WorkplaceType)
-            .HasConversion<string>()
-            .HasMaxLength(50);
+            .HasConversion<byte>();
 
         builder.Property(j => j.Status)
-            .HasConversion<string>()
-            .HasMaxLength(50);
+            .HasConversion<byte>();
 
         builder.Property(j => j.SalaryMin)
             .HasColumnType("decimal(18,2)");
@@ -60,10 +58,11 @@ public class JobConfiguration : IEntityTypeConfiguration<Job>
             .HasForeignKey(j => j.CategoryId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // Phase 02 (S2a): owning company (required after S2b), creator column name, concurrency, demo partition
+        // Phase 02: owning company (required), creator column name, concurrency, demo partition
         builder.HasOne(j => j.Company)
             .WithMany(c => c.Jobs)
             .HasForeignKey(j => j.CompanyId)
+            .IsRequired()
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.Property(j => j.PostedById)

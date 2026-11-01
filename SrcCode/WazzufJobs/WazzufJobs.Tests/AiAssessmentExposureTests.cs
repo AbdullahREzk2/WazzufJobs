@@ -56,10 +56,15 @@ public class AiAssessmentExposureTests(C0WebApplicationFactory factory) : IClass
         {
             Title = "Dev", Description = "d", Location = "Cairo", Skills = ["C#"],
             Category = new DAL.Entities.JobCategory { Name = "IT", Slug = "it" },
-            PostedBy = TestData.NewUser("poster")
+            PostedBy = TestData.NewUser("poster"),
+            Company = new DAL.Entities.Company { Id = Guid.NewGuid(), Name = "Co", Slug = "co" }
         };
-        db.Add(new DAL.Entities.CV { User = candidate, PublicId = "p", Url = "u", FileName = "f.pdf", ExtractedText = "C# developer" });
-        var application = new DAL.Entities.Application { User = candidate, Job = job };
+        var resume = new DAL.Entities.Resume
+        {
+            Candidate = candidate, StorageKey = "p", FileName = "f.pdf", Sha256 = new byte[32], IsDefault = true,
+            Text = new DAL.Entities.ResumeText { ExtractedText = "C# developer" }
+        };
+        var application = new DAL.Entities.Application { User = candidate, Job = job, Company = job.Company, Resume = resume };
         db.Add(application);
         await db.SaveChangesAsync();
 

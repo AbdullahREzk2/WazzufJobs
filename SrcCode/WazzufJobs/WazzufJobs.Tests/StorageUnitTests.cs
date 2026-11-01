@@ -1,5 +1,6 @@
 using WazzufJobs.BLL.Services;
 using WazzufJobs.BLL.Services.Storage;
+using WazzufJobs.DAL.Enums;
 using WazzufJobs.Tests.Infrastructure;
 
 namespace WazzufJobs.Tests;
@@ -21,13 +22,13 @@ public class StorageUnitTests
     }
 
     [Theory]
-    [InlineData("https://res.cloudinary.com/x/raw/authenticated/s--abc--/v1/wazzuf-jobs/cvs/a", "authenticated")]
-    [InlineData("https://res.cloudinary.com/x/raw/upload/v1715000000/wazzuf-jobs/cvs/a", "upload")]
-    [InlineData("", "upload")]
-    [InlineData(null, "upload")]
-    public void Delivery_type_is_derived_from_the_stored_url(string? url, string expected)
+    [InlineData(ResumeStorageAccess.Authenticated, "authenticated", false)]
+    [InlineData(ResumeStorageAccess.LegacyPublic, "upload", true)]
+    public void Delivery_type_is_derived_from_the_stored_access_type(ResumeStorageAccess access, string expected, bool legacyPublic)
     {
-        Assert.Equal(expected, CvStorage.DeliveryTypeFromUrl(url));
+        // Phase 02 S2b: the access type is stored with the resume; no storage URL is kept
+        Assert.Equal(expected, CvStorage.DeliveryType(access));
+        Assert.Equal(legacyPublic, CvStorage.IsLegacyPublic(access));
     }
 
     [Fact]

@@ -24,6 +24,7 @@ using WazzufJobs.DAL.Entities;
 using WazzufJobs.DAL.IRepository;
 using WazzufJobs.DAL.Persistence;
 using WazzufJobs.DAL.Repository;
+using WazzufJobs.Shared;
 
 namespace WazzufJobs.API;
 
@@ -215,7 +216,9 @@ public static class DependencyInjection
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<IJobRepository, JobRepository>();
         services.AddScoped<IApplicationRepository, ApplicationRepository>();
-        services.AddScoped<ICVRepository, CVRepository>();
+        services.AddScoped<IResumeRepository, ResumeRepository>();
+        services.AddScoped<ICandidateProfileRepository, CandidateProfileRepository>();
+        services.AddScoped<ICompanyRepository, CompanyRepository>();
         services.AddScoped<ISavedJobRepository, SavedJobRepository>();  
         return services;
     }
@@ -226,6 +229,10 @@ public static class DependencyInjection
         services.AddScoped<ISendConfirmationEmailHelper, SendConfirmationEmailHelper>();
         services.AddScoped<ISendResetPasswordEmailHelper, SendResetPasswordEmailHelper>();
         services.AddScoped<IsendWelcomeEmail, sendWelcomeEmail>();
+
+        // acting user of the current request (e.g. who changed an application status)
+        services.AddHttpContextAccessor();
+        services.AddScoped<ICurrentUserService, CurrentUserService>();
 
         return services;
     }

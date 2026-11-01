@@ -25,10 +25,6 @@ public class UserRepository : IUserRepository
 
     public async Task<AppUser?> FindByIdAsync(string userId)
         => await _usermanager.FindByIdAsync(userId);
-    public async Task<AppUser?> FindByIdWithCVAsync(string userId,CancellationToken cancellationToken) =>
-    await _dbcontext.Users
-        .Include(u => u.CV)
-        .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
 
     public async Task<bool> EmailExistsAsync(string email)
         => await _usermanager.Users.AnyAsync(x => x.Email == email);
@@ -184,14 +180,8 @@ public class UserRepository : IUserRepository
         return activeTokens.Count;
     }
 
-    public async Task<AppUser?> FindByIdWithPreferenceAsync(string userId,CancellationToken cancellationToken) =>
-    await _dbcontext.Users
-        .Include(u => u.Preference)
-        .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
-
     public async Task<AppUser?> FindByIdWithProfileAsync(string userId, CancellationToken cancellationToken) =>
         await _dbcontext.Users
-            .Include(u => u.CV)
-            .Include(u => u.Preference)
+            .Include(u => u.CandidateProfile)
             .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
 }

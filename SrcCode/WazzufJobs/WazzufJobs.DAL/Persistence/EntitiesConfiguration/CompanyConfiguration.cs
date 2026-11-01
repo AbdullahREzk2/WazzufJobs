@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using WazzufJobs.DAL.Entities;
+using WazzufJobs.DAL.Enums;
+using WazzufJobs.DAL.Persistence.Seeders;
 
 namespace WazzufJobs.DAL.Persistence.EntitiesConfiguration;
 
@@ -35,6 +37,19 @@ public class CompanyConfiguration : IEntityTypeConfiguration<Company>
             .WithMany()
             .HasForeignKey(c => c.CreatedById)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // the platform company owns jobs created by platform staff (until company job posting arrives in P04)
+        builder.HasData(new Company
+        {
+            Id = PlatformCompany.Id,
+            Name = PlatformCompany.Name,
+            Slug = PlatformCompany.Slug,
+            VerificationStatus = CompanyVerificationStatus.Verified,
+            Status = CompanyStatus.Active,
+            IsPlatform = true,
+            IsDemo = false,
+            CreatedAt = new DateTime(2026, 11, 1, 0, 0, 0, DateTimeKind.Utc)
+        });
     }
 }
 

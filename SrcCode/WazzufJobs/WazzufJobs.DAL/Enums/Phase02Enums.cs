@@ -45,7 +45,10 @@ public enum ResumeStorageAccess : byte
 public enum ResumeStatus : byte
 {
     Active = 0,
-    Archived = 1
+    Archived = 1,
+
+    /// <summary>File deleted by the candidate; the row remains only because an application references it.</summary>
+    Removed = 2
 }
 
 public enum AuthChallengePurpose : byte

@@ -5,7 +5,8 @@ namespace WazzufJobs.BLL.Features.Jobs.Commands.CreateJob;
 
 public class CreateJobCommandHandler(
     IJobRepository jobRepository,
-    ICategoryRepository categoryRepository
+    ICategoryRepository categoryRepository,
+    ICompanyRepository companyRepository
     ) : IRequestHandler<CreateJobCommand, Result<JobSummaryResponse>>
 {
     private readonly IJobRepository _jobRepository = jobRepository;
@@ -20,8 +21,16 @@ public class CreateJobCommandHandler(
         if (category is null)
             return Result.Failure<JobSummaryResponse>(JobErrors.CategoryNotFound);
 
+        // Phase 02: jobs created by platform staff belong to the platform company (company job posting: P04).
+        // The owner is looked up, never taken from input; if it is missing, nothing is created (fail closed).
+        var platformCompanyId = await companyRepository.GetPlatformCompanyIdAsync(cancellationToken);
+        if (platformCompanyId is null)
+            return Result.Failure<JobSummaryResponse>(JobErrors.PlatformCompanyMissing);
+
         var job = new Job
         {
+            CompanyId = platformCompanyId.Value,
+            PublishedAt = DateTime.UtcNow,
             Title = request.Request.Title,
             Description = request.Request.Description,
             Location = request.Request.Location,

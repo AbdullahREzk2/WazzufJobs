@@ -16,9 +16,10 @@ public class Application
 
     public DateTime AppliedAt { get; set; } = DateTime.UtcNow;
 
-    // Phase 02 (S2a). CompanyId (copied from the job) and ResumeId become required once handlers are ported (S2b).
-    public Guid? CompanyId { get; set; }
-    public int? ResumeId { get; set; }
+    // Phase 02: company copied from the job and the applicant's resume (both required). Composite foreign keys
+    // (JobId, CompanyId) and (ResumeId, CandidateId) make a mismatched company or another candidate's resume impossible.
+    public Guid CompanyId { get; set; }
+    public int ResumeId { get; set; }
     public DateTime? UpdatedAt { get; set; }
     public bool IsDemo { get; set; }
     public byte[] RowVersion { get; set; } = [];
@@ -26,7 +27,7 @@ public class Application
     // Navigation
     public AppUser User { get; set; } = null!;
     public Job Job { get; set; } = null!;
-    public Company? Company { get; set; }
-    public Resume? Resume { get; set; }
+    public Company Company { get; set; } = null!;
+    public Resume Resume { get; set; } = null!;
     public ICollection<ApplicationStatusHistory> StatusHistory { get; set; } = [];
 }

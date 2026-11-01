@@ -19,9 +19,9 @@ public class ApplicationConfiguration : IEntityTypeConfiguration<Application>
         builder.Property(a => a.RowVersion)
             .IsRowVersion();
 
+        // tinyint (append-only enum numbering); the API still returns the status name
         builder.Property(a => a.Status)
-            .HasConversion<string>()
-            .HasMaxLength(50);
+            .HasConversion<byte>();
 
         builder.Property(a => a.AIScore)
             .HasColumnType("real");
@@ -37,11 +37,13 @@ public class ApplicationConfiguration : IEntityTypeConfiguration<Application>
             .HasForeignKey(a => a.UserId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // transitional (S2a): cascade kept because DeleteJob still deletes jobs with applications; Restrict from P04,
-        // when jobs are closed instead of deleted
+        // (JobId, CompanyId) -> Jobs (Id, CompanyId): the application's company is always its job's company.
+        // Cascade is transitional (T4): DeleteJob still deletes jobs with applications; Restrict from P04, when jobs
+        // are closed instead of deleted.
         builder.HasOne(a => a.Job)
             .WithMany(j => j.Applications)
-            .HasForeignKey(a => a.JobId)
+            .HasForeignKey(a => new { a.JobId, a.CompanyId })
+            .HasPrincipalKey(j => new { j.Id, j.CompanyId })
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(a => a.Company)
@@ -49,10 +51,12 @@ public class ApplicationConfiguration : IEntityTypeConfiguration<Application>
             .HasForeignKey(a => a.CompanyId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // a resume referenced by an application cannot be deleted
+        // (ResumeId, CandidateId) -> Resumes (Id, CandidateId): an application can only use the applicant's own resume.
+        // A resume referenced by an application cannot be deleted.
         builder.HasOne(a => a.Resume)
             .WithMany()
-            .HasForeignKey(a => a.ResumeId)
+            .HasForeignKey(a => new { a.ResumeId, a.UserId })
+            .HasPrincipalKey(r => new { r.Id, r.CandidateId })
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

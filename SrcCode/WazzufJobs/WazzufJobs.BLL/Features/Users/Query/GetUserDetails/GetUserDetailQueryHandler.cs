@@ -1,5 +1,5 @@
 ﻿namespace SurveyBasket.BLL.Features.Users.Query.GetUserDetails;
-public class GetUserDetailQueryHandler(IUserRepository userRepository) : IRequestHandler<GetUserDetailQuery, Result<UserResponse>>
+public class GetUserDetailQueryHandler(IUserRepository userRepository, IResumeRepository resumeRepository) : IRequestHandler<GetUserDetailQuery, Result<UserResponse>>
 {
     private readonly IUserRepository _userrepository = userRepository;
 
@@ -10,6 +10,7 @@ public class GetUserDetailQueryHandler(IUserRepository userRepository) : IReques
             return Result.Failure<UserResponse>(UserErrors.UserNotFound);
 
         var userRoles = await _userrepository.GetRolesAsync(user);
+        var hasCv = await resumeRepository.HasCurrentAsync(user.Id, cancellationToken);
         var response = new UserResponse(
             user.Id,
             user.FirstName,
@@ -18,9 +19,9 @@ public class GetUserDetailQueryHandler(IUserRepository userRepository) : IReques
             user.IsDisabled,
             userRoles,
             user.ProfilePhotoUrl,
-            user.CV is not null,
-            user.Preference?.MinSalary,
-            user.ShowSalary);
+            hasCv,
+            user.CandidateProfile?.MinSalary,
+            user.CandidateProfile?.ShowSalary ?? false);
 
         return Result.Success(response);
     }

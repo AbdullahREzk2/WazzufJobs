@@ -21,17 +21,8 @@ public class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
         builder.Property(u => u.ProfilePhotoPublicId)
             .HasMaxLength(200);
 
-        builder.Property(u => u.CareerLevel)
-            .HasConversion<string>()
-            .HasMaxLength(50);
-
         builder.Property(u => u.CreatedAt)
             .HasDefaultValueSql("GETUTCDATE()");
-
-        builder.HasOne(u => u.CV)
-            .WithOne(c => c.User)
-            .HasForeignKey<CV>(c => c.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
 
         // Phase 02 (S2a)
         builder.HasIndex(u => u.AccountType);
@@ -39,11 +30,6 @@ public class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
         builder.HasOne(u => u.CandidateProfile)
             .WithOne(p => p.User)
             .HasForeignKey<CandidateProfile>(p => p.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        builder.HasOne(u => u.Preference)
-            .WithOne(p => p.User)
-            .HasForeignKey<UserPreference>(p => p.UserId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

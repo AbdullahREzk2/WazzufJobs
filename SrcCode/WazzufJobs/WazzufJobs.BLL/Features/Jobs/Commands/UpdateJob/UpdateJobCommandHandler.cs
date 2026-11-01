@@ -31,6 +31,7 @@ public class UpdateJobCommandHandler(
         job.SalaryMin = request.Request.SalaryMin;
         job.SalaryMax = request.Request.SalaryMax;
         job.ExpiresAt = request.Request.ExpiresAt;
+        job.UpdatedAt = DateTime.UtcNow;
 
         await _jobRepository.UpdateAsync(job);
         await _jobRepository.SaveChangesAsync(cancellationToken);

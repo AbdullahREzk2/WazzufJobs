@@ -15,4 +15,10 @@ public static class JobErrors
         "Job.DuplicateTitle",
         "A job with this title already exists.",
         StatusCodes.Status409Conflict);
+
+    // fail closed: a job is never created without a verified owner (no default or guessed company)
+    public static readonly Error PlatformCompanyMissing = new(
+        "Job.PlatformCompanyMissing",
+        "Jobs cannot be created right now.",
+        StatusCodes.Status503ServiceUnavailable);
 }

@@ -14,6 +14,7 @@ public class CandidateProfileConfiguration : IEntityTypeConfiguration<CandidateP
         builder.Property(p => p.Headline).HasMaxLength(200);
         builder.Property(p => p.Location).HasMaxLength(200);
         builder.Property(p => p.MinSalary).HasColumnType("decimal(18,2)");
+        builder.Property(p => p.CareerLevel).HasConversion<byte>();
         builder.Property(p => p.RowVersion).IsRowVersion();
         // preference lists are EF Core primitive collections (JSON columns)
     }

@@ -14,7 +14,6 @@ public class ApplicationRepository(ApplicationDBContext context) : IApplicationR
     {
         var query = _context.Applications
             .Include(a => a.User)
-            .ThenInclude(u => u.CV)
             .Where(a => a.JobId == jobId)
             .AsNoTracking();
 
@@ -55,9 +54,7 @@ public class ApplicationRepository(ApplicationDBContext context) : IApplicationR
     public async Task<Application?> GetByIdWithDetailsAsync(int id, CancellationToken cancellationToken) =>
         await _context.Applications
             .Include(a => a.User)
-            .ThenInclude(u => u.CV)
-            .Include(a => a.User)
-            .ThenInclude(u => u.Preference)
+            .ThenInclude(u => u.CandidateProfile)
             .Include(a => a.Job)
             .FirstOrDefaultAsync(a => a.Id == id, cancellationToken);
 

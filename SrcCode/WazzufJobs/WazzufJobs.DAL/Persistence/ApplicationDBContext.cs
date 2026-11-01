@@ -21,8 +21,6 @@ public class ApplicationDBContext : IdentityDbContext<AppUser, ApplicationRole, 
     private DataScopeMode ScopeMode => _dataScope.Mode;
     private bool IncludePublicDemo => _dataScope.IncludePublicDemo;
 
-    public DbSet<CV> CVs => Set<CV>();
-    public DbSet<UserPreference> UserPreferences => Set<UserPreference>();
     public DbSet<JobCategory> JobCategories => Set<JobCategory>();
     public DbSet<Job> Jobs => Set<Job>();
     public DbSet<Application> Applications => Set<Application>();

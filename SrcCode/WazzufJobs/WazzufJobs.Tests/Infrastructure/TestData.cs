@@ -13,7 +13,7 @@ public record SeededScenario(
     Job Job,
     Application ApplicationOfA,
     Application ApplicationOfB,
-    CV CvOfA);
+    Resume CvOfA);
 
 public static class TestData
 {
@@ -31,8 +31,11 @@ public static class TestData
         SecurityStamp = Guid.NewGuid().ToString()
     };
 
-    /// <summary>Two candidates who applied to the same job, both already AI-scored, plus an admin.</summary>
-    public static async Task<SeededScenario> SeedAsync(IServiceProvider services, string? legacyCvUrlForA = null)
+    /// <summary>
+    /// Two candidates who applied to the same job (owned by a company), both already AI-scored, plus an admin. Each
+    /// candidate has a current resume: A's is authenticated (or legacy public when requested), B's is legacy public.
+    /// </summary>
+    public static async Task<SeededScenario> SeedAsync(IServiceProvider services, bool legacyPublicCvForA = false)
     {
         using var scope = services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDBContext>();
@@ -42,6 +45,7 @@ public static class TestData
         var candidateB = NewUser("candidateB");
 
         var category = new JobCategory { Name = "Software", Slug = $"software-{Guid.NewGuid():N}" };
+        var company = new Company { Id = Guid.NewGuid(), Name = "Test Employer", Slug = $"employer-{Guid.NewGuid():N}" };
         var job = new Job
         {
             Title = "Backend Developer",
@@ -50,30 +54,35 @@ public static class TestData
             Skills = ["C#"],
             Category = category,
             PostedBy = admin,
+            Company = company,
             Status = JobStatus.Active
         };
 
-        var cvA = new CV
+        var cvA = new Resume
         {
-            User = candidateA,
-            PublicId = "wazzuf-jobs/cvs/candidate-a",
-            Url = legacyCvUrlForA ?? "https://res.cloudinary.com/test/raw/authenticated/s--sig--/v1/wazzuf-jobs/cvs/candidate-a",
+            Candidate = candidateA,
+            StorageKey = "wazzuf-jobs/cvs/candidate-a",
+            StorageAccess = legacyPublicCvForA ? ResumeStorageAccess.LegacyPublic : ResumeStorageAccess.Authenticated,
             FileName = "candidate-a.pdf",
-            ExtractedText = "C# developer"
+            Sha256 = new byte[32],
+            IsDefault = true,
+            Text = new ResumeText { ExtractedText = "C# developer" }
         };
-        var cvB = new CV
+        var cvB = new Resume
         {
-            User = candidateB,
-            PublicId = "wazzuf-jobs/cvs/candidate-b",
-            Url = "https://res.cloudinary.com/test/raw/upload/v1/wazzuf-jobs/cvs/candidate-b",
+            Candidate = candidateB,
+            StorageKey = "wazzuf-jobs/cvs/candidate-b",
+            StorageAccess = ResumeStorageAccess.LegacyPublic,
             FileName = "candidate-b.pdf",
-            ExtractedText = "Java developer"
+            Sha256 = new byte[32],
+            IsDefault = true,
+            Text = new ResumeText { ExtractedText = "Java developer" }
         };
 
-        var applicationA = new Application { User = candidateA, Job = job, AIScore = 91, AIFeedback = SecretFeedback, IsAIScored = true };
-        var applicationB = new Application { User = candidateB, Job = job, AIScore = 42, AIFeedback = SecretFeedback, IsAIScored = true };
+        var applicationA = new Application { User = candidateA, Job = job, Company = company, Resume = cvA, AIScore = 91, AIFeedback = SecretFeedback, IsAIScored = true };
+        var applicationB = new Application { User = candidateB, Job = job, Company = company, Resume = cvB, AIScore = 42, AIFeedback = SecretFeedback, IsAIScored = true };
 
-        db.AddRange(admin, candidateA, candidateB, category, job, cvA, cvB, applicationA, applicationB);
+        db.AddRange(admin, candidateA, candidateB, category, company, job, cvA, cvB, applicationA, applicationB);
         await db.SaveChangesAsync();
 
         return new SeededScenario(admin, candidateA, candidateB, job, applicationA, applicationB, cvA);

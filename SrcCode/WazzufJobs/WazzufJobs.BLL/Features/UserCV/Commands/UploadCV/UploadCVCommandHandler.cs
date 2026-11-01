@@ -1,4 +1,4 @@
-﻿// WazzufJobs.BLL/Features/UserCV/Commands/UploadCV/UploadCVCommandHandler.cs
+﻿using System.Security.Cryptography;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -9,12 +9,17 @@ using WazzufJobs.BLL.Services;
 using WazzufJobs.BLL.Services.Storage;
 using WazzufJobs.BLL.Setting;
 using WazzufJobs.DAL.Entities;
+using WazzufJobs.DAL.Enums;
 using WazzufJobs.DAL.IRepository;
 
 namespace WazzufJobs.BLL.Features.UserCV.Commands.UploadCV;
 
+/// <summary>
+/// Stores the candidate's CV as their current resume (Phase 02 S2b: Resumes/ResumeTexts replace the CVs table).
+/// Until resume versioning (P05) a candidate has one current resume, replaced in place exactly as the C0 CV was.
+/// </summary>
 public class UploadCVCommandHandler(
-    ICVRepository cvRepository,
+    IResumeRepository resumeRepository,
     IDocumentStorage documentStorage,
     ICVTextExtractor cvTextExtractor,
     IOptions<FeatureSettings> features,
@@ -23,7 +28,7 @@ public class UploadCVCommandHandler(
 {
     private const long MaxFileBytes = 5 * 1024 * 1024;
 
-    private readonly ICVRepository _cvRepository = cvRepository;
+    private readonly IResumeRepository _resumeRepository = resumeRepository;
     private readonly IDocumentStorage _documentStorage = documentStorage;
     private readonly ICVTextExtractor _cvTextExtractor = cvTextExtractor;
     private readonly FeatureSettings _features = features.Value;
@@ -67,67 +72,70 @@ public class UploadCVCommandHandler(
             return Result.Failure<CVResponse>(CVErrors.UploadFailed);
 
         var fileName = SanitizeFileName(request.File.FileName);
-        var existingCV = await _cvRepository.GetByUserIdAsync(
-            request.UserId, cancellationToken);
+        var sha256 = SHA256.HashData(pdfBytes);
 
-        if (existingCV is not null)
+        var current = await _resumeRepository.GetCurrentAsync(request.UserId, includeText: true, cancellationToken);
+
+        if (current is not null)
         {
-            var previousPublicId = existingCV.PublicId;
-            var previousUrl = existingCV.Url;
+            var previousKey = current.StorageKey;
+            var previousAccess = current.StorageAccess;
 
-            existingCV.Url = stored.ProviderReference;
-            existingCV.PublicId = stored.Key;
-            existingCV.FileName = fileName;
-            existingCV.ExtractedText = extractedText;
-            existingCV.UploadedAt = DateTime.UtcNow;
+            current.StorageKey = stored.Key;
+            current.StorageAccess = ResumeStorageAccess.Authenticated;
+            current.FileName = fileName;
+            current.SizeBytes = pdfBytes.LongLength;
+            current.Sha256 = sha256;
+            current.UploadedAt = DateTime.UtcNow;
+            if (current.Text is null)
+                current.Text = new ResumeText { ExtractedText = extractedText };
+            else
+                current.Text.ExtractedText = extractedText;
 
-            await _cvRepository.UpdateAsync(existingCV);
-            await _cvRepository.SaveChangesAsync(cancellationToken);
+            await _resumeRepository.SaveChangesAsync(cancellationToken);
 
-            await RemovePreviousAssetAsync(request.UserId, previousPublicId, previousUrl, cancellationToken);
+            await RemovePreviousAssetAsync(request.UserId, previousKey, previousAccess, cancellationToken);
 
-            return Result.Success(new CVResponse(
-                existingCV.Id,
-                existingCV.FileName,
-                existingCV.UploadedAt));
+            return Result.Success(new CVResponse(current.Id, current.FileName, current.UploadedAt));
         }
 
-        var cv = new CV
+        var resume = new Resume
         {
-            UserId = request.UserId,
-            Url = stored.ProviderReference,
-            PublicId = stored.Key,
+            CandidateId = request.UserId,
             FileName = fileName,
-            ExtractedText = extractedText,
-            UploadedAt = DateTime.UtcNow
+            StorageKey = stored.Key,
+            StorageAccess = ResumeStorageAccess.Authenticated,
+            SizeBytes = pdfBytes.LongLength,
+            Sha256 = sha256,
+            IsDefault = true,
+            Status = ResumeStatus.Active,
+            UploadedAt = DateTime.UtcNow,
+            Text = new ResumeText { ExtractedText = extractedText }
         };
 
-        await _cvRepository.AddAsync(cv, cancellationToken);
-        await _cvRepository.SaveChangesAsync(cancellationToken);
+        await _resumeRepository.AddAsync(resume, cancellationToken);
+        await _resumeRepository.SaveChangesAsync(cancellationToken);
 
-        return Result.Success(new CVResponse(
-            cv.Id,
-            cv.FileName,
-            cv.UploadedAt));
+        return Result.Success(new CVResponse(resume.Id, resume.FileName, resume.UploadedAt));
     }
 
-    private async Task RemovePreviousAssetAsync(string userId, string publicId, string url, CancellationToken cancellationToken)
+    private async Task RemovePreviousAssetAsync(string userId, string storageKey, ResumeStorageAccess access, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrEmpty(publicId))
+        if (string.IsNullOrEmpty(storageKey))
             return;
 
         // Legacy public assets are retained until the approved C0 remediation handles them.
-        if (CvStorage.IsLegacyPublic(url))
+        if (CvStorage.IsLegacyPublic(access))
         {
             _logger.LogWarning(
                 "LegacyCvAssetRetained: user {UserId} replaced a legacy public CV asset {PublicId}; awaiting approved remediation.",
-                userId, publicId);
+                userId, storageKey);
             return;
         }
 
-        var deleted = await _documentStorage.DeleteAsync(publicId, CvStorage.AuthenticatedType, cancellationToken);
+        var deleted = await _documentStorage.DeleteAsync(storageKey, CvStorage.AuthenticatedType, cancellationToken);
         if (!deleted)
-            _logger.LogWarning("CvAssetDeleteFailed: authenticated CV asset {PublicId} could not be deleted.", publicId);
+            _logger.LogWarning("CvAssetDeleteFailed: authenticated CV asset {PublicId} could not be deleted.", storageKey);
     }
 
     private static string SanitizeFileName(string? fileName)

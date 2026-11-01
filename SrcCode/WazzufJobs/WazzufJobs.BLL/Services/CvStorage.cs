@@ -1,8 +1,10 @@
+using WazzufJobs.DAL.Enums;
+
 namespace WazzufJobs.BLL.Services;
 
 /// <summary>
-/// Helpers for CV assets. The CVs table has no delivery-type column, so the type is derived
-/// from the stored Cloudinary URL (".../raw/authenticated/..." vs legacy ".../raw/upload/...").
+/// Helpers for resume (CV) assets. The storage delivery type is stored with the resume
+/// (<see cref="ResumeStorageAccess"/>); no storage URL is kept in the database (Phase 02 S2b).
 /// </summary>
 public static class CvStorage
 {
@@ -11,18 +13,12 @@ public static class CvStorage
     public const string PublicUploadType = "upload";
     public const string CvFolder = "wazzuf-jobs/cvs";
 
-    public static string DeliveryTypeFromUrl(string? storedUrl)
-    {
-        if (!string.IsNullOrEmpty(storedUrl) &&
-            storedUrl.Contains("/raw/authenticated/", StringComparison.OrdinalIgnoreCase))
-            return AuthenticatedType;
-
-        return PublicUploadType;
-    }
+    public static string DeliveryType(ResumeStorageAccess access) =>
+        access == ResumeStorageAccess.Authenticated ? AuthenticatedType : PublicUploadType;
 
     /// <summary>Legacy CVs were uploaded as public raw assets before Phase C0. They are retained until approved remediation.</summary>
-    public static bool IsLegacyPublic(string? storedUrl) =>
-        DeliveryTypeFromUrl(storedUrl) == PublicUploadType;
+    public static bool IsLegacyPublic(ResumeStorageAccess access) =>
+        access == ResumeStorageAccess.LegacyPublic;
 
     public static bool HasPdfSignature(ReadOnlySpan<byte> bytes) =>
         bytes.Length >= 5 &&

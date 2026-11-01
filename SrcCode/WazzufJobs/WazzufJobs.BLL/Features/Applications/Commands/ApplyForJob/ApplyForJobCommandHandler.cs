@@ -7,12 +7,14 @@ public class ApplyForJobCommandHandler(
     IApplicationRepository applicationRepository,
     IJobRepository jobRepository,
     IUserRepository userRepository,
+    IResumeRepository resumeRepository,
     IBackgroundJobClient backgroundJob)
     : IRequestHandler<ApplyForJobCommand, Result<int>>
 {
     private readonly IApplicationRepository _applicationRepository = applicationRepository;
     private readonly IJobRepository _jobRepository = jobRepository;
     private readonly IUserRepository _userRepository = userRepository;
+    private readonly IResumeRepository _resumeRepository = resumeRepository;
     private readonly IBackgroundJobClient _backgroundJob = backgroundJob;
 
     public async Task<Result<int>> Handle(ApplyForJobCommand request,CancellationToken cancellationToken)
@@ -26,13 +28,14 @@ public class ApplyForJobCommandHandler(
         if (job.Status != JobStatus.Active)
             return Result.Failure<int>(ApplicationErrors.JobNotActive);
 
-        var user = await _userRepository.FindByIdWithCVAsync(
-            request.UserId, cancellationToken);
+        var user = await _userRepository.FindByIdAsync(request.UserId);
 
         if (user is null)
             return Result.Failure<int>(UserErrors.UserNotFound);
 
-        if (user.CV is null)
+        // the applicant's own current resume; the (ResumeId, CandidateId) foreign key also enforces ownership
+        var resume = await _resumeRepository.GetCurrentAsync(request.UserId, includeText: false, cancellationToken);
+        if (resume is null)
             return Result.Failure<int>(ApplicationErrors.CVNotFound);
 
         // check not already applied
@@ -43,13 +46,24 @@ public class ApplyForJobCommandHandler(
             return Result.Failure<int>(ApplicationErrors.AlreadyApplied);
 
         // create application
+        // company and demo partition come from the job, never from input
         var application = new Application
         {
             UserId = request.UserId,
-            JobId = request.JobId,
+            JobId = job.Id,
+            CompanyId = job.CompanyId,
+            ResumeId = resume.Id,
+            IsDemo = job.IsDemo,
             Status = ApplicationStatus.Pending,
             AppliedAt = DateTime.UtcNow
         };
+        application.StatusHistory.Add(new ApplicationStatusHistory
+        {
+            FromStatus = null,
+            ToStatus = ApplicationStatus.Pending,
+            ChangedById = request.UserId,
+            ChangedAt = application.AppliedAt
+        });
 
         await _applicationRepository.AddAsync(application, cancellationToken);
         await _applicationRepository.SaveChangesAsync(cancellationToken);

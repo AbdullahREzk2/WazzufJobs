@@ -48,7 +48,7 @@ public class CvProtectionTests(C0WebApplicationFactory factory) : IClassFixture<
         Assert.Equal("application/pdf", response.Content.Headers.ContentType?.MediaType);
         Assert.Contains("no-store", response.Headers.CacheControl?.ToString());
         Assert.Equal("nosniff", response.Headers.GetValues("X-Content-Type-Options").Single());
-        Assert.Contains(factory.Storage.Downloads, d => d.PublicId == s.CvOfA.PublicId && d.DeliveryType == CvStorage.AuthenticatedType);
+        Assert.Contains(factory.Storage.Downloads, d => d.PublicId == s.CvOfA.StorageKey && d.DeliveryType == CvStorage.AuthenticatedType);
     }
 
     [Fact]
@@ -82,13 +82,13 @@ public class CvProtectionTests(C0WebApplicationFactory factory) : IClassFixture<
     [Fact]
     public async Task Deleting_a_legacy_public_cv_retains_the_asset_for_approved_remediation()
     {
-        var s = await TestData.SeedAsync(factory.Services, legacyCvUrlForA: "https://res.cloudinary.com/test/raw/upload/v1/wazzuf-jobs/cvs/candidate-a");
+        var s = await TestData.SeedAsync(factory.Services, legacyPublicCvForA: true);
         var client = factory.CreateClient().AsCandidate(factory.Services, s.CandidateA);
 
         var response = await client.DeleteAsync("/api/cv");
 
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
-        Assert.DoesNotContain(factory.Storage.RawDeletes, d => d.PublicId == s.CvOfA.PublicId);
+        Assert.DoesNotContain(factory.Storage.RawDeletes, d => d.PublicId == s.CvOfA.StorageKey);
     }
 
     internal static MultipartFormDataContent PdfForm(byte[] bytes, string contentType = "application/pdf", string fileName = "my cv.pdf")
@@ -114,9 +114,9 @@ public class CvUploadsEnabledTests(CvUploadsEnabledFactory factory) : IClassFixt
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.DoesNotContain("url", TestData.PropertyNames(json));
         using var scope = factory.Services.CreateScope();
-        var cv = await scope.ServiceProvider.GetRequiredService<ApplicationDBContext>().CVs.SingleAsync(c => c.UserId == candidate.Id);
-        Assert.Equal(CvStorage.AuthenticatedType, CvStorage.DeliveryTypeFromUrl(cv.Url));
-        Assert.Contains(cv.PublicId, factory.Storage.PrivateUploads);
+        var cv = await scope.ServiceProvider.GetRequiredService<ApplicationDBContext>().Resumes.SingleAsync(c => c.CandidateId == candidate.Id);
+        Assert.Equal(CvStorage.AuthenticatedType, CvStorage.DeliveryType(cv.StorageAccess));
+        Assert.Contains(cv.StorageKey, factory.Storage.PrivateUploads);
     }
 
     [Fact]
@@ -133,13 +133,13 @@ public class CvUploadsEnabledTests(CvUploadsEnabledFactory factory) : IClassFixt
     [Fact]
     public async Task Replacing_a_legacy_public_cv_keeps_the_legacy_asset_untouched()
     {
-        var s = await TestData.SeedAsync(factory.Services, legacyCvUrlForA: "https://res.cloudinary.com/test/raw/upload/v1/wazzuf-jobs/cvs/candidate-a");
+        var s = await TestData.SeedAsync(factory.Services, legacyPublicCvForA: true);
         var client = factory.CreateClient().AsCandidate(factory.Services, s.CandidateA);
 
         var response = await client.PostAsync("/api/cv", CvProtectionTests.PdfForm(PdfBuilder.CreateTextPdf("Replacement CV")));
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.DoesNotContain(factory.Storage.RawDeletes, d => d.PublicId == s.CvOfA.PublicId);
+        Assert.DoesNotContain(factory.Storage.RawDeletes, d => d.PublicId == s.CvOfA.StorageKey);
     }
 
     [Fact]
@@ -151,7 +151,7 @@ public class CvUploadsEnabledTests(CvUploadsEnabledFactory factory) : IClassFixt
         var response = await client.PostAsync("/api/cv", CvProtectionTests.PdfForm(PdfBuilder.CreateTextPdf("Replacement CV")));
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Contains(factory.Storage.RawDeletes, d => d.PublicId == s.CvOfA.PublicId && d.DeliveryType == CvStorage.AuthenticatedType);
+        Assert.Contains(factory.Storage.RawDeletes, d => d.PublicId == s.CvOfA.StorageKey && d.DeliveryType == CvStorage.AuthenticatedType);
     }
 
     private async Task<DAL.Entities.AppUser> SeedCandidateAsync()
