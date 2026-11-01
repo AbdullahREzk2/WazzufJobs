@@ -48,6 +48,8 @@ public class ApiFactory : WebApplicationFactory<WazzufJobs.API.Program>
     {
         settings["ConnectionStrings:DefaultConnection"] = "Server=unused-in-tests;Database=none";
         settings["Jwt:key"] = "c0-test-signing-key-0123456789-abcdefghijklmnopqrstuvwxyz";
+        // test-only audit key (base64 of the 32 ASCII bytes "wazzufjobs-test-only-audit-key!!"); real keys are owner-provided
+        settings["Security:DataKey"] = "d2F6enVmam9icy10ZXN0LW9ubHktYXVkaXQta2V5ISE=";
         settings["Jwt:Issuer"] = "WazzufJobsAPI";
         settings["Jwt:Audience"] = "WazzufJobsClient";
         settings["Jwt:ExpiryMinutes"] = "30";

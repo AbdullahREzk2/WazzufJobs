@@ -1,7 +1,7 @@
 ﻿using WazzufJobs.BLL.Features.Auth.Query.GetRefreshToken;
 
 namespace SurveyBasket.BLL.Features.Auth.Query.GetRefreshToken;
-public class GetRefreshTokenQueryHandler(IJwtProvider jwtProvider, IUserRepository userRepository) : IRequestHandler<GetRefreshTokenQuery, Result<loginResponseDTO>>
+public class GetRefreshTokenQueryHandler(IJwtProvider jwtProvider, IUserRepository userRepository, IAuditLog audit) : IRequestHandler<GetRefreshTokenQuery, Result<loginResponseDTO>>
 {
     private readonly IJwtProvider _jwtprovider = jwtProvider;
     private readonly IUserRepository _userrepository = userRepository;
@@ -19,11 +19,12 @@ public class GetRefreshTokenQueryHandler(IJwtProvider jwtProvider, IUserReposito
         if (user is null)
             return Result.Failure<loginResponseDTO>(UserErrors.UserNotFound);
 
-        if (user.IsDisabled)
-            return Result.Failure<loginResponseDTO>(UserErrors.DisabledUser);
-
-        if (user.LockoutEnd > DateTime.UtcNow)
-            return Result.Failure<loginResponseDTO>(UserErrors.UserLockedOut);
+        if (user.IsDisabled || user.LockoutEnd > DateTime.UtcNow)
+        {
+            await audit.WriteAsync(AuditEvent.Denied(AuditActions.RefreshDenied).On(AuditTargets.User, user.Id)
+                .With(("reason", user.IsDisabled ? "disabled" : "locked_out")) with { Anonymous = true, IsDemo = user.IsDemo }, cancellationToken);
+            return Result.Failure<loginResponseDTO>(user.IsDisabled ? UserErrors.DisabledUser : UserErrors.UserLockedOut);
+        }
 
         var userRefreshToken = user.RefreshTokens.SingleOrDefault(rt => rt.Token == request.refreshToken && rt.IsActive);
         if (userRefreshToken is null)

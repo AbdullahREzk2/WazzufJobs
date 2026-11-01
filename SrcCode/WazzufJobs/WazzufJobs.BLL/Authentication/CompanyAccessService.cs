@@ -23,9 +23,19 @@ public interface ICompanyAccessService
     Task<Result<CompanyAccess>> RequireAsync(Guid companyId, CompanyPermission permission, CancellationToken cancellationToken);
 }
 
-public sealed class CompanyAccessService(ICurrentUserService currentUser, ICompanyRepository companies) : ICompanyAccessService
+public sealed class CompanyAccessService(ICurrentUserService currentUser, ICompanyRepository companies, IAuditLog audit) : ICompanyAccessService
 {
     public async Task<Result<CompanyAccess>> RequireAsync(Guid companyId, CompanyPermission permission, CancellationToken cancellationToken)
+    {
+        var result = await CheckAsync(companyId, permission, cancellationToken);
+        if (!result.IsSuccess)
+            await audit.WriteAsync(AuditEvent.Denied(AuditActions.CompanyAccessDenied)
+                .On(AuditTargets.Company, companyId.ToString())
+                .With(("permission", permission), ("reason", result.Error.Code)) with { CompanyId = companyId }, CancellationToken.None);
+        return result;
+    }
+
+    private async Task<Result<CompanyAccess>> CheckAsync(Guid companyId, CompanyPermission permission, CancellationToken cancellationToken)
     {
         var userId = currentUser.UserId;
         if (string.IsNullOrEmpty(userId))

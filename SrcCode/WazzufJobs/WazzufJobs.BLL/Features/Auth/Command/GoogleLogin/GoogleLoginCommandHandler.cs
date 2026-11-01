@@ -10,7 +10,8 @@ public class GoogleLoginCommandHandler(
     IUserRepository userRepository,
     IJwtProvider jwtProvider,
     IHttpClientFactory httpClientFactory,
-    IConfiguration configuration) : IRequestHandler<GoogleLoginCommand, Result<loginResponseDTO>>
+    IConfiguration configuration,
+    IAuditLog audit) : IRequestHandler<GoogleLoginCommand, Result<loginResponseDTO>>
 {
     private readonly IUserRepository _userRepository = userRepository;
     private readonly IJwtProvider _jwtProvider = jwtProvider;
@@ -42,6 +43,7 @@ public class GoogleLoginCommandHandler(
         if (user is not null && !user.EmailConfirmed)
             return Result.Failure<loginResponseDTO>(UserErrors.GoogleAccountNotLinkable);
 
+        var newAccount = user is null;
         if (user is null)
         {
             user = new AppUser
@@ -64,7 +66,14 @@ public class GoogleLoginCommandHandler(
         }
 
         if (user.IsDisabled)
+        {
+            await audit.WriteAsync(AuditEvent.Failure(AuditActions.LoginFailed).On(AuditTargets.User, user.Id)
+                .With(("reason", "disabled")) with { Anonymous = true, IsDemo = user.IsDemo }, cancellationToken);
             return Result.Failure<loginResponseDTO>(UserErrors.DisabledUser);
+        }
+
+        await audit.WriteAsync(AuditEvent.Success(AuditActions.GoogleSignIn).On(AuditTargets.User, user.Id)
+            .With(("newAccount", newAccount)) with { ActorUserId = user.Id, IsDemo = user.IsDemo }, cancellationToken);
 
         var grant = PermissionCatalog.Resolve(user.AccountType, user.IsDemo, await _userRepository.GetRolesAsync(user));
         var (token, expireIn) = _jwtProvider.GenerateToken(user, grant);

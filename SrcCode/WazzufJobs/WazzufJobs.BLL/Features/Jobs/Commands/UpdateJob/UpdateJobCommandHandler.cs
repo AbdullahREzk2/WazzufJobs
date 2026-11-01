@@ -2,13 +2,18 @@
 
 public class UpdateJobCommandHandler(
     IJobRepository jobRepository,
-    ICategoryRepository categoryRepository)
+    ICategoryRepository categoryRepository,
+    IAuditLog audit)
     : IRequestHandler<UpdateJobCommand, Result>
 {
     private readonly IJobRepository _jobRepository = jobRepository;
     private readonly ICategoryRepository _categoryRepository = categoryRepository;
 
-    public async Task<Result> Handle(UpdateJobCommand request, CancellationToken cancellationToken)
+    // the change and its audit entry are committed together (Phase 02, S5)
+    public async Task<Result> Handle(UpdateJobCommand request, CancellationToken cancellationToken) =>
+        await audit.RecordAsync(() => ApplyAsync(request, cancellationToken), r => r.IsSuccess ? AuditEvent.Success(AuditActions.JobUpdated).On(AuditTargets.Job, request.Id.ToString()) : null, cancellationToken);
+
+    private async Task<Result> ApplyAsync(UpdateJobCommand request, CancellationToken cancellationToken)
     {
         var job = await _jobRepository.GetByIdAsync(request.Id, cancellationToken);
 

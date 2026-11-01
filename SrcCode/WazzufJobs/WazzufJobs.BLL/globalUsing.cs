@@ -7,6 +7,7 @@ global using Microsoft.AspNetCore.Http;
 global using Microsoft.AspNetCore.Identity;
 global using Microsoft.AspNetCore.WebUtilities;
 global using WazzufJobs.BLL.Abstractions;
+global using WazzufJobs.BLL.Audit;
 global using WazzufJobs.BLL.Abstractions.Consts;
 global using WazzufJobs.BLL.Authentication;
 global using WazzufJobs.BLL.Contracts.Authentication;

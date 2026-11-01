@@ -1,7 +1,8 @@
 ﻿namespace WazzufJobs.BLL.Features.Auth.Command.Register;
 public class RegisterCommandHandler(
     IUserRepository userRepository,
-    ISendConfirmationEmailHelper confirmationEmailHelper
+    ISendConfirmationEmailHelper confirmationEmailHelper,
+    IAuditLog audit
     ) : IRequestHandler<RegisterCommand, Result>
 {
     private readonly IUserRepository _userrepository = userRepository;
@@ -14,7 +15,16 @@ public class RegisterCommandHandler(
             return Result.Failure(UserErrors.DuplicatedEmail);
 
         var user = request.requestDTO.Adapt<AppUser>();
-        var result = await _userrepository.CreateAsync(user, request.requestDTO.Password);
+
+        // the account and its audit entry are committed together
+        IdentityResult result = IdentityResult.Failed();
+        await audit.RecordAsync(async () =>
+            {
+                result = await _userrepository.CreateAsync(user, request.requestDTO.Password);
+                return result.Succeeded ? Result.Success() : Result.Failure(UserErrors.InvalidCredentials);
+            },
+            r => r.IsSuccess ? AuditEvent.Success(AuditActions.UserRegistered).On(AuditTargets.User, user.Id) with { ActorUserId = user.Id } : null,
+            cancellationToken);
 
         if (result.Succeeded)
         {

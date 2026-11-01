@@ -406,15 +406,10 @@ public class CompanyAccessTests(SqlServerApiFactory factory) : IClassFixture<Sql
         return await AddAsync(user, new CompanyMember { CompanyId = company.Id, UserId = user.Id, Role = role });
     }
 
-    private sealed class FixedUser(string? userId) : ICurrentUserService
-    {
-        public string? UserId { get; } = userId;
-    }
-
     private async Task<Result<CompanyAccess>> AccessAsync(AppUser? user, Guid companyId, CompanyPermission permission)
     {
         using var scope = factory.Services.CreateScope();
-        var service = new CompanyAccessService(new FixedUser(user?.Id), scope.ServiceProvider.GetRequiredService<ICompanyRepository>());
+        var service = new ActingUser(user?.Id).CompanyAccess(scope.ServiceProvider);
         return await service.RequireAsync(companyId, permission, CancellationToken.None);
     }
 
@@ -423,7 +418,8 @@ public class CompanyAccessTests(SqlServerApiFactory factory) : IClassFixture<Sql
     {
         using var scope = factory.Services.CreateScope();
         var companies = scope.ServiceProvider.GetRequiredService<ICompanyRepository>();
-        var handler = new ChangeCompanyMemberRoleCommandHandler(new CompanyAccessService(new FixedUser(actor.Id), companies), companies);
+        var acting = new ActingUser(actor.Id);
+        var handler = new ChangeCompanyMemberRoleCommandHandler(acting.CompanyAccess(scope.ServiceProvider), companies, acting.Audit(scope.ServiceProvider));
         return await handler.Handle(new ChangeCompanyMemberRoleCommand(companyId, userId, role), CancellationToken.None);
     }
 
@@ -431,7 +427,8 @@ public class CompanyAccessTests(SqlServerApiFactory factory) : IClassFixture<Sql
     {
         using var scope = factory.Services.CreateScope();
         var companies = scope.ServiceProvider.GetRequiredService<ICompanyRepository>();
-        var handler = new RemoveCompanyMemberCommandHandler(new CompanyAccessService(new FixedUser(actor.Id), companies), companies);
+        var acting = new ActingUser(actor.Id);
+        var handler = new RemoveCompanyMemberCommandHandler(acting.CompanyAccess(scope.ServiceProvider), companies, acting.Audit(scope.ServiceProvider));
         return await handler.Handle(new RemoveCompanyMemberCommand(companyId, userId), CancellationToken.None);
     }
 

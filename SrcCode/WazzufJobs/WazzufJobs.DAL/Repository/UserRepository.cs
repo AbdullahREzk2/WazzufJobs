@@ -113,23 +113,7 @@ public class UserRepository : IUserRepository
                 : IdentityResult.Success;
         }
 
-        if (!_dbcontext.Database.IsRelational())
-            return await ApplyDifferencesAsync();
-
-        // the context uses a retrying execution strategy, so the transaction must run inside it
-        var strategy = _dbcontext.Database.CreateExecutionStrategy();
-        return await strategy.ExecuteAsync(async () =>
-        {
-            await using var transaction = await _dbcontext.Database.BeginTransactionAsync(cancellationToken);
-            var result = await ApplyDifferencesAsync();
-
-            if (result.Succeeded)
-                await transaction.CommitAsync(cancellationToken);
-            else
-                await transaction.RollbackAsync(cancellationToken);
-
-            return result;
-        });
+        return await _dbcontext.RunInTransactionAsync(ApplyDifferencesAsync, result => result.Succeeded, cancellationToken);
     }
 
     public async Task<int> CountActiveUsersInRoleAsync(PlatformRole role, CancellationToken cancellationToken)
@@ -153,28 +137,19 @@ public class UserRepository : IUserRepository
     public async Task<TResult> RunExclusiveForRoleAsync<TResult>(
         PlatformRole role, Func<Task<TResult>> change, Func<TResult, bool> succeeded, CancellationToken cancellationToken)
     {
-        if (!_dbcontext.Database.IsRelational())
-            return await change();
-
         var roleId = role.Id;
-        var strategy = _dbcontext.Database.CreateExecutionStrategy();
-        return await strategy.ExecuteAsync(async () =>
+        return await _dbcontext.RunInTransactionAsync(async () =>
         {
-            await using var transaction = await _dbcontext.Database.BeginTransactionAsync(cancellationToken);
-
             // the role row is the lock: every change that can remove an active holder takes it first (U locks
-            // conflict with each other but not with readers, so sign-in and queries are not blocked)
-            await _dbcontext.Database.ExecuteSqlInterpolatedAsync(
-                $"DECLARE @locked int; SELECT @locked = 1 FROM [AspNetRoles] WITH (UPDLOCK, HOLDLOCK) WHERE [Id] = {roleId};",
-                cancellationToken);
+            // conflict with each other but not with readers, so sign-in and queries are not blocked). Inside an
+            // enclosing transaction (an audited change) the lock is held until that transaction ends.
+            if (_dbcontext.Database.IsRelational())
+                await _dbcontext.Database.ExecuteSqlInterpolatedAsync(
+                    $"DECLARE @locked int; SELECT @locked = 1 FROM [AspNetRoles] WITH (UPDLOCK, HOLDLOCK) WHERE [Id] = {roleId};",
+                    cancellationToken);
 
-            var result = await change();
-            if (succeeded(result))
-                await transaction.CommitAsync(cancellationToken);
-            else
-                await transaction.RollbackAsync(cancellationToken);
-            return result;
-        });
+            return await change();
+        }, succeeded, cancellationToken);
     }
 
     public async Task<IdentityResult> SetLockoutEndDateAsync(AppUser user, DateTimeOffset? lockoutEnd)

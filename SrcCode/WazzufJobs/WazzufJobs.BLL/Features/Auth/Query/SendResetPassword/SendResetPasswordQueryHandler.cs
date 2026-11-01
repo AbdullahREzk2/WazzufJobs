@@ -1,7 +1,8 @@
 ﻿namespace WazzufJobs.BLL.Features.Auth.Query.SendResetPassword;
 public class SendResetPasswordQueryHandler(
     IUserRepository userRepository,
-    ISendResetPasswordEmailHelper passwordEmailHelper
+    ISendResetPasswordEmailHelper passwordEmailHelper,
+    IAuditLog audit
     ) : IRequestHandler<SendResetPasswordQuery, Result>
 {
     private readonly IUserRepository _userrepository = userRepository;
@@ -15,6 +16,10 @@ public class SendResetPasswordQueryHandler(
 
         if (!user.EmailConfirmed)
             return Result.Failure(UserErrors.EmailNotConfirmed);
+
+        // not required: an audit outage must not make existing accounts answer differently from unknown ones
+        await audit.WriteAsync(AuditEvent.Success(AuditActions.PasswordResetRequested).On(AuditTargets.User, user.Id)
+            with { Anonymous = true, IsDemo = user.IsDemo, Required = false }, cancellationToken);
 
         var code = await _userrepository.GeneratePasswordResetTokenAsync(user);
         code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));

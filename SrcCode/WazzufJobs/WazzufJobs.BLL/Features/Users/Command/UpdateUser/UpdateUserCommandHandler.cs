@@ -1,9 +1,30 @@
 ﻿namespace WazzufJobs.BLL.Features.Users.Command.UpdateUser;
-public class UpdateUserCommandHandler(IUserRepository userRepository) : IRequestHandler<UpdateUserCommand, Result>
+public class UpdateUserCommandHandler(IUserRepository userRepository, IAuditLog audit) : IRequestHandler<UpdateUserCommand, Result>
 {
     private readonly IUserRepository _userrepository = userRepository;
 
+    // the change and its audit entry are committed together; one entry per request (user.roles.changed when the roles
+    // change, user.updated otherwise); refused changes are audited as denied
     public async Task<Result> Handle(UpdateUserCommand request, CancellationToken cancellationToken)
+    {
+        var change = new Change();
+        return await audit.RecordAsync(() => UpdateAsync(request, change, cancellationToken),
+            r => r.IsSuccess
+                ? AuditEvent.Success(change.Added.Count + change.Removed.Count > 0 ? AuditActions.UserRolesChanged : AuditActions.UserUpdated)
+                    .On(AuditTargets.User, request.userId)
+                    .With(("emailChanged", change.EmailChanged), ("rolesAdded", change.Added), ("rolesRemoved", change.Removed))
+                : UserAudit.Denial(r, request.userId),
+            cancellationToken);
+    }
+
+    private sealed class Change
+    {
+        public bool EmailChanged;
+        public List<string> Added = [];
+        public List<string> Removed = [];
+    }
+
+    private async Task<Result> UpdateAsync(UpdateUserCommand request, Change change, CancellationToken cancellationToken)
     {
 
         if (await _userrepository.EmailExistsForOtherUserAsync(request.userRequest.Email, request.userId, cancellationToken))
@@ -37,6 +58,11 @@ public class UpdateUserCommandHandler(IUserRepository userRepository) : IRequest
 
         if (PermissionCatalog.ValidateAssignment(user.AccountType, user.IsDemo, requestedRoles) != RoleAssignmentError.None)
             return Result.Failure(UserErrors.RoleAccountTypeMismatch);
+
+        var targetRoles = requestedRoles.Select(r => PermissionCatalog.Find(r)!.Name).Distinct().ToList();
+        change.EmailChanged = !string.Equals(user.Email, request.userRequest.Email, StringComparison.OrdinalIgnoreCase);
+        change.Added = targetRoles.Where(r => !currentRoles.Contains(r, StringComparer.OrdinalIgnoreCase)).ToList();
+        change.Removed = currentRoles.Where(r => !targetRoles.Contains(r, StringComparer.OrdinalIgnoreCase)).ToList();
 
         user = request.userRequest.Adapt(user);
         user.UserName = request.userRequest.Email;

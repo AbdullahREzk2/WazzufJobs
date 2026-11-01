@@ -1,5 +1,5 @@
 ﻿namespace WazzufJobs.BLL.Features.Auth.Command.RevokeRefreshToken;
-public class RevokeRefreshTokenCommandHandler(IJwtProvider jwtProvider, IUserRepository userRepository) : IRequestHandler<RevokeRefreshTokenCommand, Result>
+public class RevokeRefreshTokenCommandHandler(IJwtProvider jwtProvider, IUserRepository userRepository, IAuditLog audit) : IRequestHandler<RevokeRefreshTokenCommand, Result>
 {
     private readonly IJwtProvider _jwtprovider = jwtProvider;
     private readonly IUserRepository _userrepository = userRepository;
@@ -21,6 +21,12 @@ public class RevokeRefreshTokenCommandHandler(IJwtProvider jwtProvider, IUserRep
 
         userRefreshToken.RevokedOn = DateTime.UtcNow;
         await _userrepository.UpdateAsync(user);
+
+        // signing out reduces access: it never fails because of the audit log
+        await audit.WriteAsync(AuditEvent.Success(AuditActions.Logout) with
+        {
+            ActorUserId = user.Id, TargetType = AuditTargets.User, TargetId = user.Id, IsDemo = user.IsDemo, Required = false
+        }, cancellationToken);
 
         return Result.Success();
     }

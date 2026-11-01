@@ -6,15 +6,18 @@ namespace WazzufJobs.BLL.Features.Categories.Commands.CreateCategory;
 
 public class CreateCategoryCommandHandler(
     ICategoryRepository categoryRepository,
-    ICloudinaryService cloudinaryService)
+    ICloudinaryService cloudinaryService,
+    IAuditLog audit)
     : IRequestHandler<CreateCategoryCommand, Result<CategoryResponse>>
 {
     private readonly ICategoryRepository _categoryRepository = categoryRepository;
     private readonly ICloudinaryService _cloudinaryService = cloudinaryService;
 
-    public async Task<Result<CategoryResponse>> Handle(
-        CreateCategoryCommand request,
-        CancellationToken cancellationToken)
+    // the change and its audit entry are committed together (Phase 02, S5)
+    public async Task<Result<CategoryResponse>> Handle(CreateCategoryCommand request, CancellationToken cancellationToken) =>
+        await audit.RecordAsync(() => ApplyAsync(request, cancellationToken), r => r.IsSuccess ? AuditEvent.Success(AuditActions.CategoryCreated).On(AuditTargets.Category, r.Value.Id.ToString()) : null, cancellationToken);
+
+    private async Task<Result<CategoryResponse>> ApplyAsync(CreateCategoryCommand request, CancellationToken cancellationToken)
     {
         if (await _categoryRepository.ExistsAsync(request.Request.Name, cancellationToken))
             return Result.Failure<CategoryResponse>(CategoryErrors.DuplicateName);

@@ -6,13 +6,18 @@ namespace WazzufJobs.BLL.Features.Jobs.Commands.CreateJob;
 public class CreateJobCommandHandler(
     IJobRepository jobRepository,
     ICategoryRepository categoryRepository,
-    ICompanyRepository companyRepository
+    ICompanyRepository companyRepository,
+    IAuditLog audit
     ) : IRequestHandler<CreateJobCommand, Result<JobSummaryResponse>>
 {
     private readonly IJobRepository _jobRepository = jobRepository;
     private readonly ICategoryRepository _categoryRepository = categoryRepository;
 
-    public async Task<Result<JobSummaryResponse>> Handle(CreateJobCommand request, CancellationToken cancellationToken)
+    // the change and its audit entry are committed together (Phase 02, S5)
+    public async Task<Result<JobSummaryResponse>> Handle(CreateJobCommand request, CancellationToken cancellationToken) =>
+        await audit.RecordAsync(() => ApplyAsync(request, cancellationToken), r => r.IsSuccess ? AuditEvent.Success(AuditActions.JobCreated).On(AuditTargets.Job, r.Value.Id.ToString()) : null, cancellationToken);
+
+    private async Task<Result<JobSummaryResponse>> ApplyAsync(CreateJobCommand request, CancellationToken cancellationToken)
     {
         // validate category exists
         var category = await _categoryRepository

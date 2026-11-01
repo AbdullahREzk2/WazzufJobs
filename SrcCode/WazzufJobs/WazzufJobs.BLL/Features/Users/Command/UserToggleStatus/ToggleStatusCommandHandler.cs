@@ -1,9 +1,25 @@
 ﻿namespace WazzufJobs.BLL.Features.Users.Command.UserToggleStatus;
-public class ToggleStatusCommandHandler(IUserRepository userRepository) : IRequestHandler<ToggleStatusCommand, Result>
+public class ToggleStatusCommandHandler(IUserRepository userRepository, IAuditLog audit) : IRequestHandler<ToggleStatusCommand, Result>
 {
     private readonly IUserRepository _userrepository = userRepository;
 
+    // the status change and its audit entry are committed together (inside the Super Admin lock when it applies)
     public async Task<Result> Handle(ToggleStatusCommand request, CancellationToken cancellationToken)
+    {
+        var disabled = false;
+        return await audit.RecordAsync(async () =>
+            {
+                var result = await ToggleStatusAsync(request, cancellationToken);
+                disabled = result.IsSuccess && (await _userrepository.FindByIdAsync(request.userId))?.IsDisabled == true;
+                return result;
+            },
+            r => r.IsSuccess
+                ? AuditEvent.Success(disabled ? AuditActions.UserDisabled : AuditActions.UserEnabled).On(AuditTargets.User, request.userId)
+                : UserAudit.Denial(r, request.userId),
+            cancellationToken);
+    }
+
+    private async Task<Result> ToggleStatusAsync(ToggleStatusCommand request, CancellationToken cancellationToken)
     {
         var user = await _userrepository.FindByIdAsync(request.userId);
         if (user is null)

@@ -7,7 +7,8 @@ namespace WazzufJobs.BLL.Features.UserCV.Queries.GetCvFile;
 public class GetCvFileQueryHandler(
     IResumeRepository resumeRepository,
     IApplicationRepository applicationRepository,
-    IDocumentStorage documentStorage)
+    IDocumentStorage documentStorage,
+    IAuditLog audit)
     : IRequestHandler<GetCvFileQuery, Result<CvFileResponse>>,
       IRequestHandler<GetApplicationCvFileQuery, Result<CvFileResponse>>
 {
@@ -31,9 +32,15 @@ public class GetCvFileQueryHandler(
 
         // C0 behaviour until resume versioning (P05): admins review the applicant's current CV
         var resume = await _resumeRepository.GetCurrentAsync(application.UserId, includeText: false, cancellationToken);
-        return resume is null
-            ? Result.Failure<CvFileResponse>(CVErrors.NotFound)
-            : await DownloadAsync(resume, cancellationToken);
+        if (resume is null)
+            return Result.Failure<CvFileResponse>(CVErrors.NotFound);
+
+        var file = await DownloadAsync(resume, cancellationToken);
+        if (file.IsSuccess)   // required: no CV leaves the API unaudited (never the storage key or contents)
+            await audit.WriteAsync(AuditEvent.Success(AuditActions.ApplicationCvAccessed)
+                .On(AuditTargets.Application, application.Id.ToString()) with { CompanyId = application.CompanyId, IsDemo = application.IsDemo },
+                cancellationToken);
+        return file;
     }
 
     private async Task<Result<CvFileResponse>> DownloadAsync(DAL.Entities.Resume resume, CancellationToken cancellationToken)

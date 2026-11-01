@@ -1,4 +1,5 @@
-﻿using WazzufJobs.BLL.Authentication;
+﻿using WazzufJobs.BLL.Audit;
+using WazzufJobs.BLL.Authentication;
 using WazzufJobs.BLL.Errors;
 using WazzufJobs.BLL.Features.Roles.Query.GetAllRoles;
 using WazzufJobs.BLL.Features.Roles.Query.GetRoleDetails;
@@ -12,7 +13,7 @@ namespace WazzufJobs.API.Controllers;
 /// </summary>
 [Route("api/[controller]")]
 [ApiController]
-public class RolesController(IMediator mediator) : ControllerBase
+public class RolesController(IMediator mediator, IAuditLog audit) : ControllerBase
 {
     private readonly IMediator _mediator = mediator;
 
@@ -36,15 +37,21 @@ public class RolesController(IMediator mediator) : ControllerBase
 
     [HttpPost]
     [HasPermission(Permissions.RolesRead)]
-    public IActionResult CreateRole() => RolesAreFixed();
+    public Task<IActionResult> CreateRole() => RolesAreFixedAsync(null, "create");
 
     [HttpPut("{roleId}")]
     [HasPermission(Permissions.RolesRead)]
-    public IActionResult UpdateRole(string roleId) => RolesAreFixed();
+    public Task<IActionResult> UpdateRole(string roleId) => RolesAreFixedAsync(roleId, "update");
 
     [HttpPut("{roleId}/toggle-status")]
     [HasPermission(Permissions.RolesRead)]
-    public IActionResult ToggleStatus(string roleId) => RolesAreFixed();
+    public Task<IActionResult> ToggleStatus(string roleId) => RolesAreFixedAsync(roleId, "toggle-status");
 
-    private IActionResult RolesAreFixed() => Result.Failure(RoleErros.Fixed).ToProblem();
+    private async Task<IActionResult> RolesAreFixedAsync(string? roleId, string operation)
+    {
+        await audit.WriteAsync(AuditEvent.Denied(AuditActions.RolesChangeDenied)
+            .On(AuditTargets.Role, PermissionCatalog.FindById(roleId)?.Id)
+            .With(("reason", RoleErros.Fixed.Code), ("method", operation)));
+        return Result.Failure(RoleErros.Fixed).ToProblem();
+    }
 }

@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using WazzufJobs.API.Services;
 using WazzufJobs.API.Setting;
+using WazzufJobs.BLL.Audit;
 using WazzufJobs.BLL.Authentication;
 using WazzufJobs.BLL.Behaviors;
 using WazzufJobs.BLL.Errors;
@@ -222,6 +223,38 @@ public static class DependencyInjection
         services.AddScoped<ICandidateProfileRepository, CandidateProfileRepository>();
         services.AddScoped<ICompanyRepository, CompanyRepository>();
         services.AddScoped<ISavedJobRepository, SavedJobRepository>();  
+        return services;
+    }
+
+    /// <summary>
+    /// Audit log (Phase 02, S5). <c>Security:DataKey</c> (32 random bytes, base64; owner-provided, never committed) keys
+    /// the client-address HMAC. Outside Development a missing or malformed key stops startup (fail closed); in
+    /// Development an ephemeral key is used and a warning is logged.
+    /// </summary>
+    public static IServiceCollection AddAuditServices(this IServiceCollection services, IHostEnvironment environment)
+    {
+        services.AddOptions<SecurityOptions>()
+            .BindConfiguration(SecurityOptions.SectionName)
+            .Validate(o => environment.IsDevelopment() || o.TryDecodeDataKey() is not null,
+                "Security:DataKey must be set to 32 random bytes encoded as base64.")
+            .ValidateOnStart();
+
+        services.AddSingleton<IIpHasher>(sp =>
+        {
+            var key = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<SecurityOptions>>().Value.TryDecodeDataKey();
+            if (key is null)
+            {
+                sp.GetRequiredService<ILoggerFactory>().CreateLogger("WazzufJobs.Audit")
+                    .LogWarning("Security:DataKey is not configured: using an ephemeral key (Development only).");
+                key = System.Security.Cryptography.RandomNumberGenerator.GetBytes(32);
+            }
+            return new HmacIpHasher(key);
+        });
+
+        services.AddScoped<IRequestInfo, HttpRequestInfo>();
+        services.AddScoped<IAuditRepository, AuditRepository>();
+        services.AddScoped<IAuditLog, AuditLogService>();
+        services.AddSingleton<Microsoft.AspNetCore.Authorization.IAuthorizationMiddlewareResultHandler, AuditingAuthorizationResultHandler>();
         return services;
     }
 

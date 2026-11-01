@@ -32,6 +32,7 @@ public class Program
         builder.Services.AddMailServices(builder.Configuration);
         builder.Services.AddRepositories();
         builder.Services.AddHelperServices();
+        builder.Services.AddAuditServices(builder.Environment);
         builder.Services.AddAIServices(builder.Configuration);
         builder.Services.AddSignalRServices();
         builder.Services.AddFeatureFlags();

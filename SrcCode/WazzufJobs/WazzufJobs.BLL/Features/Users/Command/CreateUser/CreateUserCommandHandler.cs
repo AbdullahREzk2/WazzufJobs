@@ -1,9 +1,20 @@
 ﻿namespace WazzufJobs.BLL.Features.Users.Command.CreateUser;
-public class CreateUserCommandHandler(IUserRepository userRepository) : IRequestHandler<CreateUserCommand, Result<UserResponse>>
+public class CreateUserCommandHandler(IUserRepository userRepository, IAuditLog audit) : IRequestHandler<CreateUserCommand, Result<UserResponse>>
 {
     private readonly IUserRepository _userrepository = userRepository;
 
+    // the account, its roles and the audit entry are committed together; refused staff or mismatching roles are audited
     public async Task<Result<UserResponse>> Handle(CreateUserCommand request, CancellationToken cancellationToken)
+    {
+        IList<string> roles = [];
+        return await audit.RecordAsync(() => CreateAsync(request, r => roles = r),
+            r => r.IsSuccess
+                ? AuditEvent.Success(AuditActions.UserCreated).On(AuditTargets.User, r.Value.Id).With(("roles", roles))
+                : UserAudit.Denial(r, null),
+            cancellationToken);
+    }
+
+    private async Task<Result<UserResponse>> CreateAsync(CreateUserCommand request, Action<IList<string>> recordRoles)
     {
 
         if (await _userrepository.EmailExistsAsync(request.userRequest.Email))
@@ -27,6 +38,7 @@ public class CreateUserCommandHandler(IUserRepository userRepository) : IRequest
             return Result.Failure<UserResponse>(UserErrors.RoleAccountTypeMismatch);
 
         IList<string> roles = requestedRoles.Select(r => PermissionCatalog.Find(r)!.Name).Distinct().ToList();
+        recordRoles(roles);
 
         var result = await _userrepository.CreateAsync(user, request.userRequest.Password);
         if (!result.Succeeded)

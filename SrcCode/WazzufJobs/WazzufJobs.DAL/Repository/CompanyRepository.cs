@@ -85,26 +85,17 @@ public class CompanyRepository(ApplicationDBContext context) : ICompanyRepositor
     public async Task<TResult> RunExclusiveForCompanyAsync<TResult>(
         Guid companyId, Func<Task<TResult>> change, Func<TResult, bool> succeeded, CancellationToken cancellationToken)
     {
-        if (!_context.Database.IsRelational())
-            return await change();
-
-        var strategy = _context.Database.CreateExecutionStrategy();
-        return await strategy.ExecuteAsync(async () =>
+        return await _context.RunInTransactionAsync(async () =>
         {
-            await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
-
             // the company row is the lock: every membership change of this company takes it first (U locks conflict
-            // with each other but not with readers)
-            await _context.Database.ExecuteSqlInterpolatedAsync(
-                $"DECLARE @locked int; SELECT @locked = 1 FROM [Companies] WITH (UPDLOCK, HOLDLOCK) WHERE [Id] = {companyId};",
-                cancellationToken);
+            // with each other but not with readers). Inside an enclosing transaction (an audited change) the lock is
+            // held until that transaction ends.
+            if (_context.Database.IsRelational())
+                await _context.Database.ExecuteSqlInterpolatedAsync(
+                    $"DECLARE @locked int; SELECT @locked = 1 FROM [Companies] WITH (UPDLOCK, HOLDLOCK) WHERE [Id] = {companyId};",
+                    cancellationToken);
 
-            var result = await change();
-            if (succeeded(result))
-                await transaction.CommitAsync(cancellationToken);
-            else
-                await transaction.RollbackAsync(cancellationToken);
-            return result;
-        });
+            return await change();
+        }, succeeded, cancellationToken);
     }
 }

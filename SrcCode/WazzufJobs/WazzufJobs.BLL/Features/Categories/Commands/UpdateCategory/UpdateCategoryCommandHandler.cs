@@ -5,15 +5,18 @@ namespace WazzufJobs.BLL.Features.Categories.Commands.UpdateCategory;
 
 public class UpdateCategoryCommandHandler(
     ICategoryRepository categoryRepository,
-    ICloudinaryService cloudinaryService)
+    ICloudinaryService cloudinaryService,
+    IAuditLog audit)
     : IRequestHandler<UpdateCategoryCommand, Result>
 {
     private readonly ICategoryRepository _categoryRepository = categoryRepository;
     private readonly ICloudinaryService _cloudinaryService = cloudinaryService;
 
-    public async Task<Result> Handle(
-        UpdateCategoryCommand request,
-        CancellationToken cancellationToken)
+    // the change and its audit entry are committed together (Phase 02, S5)
+    public async Task<Result> Handle(UpdateCategoryCommand request, CancellationToken cancellationToken) =>
+        await audit.RecordAsync(() => ApplyAsync(request, cancellationToken), r => r.IsSuccess ? AuditEvent.Success(AuditActions.CategoryUpdated).On(AuditTargets.Category, request.Id.ToString()) : null, cancellationToken);
+
+    private async Task<Result> ApplyAsync(UpdateCategoryCommand request, CancellationToken cancellationToken)
     {
         var category = await _categoryRepository.GetByIdAsync(request.Id, cancellationToken);
 

@@ -9,20 +9,40 @@ public class UpdateApplicationStatusCommandHandler(
     IApplicationRepository applicationRepository,
     IEmailSender emailSender,
     ICurrentUserService currentUser,
-    ILogger<UpdateApplicationStatusCommandHandler> logger) : IRequestHandler<UpdateApplicationStatusCommand, Result>
+    ILogger<UpdateApplicationStatusCommandHandler> logger,
+    IAuditLog audit) : IRequestHandler<UpdateApplicationStatusCommand, Result>
 {
     private readonly IApplicationRepository _applicationRepository = applicationRepository;
     private readonly IEmailSender _emailSender = emailSender;
     private readonly ILogger<UpdateApplicationStatusCommandHandler> _logger = logger;
 
+    // the status change, its history and the audit entry are committed together; the email is sent only afterwards
     public async Task<Result> Handle(UpdateApplicationStatusCommand request, CancellationToken cancellationToken)
     {
-        var application = await _applicationRepository
-            .GetByIdWithDetailsAsync(request.Id, cancellationToken);
+        DAL.Entities.Application? application = null;
+        DAL.Enums.ApplicationStatus? previous = null;
+        var result = await audit.RecordAsync(async () =>
+            {
+                application = await _applicationRepository.GetByIdWithDetailsAsync(request.Id, cancellationToken);
+                if (application is null)
+                    return Result.Failure(ApplicationErrors.NotFound);
 
-        if (application is null)
-            return Result.Failure(ApplicationErrors.NotFound);
+                previous = application.Status;
+                return await ApplyAsync(application, request, cancellationToken);
+            },
+            r => r.IsSuccess
+                ? AuditEvent.Success(AuditActions.ApplicationStatusChanged).On(AuditTargets.Application, request.Id.ToString())
+                    .With(("from", previous), ("to", request.Request.Status)) with { CompanyId = application?.CompanyId, IsDemo = application?.IsDemo ?? false }
+                : null,
+            cancellationToken);
 
+        if (result.IsSuccess)
+            await SendStatusEmailAsync(application!, cancellationToken);
+        return result;
+    }
+
+    private async Task<Result> ApplyAsync(DAL.Entities.Application application, UpdateApplicationStatusCommand request, CancellationToken cancellationToken)
+    {
         if (application.Status != request.Request.Status)
         {
             application.StatusHistory.Add(new ApplicationStatusHistory
@@ -39,8 +59,6 @@ public class UpdateApplicationStatusCommandHandler(
 
         await _applicationRepository.UpdateAsync(application);
         await _applicationRepository.SaveChangesAsync(cancellationToken);
-
-        await SendStatusEmailAsync(application, cancellationToken);
 
         return Result.Success();
     }
