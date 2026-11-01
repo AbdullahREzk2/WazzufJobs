@@ -1,10 +1,7 @@
-﻿using WazzufJobs.BLL.Features.Roles.Query.GetAllRoles;
-
-namespace WazzufJobs.BLL.Features.Users.Command.UpdateUser;
-public class UpdateUserCommandHandler(IUserRepository userRepository, IMediator mediator) : IRequestHandler<UpdateUserCommand, Result>
+﻿namespace WazzufJobs.BLL.Features.Users.Command.UpdateUser;
+public class UpdateUserCommandHandler(IUserRepository userRepository) : IRequestHandler<UpdateUserCommand, Result>
 {
     private readonly IUserRepository _userrepository = userRepository;
-    private readonly IMediator _mediator = mediator;
 
     public async Task<Result> Handle(UpdateUserCommand request, CancellationToken cancellationToken)
     {
@@ -12,22 +9,34 @@ public class UpdateUserCommandHandler(IUserRepository userRepository, IMediator 
         if (await _userrepository.EmailExistsForOtherUserAsync(request.userRequest.Email, request.userId, cancellationToken))
             return Result.Failure(UserErrors.DuplicatedEmail);
 
+        // Phase 02 (S3): only platform roles from the catalog; legacy aliases ("Admin", "User") are not roles
         var requestedRoles = request.userRequest.Roles ?? [];
-
-        var allowedRoles = await _mediator.Send(new GetAllRolesQuery());
-        if (requestedRoles.Except(allowedRoles.Select(x => x.Name)).Any())
+        if (requestedRoles.Any(r => PermissionCatalog.Find(r) is null))
             return Result.Failure(UserErrors.InvalidRoles);
 
         var user = await _userrepository.FindByIdAsync(request.userId);
         if (user is null)
             return Result.Failure(UserErrors.UserNotFound);
 
-        // never leave the platform without an administrator
         var currentRoles = await _userrepository.GetRolesAsync(user);
-        var removesAdmin = currentRoles.Contains(AppRoles.Admin.Name, StringComparer.OrdinalIgnoreCase)
-            && !requestedRoles.Contains(AppRoles.Admin.Name, StringComparer.OrdinalIgnoreCase);
-        if (removesAdmin && await _userrepository.CountActiveUsersInRoleAsync(AppRoles.Admin.Name, cancellationToken) <= 1)
+
+        // never leave the platform without an active Super Admin (C0-5, generalized in S3)
+        var superAdmin = PermissionCatalog.SuperAdmin;
+        var isActiveSuperAdmin = !user.IsDisabled
+            && currentRoles.Contains(superAdmin.Name, StringComparer.OrdinalIgnoreCase)
+            && superAdmin.IsCompatibleWith(user.AccountType, user.IsDemo);
+        if (isActiveSuperAdmin
+            && !requestedRoles.Contains(superAdmin.Name, StringComparer.OrdinalIgnoreCase)
+            && await _userrepository.CountActiveUsersInRoleAsync(superAdmin, cancellationToken) <= 1)
             return Result.Failure(UserErrors.LastAdministrator);
+
+        // staff roles are never granted or revoked through the Users API (D-STAFF-ROLES); an unchanged set is accepted,
+        // so the admin "Edit user" form (current roles pre-selected) still updates names and email
+        if (!StaffRoles(currentRoles).SetEquals(StaffRoles(requestedRoles)))
+            return Result.Failure(UserErrors.StaffRolesManagedSeparately);
+
+        if (PermissionCatalog.ValidateAssignment(user.AccountType, user.IsDemo, requestedRoles) != RoleAssignmentError.None)
+            return Result.Failure(UserErrors.RoleAccountTypeMismatch);
 
         user = request.userRequest.Adapt(user);
         user.UserName = request.userRequest.Email;
@@ -36,7 +45,8 @@ public class UpdateUserCommandHandler(IUserRepository userRepository, IMediator 
         var result = await _userrepository.UpdateAsync(user);
         if (result.Succeeded)
         {
-            var rolesResult = await _userrepository.ReplaceUserRolesAsync(user, requestedRoles, cancellationToken);
+            var roles = requestedRoles.Select(r => PermissionCatalog.Find(r)!.Name);
+            var rolesResult = await _userrepository.ReplaceUserRolesAsync(user, roles, cancellationToken);
             if (!rolesResult.Succeeded)
             {
                 var rolesError = rolesResult.Errors.First();
@@ -49,4 +59,7 @@ public class UpdateUserCommandHandler(IUserRepository userRepository, IMediator 
         var error = result.Errors.First();
         return Result.Failure(new Error(error.Code, error.Description, StatusCodes.Status400BadRequest));
     }
+
+    private static HashSet<string> StaffRoles(IEnumerable<string> roles) =>
+        roles.Where(PermissionCatalog.IsStaffRole).Select(r => PermissionCatalog.Find(r)!.Name).ToHashSet();
 }

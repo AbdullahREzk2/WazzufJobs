@@ -31,10 +31,8 @@ public class GetRefreshTokenQueryHandler(IJwtProvider jwtProvider, IUserReposito
 
         userRefreshToken.RevokedOn = DateTime.UtcNow;
 
-        var userRoles = await _userrepository.GetRolesAsync(user);
-        var userPermissions = await _userrepository.GetUserPermissionsAsync(userRoles, cancellationToken);
-
-        var (newToken, expireIn) = _jwtprovider.GenerateToken(user, userRoles, userPermissions);
+        var grant = PermissionCatalog.Resolve(user.AccountType, user.IsDemo, await _userrepository.GetRolesAsync(user));
+        var (newToken, expireIn) = _jwtprovider.GenerateToken(user, grant);
         var newRefreshToken = GenerateRefreshTokenHelper.GenerateRefreshToken();
         var refreshTokenExpiration = DateTime.UtcNow.AddDays(_refreshTokenValidityInDays);
 

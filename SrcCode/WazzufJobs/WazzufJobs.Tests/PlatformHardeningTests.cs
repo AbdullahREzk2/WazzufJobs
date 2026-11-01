@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using WazzufJobs.DAL.Entities;
 using WazzufJobs.DAL.Persistence;
-using WazzufJobs.DAL.Persistence.Seeders;
+using WazzufJobs.DAL.Authorization;
 using WazzufJobs.Tests.Infrastructure;
 
 namespace WazzufJobs.Tests;
@@ -54,14 +54,14 @@ public class PlatformHardeningTests(C0WebApplicationFactory factory) : IClassFix
         Assert.Null(await users.FindByEmailAsync("admin@wazzuf.com"));
         // the former bootstrap settings are configured in this host and must be ignored
         Assert.Null(await users.FindByEmailAsync(C0WebApplicationFactory.IgnoredBootstrapEmail));
-        Assert.Empty(await users.GetUsersInRoleAsync(AppRoles.Admin.Name));
+        Assert.Empty(await users.GetUsersInRoleAsync(PlatformRoles.SuperAdmin));
     }
 
     [Fact]
     public async Task Without_an_administrator_admin_endpoints_fail_closed()
     {
         using (var scope = factory.Services.CreateScope())
-            Assert.Empty(await scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>().GetUsersInRoleAsync(AppRoles.Admin.Name));
+            Assert.Empty(await scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>().GetUsersInRoleAsync(PlatformRoles.SuperAdmin));
 
         var s = await TestData.SeedAsync(factory.Services);
         var candidate = factory.CreateClient().AsCandidate(factory.Services, s.CandidateA);
@@ -88,7 +88,7 @@ public class PlatformHardeningTests(C0WebApplicationFactory factory) : IClassFix
         var users = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
         var user = await users.FindByEmailAsync(email);
         Assert.NotNull(user);
-        Assert.False(await users.IsInRoleAsync(user!, AppRoles.Admin.Name));
+        Assert.False(await users.IsInRoleAsync(user!, PlatformRoles.SuperAdmin));
     }
 
     [Fact]

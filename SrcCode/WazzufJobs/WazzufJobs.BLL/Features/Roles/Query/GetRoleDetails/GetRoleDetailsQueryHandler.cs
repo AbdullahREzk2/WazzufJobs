@@ -1,20 +1,15 @@
 ﻿namespace WazzufJobs.BLL.Features.Roles.Query.GetRoleDetails;
-public class GetRoleDetailsQueryHandler(IRoleRepository roleRepository) : IRequestHandler<GetRoleDetailsQuery, Result<RoleDetailResponse>>
+
+/// <summary>A fixed platform role and its permissions, read from the code catalog (Phase 02, S3).</summary>
+public class GetRoleDetailsQueryHandler : IRequestHandler<GetRoleDetailsQuery, Result<RoleDetailResponse>>
 {
-    private readonly IRoleRepository _rolerepository = roleRepository;
-
-    public async Task<Result<RoleDetailResponse>> Handle(GetRoleDetailsQuery request, CancellationToken cancellationToken)
+    public Task<Result<RoleDetailResponse>> Handle(GetRoleDetailsQuery request, CancellationToken cancellationToken)
     {
+        var role = PermissionCatalog.FindById(request.RoleId);
+        if (role is null)
+            return Task.FromResult(Result.Failure<RoleDetailResponse>(RoleErros.RoleNotFound));
 
-        var role = await _rolerepository.getRoleById(request.RoleId);
-
-        if (role is not { })
-            return Result.Failure<RoleDetailResponse>(RoleErros.RoleNotFound);
-
-        var permissions = await _rolerepository.getRolePermissions(role);
-
-        var response = new RoleDetailResponse(role.Id, role.Name!, role.IsDeleted, permissions);
-
-        return Result.Success(response);
+        return Task.FromResult(Result.Success(new RoleDetailResponse(
+            role.Id, role.Name, false, role.Permissions, role.Description, role.AccountType.ToString())));
     }
 }

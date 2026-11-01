@@ -9,12 +9,26 @@ public class ToggleStatusCommandHandler(IUserRepository userRepository) : IReque
         if (user is null)
             return Result.Failure(UserErrors.UserNotFound);
 
-        var disabling = !user.IsDisabled;
-        if (disabling
-            && (await _userrepository.GetRolesAsync(user)).Contains(AppRoles.Admin.Name, StringComparer.OrdinalIgnoreCase)
-            && await _userrepository.CountActiveUsersInRoleAsync(AppRoles.Admin.Name, cancellationToken) <= 1)
-            return Result.Failure(UserErrors.LastAdministrator);
+        var superAdmin = PermissionCatalog.SuperAdmin;
+        var disablesSuperAdmin = !user.IsDisabled
+            && superAdmin.IsCompatibleWith(user.AccountType, user.IsDemo)
+            && (await _userrepository.GetRolesAsync(user)).Contains(superAdmin.Name, StringComparer.OrdinalIgnoreCase);
 
+        if (!disablesSuperAdmin)
+            return await ToggleAsync(user);
+
+        // never leave the platform without an active Super Admin (C0-5, generalized in S3). The count and the change run
+        // under the SuperAdmin role lock, so two Super Admins disabling each other cannot both succeed.
+        return await _userrepository.RunExclusiveForRoleAsync(superAdmin, async () =>
+            await _userrepository.CountActiveUsersInRoleAsync(superAdmin, cancellationToken) <= 1
+                ? Result.Failure(UserErrors.LastAdministrator)
+                : await ToggleAsync(user),
+            result => result.IsSuccess,
+            cancellationToken);
+    }
+
+    private async Task<Result> ToggleAsync(AppUser user)
+    {
         user.IsDisabled = !user.IsDisabled;
         var result = await _userrepository.UpdateAsync(user);
 

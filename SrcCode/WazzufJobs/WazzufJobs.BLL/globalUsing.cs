@@ -14,8 +14,8 @@ global using WazzufJobs.BLL.Contracts.Roles;
 global using WazzufJobs.BLL.Contracts.Users;
 global using WazzufJobs.BLL.Errors;
 global using WazzufJobs.BLL.Helpers;
+global using WazzufJobs.DAL.Authorization;
 global using WazzufJobs.DAL.Entities;
 global using WazzufJobs.DAL.IRepository;
-global using WazzufJobs.DAL.Persistence.Seeders;
 
 

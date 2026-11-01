@@ -7,7 +7,7 @@ using WazzufJobs.BLL.Features.Jobs.Commands.UpdateJob;
 using WazzufJobs.BLL.Features.Jobs.Queries.GetAllJobs;
 using WazzufJobs.BLL.Features.Jobs.Queries.GetJobById;
 using WazzufJobs.DAL.DTOS;
-using WazzufJobs.DAL.Persistence.Seeders;
+using WazzufJobs.DAL.Authorization;
 
 namespace WazzufJobs.API.Controllers;
 

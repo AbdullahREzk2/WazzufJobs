@@ -1,10 +1,7 @@
-﻿using WazzufJobs.BLL.Features.Roles.Query.GetAllRoles;
-
-namespace WazzufJobs.BLL.Features.Users.Command.CreateUser;
-public class CreateUserCommandHandler(IUserRepository userRepository, IMediator mediator) : IRequestHandler<CreateUserCommand, Result<UserResponse>>
+﻿namespace WazzufJobs.BLL.Features.Users.Command.CreateUser;
+public class CreateUserCommandHandler(IUserRepository userRepository) : IRequestHandler<CreateUserCommand, Result<UserResponse>>
 {
     private readonly IUserRepository _userrepository = userRepository;
-    private readonly IMediator _mediator = mediator;
 
     public async Task<Result<UserResponse>> Handle(CreateUserCommand request, CancellationToken cancellationToken)
     {
@@ -12,15 +9,24 @@ public class CreateUserCommandHandler(IUserRepository userRepository, IMediator 
         if (await _userrepository.EmailExistsAsync(request.userRequest.Email))
             return Result.Failure<UserResponse>(UserErrors.DuplicatedEmail);
 
-        var allowedRoles = await _mediator.Send(new GetAllRolesQuery());
-        var allowedRoleNames = allowedRoles.Select(x => x.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-        if (request.userRequest.Roles.Any(r => !allowedRoleNames.Contains(r)))
+        // Phase 02 (S3): only platform roles from the catalog; legacy aliases ("Admin", "User") are not roles
+        var requestedRoles = request.userRequest.Roles;
+        if (requestedRoles.Any(r => PermissionCatalog.Find(r) is null))
             return Result.Failure<UserResponse>(UserErrors.InvalidRoles);
 
+        // staff accounts are never created through the Users API (D-STAFF-ROLES)
+        if (requestedRoles.Any(PermissionCatalog.IsStaffRole))
+            return Result.Failure<UserResponse>(UserErrors.StaffRolesManagedSeparately);
+
+        // the request has no account type or demo flag: accounts created here are always real candidate accounts
         var user = request.userRequest.Adapt<AppUser>();
         user.UserName = request.userRequest.Email;
         user.EmailConfirmed = true;
+
+        if (PermissionCatalog.ValidateAssignment(user.AccountType, user.IsDemo, requestedRoles) != RoleAssignmentError.None)
+            return Result.Failure<UserResponse>(UserErrors.RoleAccountTypeMismatch);
+
+        IList<string> roles = requestedRoles.Select(r => PermissionCatalog.Find(r)!.Name).Distinct().ToList();
 
         var result = await _userrepository.CreateAsync(user, request.userRequest.Password);
         if (!result.Succeeded)
@@ -29,14 +35,14 @@ public class CreateUserCommandHandler(IUserRepository userRepository, IMediator 
             return Result.Failure<UserResponse>(new Error(error.Code, error.Description, StatusCodes.Status400BadRequest));
         }
 
-        var addRoleResult = await _userrepository.AddToRolesAsync(user, request.userRequest.Roles);
+        var addRoleResult = await _userrepository.AddToRolesAsync(user, roles);
         if (!addRoleResult.Succeeded)
         {
             var error = addRoleResult.Errors.First();
             return Result.Failure<UserResponse>(new Error(error.Code, error.Description, StatusCodes.Status400BadRequest));
         }
 
-        var response = (user, request.userRequest.Roles).Adapt<UserResponse>();
+        var response = (user, roles).Adapt<UserResponse>();
         return Result.Success(response);
     }
 }

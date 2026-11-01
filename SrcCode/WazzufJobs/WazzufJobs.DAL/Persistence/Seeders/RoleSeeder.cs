@@ -1,38 +1,27 @@
-﻿// WazzufJobs.DAL/Persistence/Seeders/RoleSeeder.cs
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
+using WazzufJobs.DAL.Authorization;
 using WazzufJobs.DAL.Entities;
 
 namespace WazzufJobs.DAL.Persistence.Seeders;
 
 public static class RoleSeeder
 {
+    /// <summary>Creates any missing fixed platform role. Existing roles are never changed.</summary>
     public static async Task SeedAsync(RoleManager<ApplicationRole> roleManager)
     {
-        var adminExists = await roleManager.FindByIdAsync(AppRoles.Admin.RoleId);
-        if (adminExists is null)
+        foreach (var role in PermissionCatalog.Roles)
         {
-            await roleManager.CreateAsync(new ApplicationRole
-            {
-                Id = AppRoles.Admin.RoleId,
-                Name = AppRoles.Admin.Name,
-                NormalizedName = AppRoles.Admin.Name.ToUpper(),
-                ConcurrencyStamp = AppRoles.Admin.RoleConcurrencyStamp,
-                IsDefault = false,
-                IsDeleted = false
-            });
-        }
+            if (await roleManager.FindByIdAsync(role.Id) is not null)
+                continue;
 
-        var userExists = await roleManager.FindByIdAsync(AppRoles.User.RoleId);
-        if (userExists is null)
-        {
             await roleManager.CreateAsync(new ApplicationRole
             {
-                Id = AppRoles.User.RoleId,
-                Name = AppRoles.User.Name,
-                NormalizedName = AppRoles.User.Name.ToUpper(),
-                ConcurrencyStamp = AppRoles.User.RoleConcurrencyStamp,
-                IsDefault = true,
-                IsDeleted = false
+                Id = role.Id,
+                Name = role.Name,
+                NormalizedName = role.Name.ToUpperInvariant(),
+                ConcurrencyStamp = role.ConcurrencyStamp,
+                IsSystem = true,
+                Description = role.Description
             });
         }
     }

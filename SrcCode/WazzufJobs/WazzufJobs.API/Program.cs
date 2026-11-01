@@ -3,6 +3,8 @@ using Microsoft.OpenApi.Models;
 using WazzufJobs.API.Services;
 using WazzufJobs.BLL.Hubs;
 using WazzufJobs.DAL.Entities;
+using WazzufJobs.DAL.Authorization;
+using WazzufJobs.DAL.IRepository;
 using WazzufJobs.DAL.Persistence.Seeders;
 
 namespace WazzufJobs.API;
@@ -138,15 +140,15 @@ public class Program
         {
             var roleManager = scope.ServiceProvider
                 .GetRequiredService<RoleManager<ApplicationRole>>();
-            var userManager = scope.ServiceProvider
-                .GetRequiredService<UserManager<AppUser>>();
+            var userRepository = scope.ServiceProvider
+                .GetRequiredService<IUserRepository>();
 
             await RoleSeeder.SeedAsync(roleManager);
 
             // No administrator account is ever created automatically (no default credentials).
-            // The first administrator is created through the controlled bootstrap procedure.
+            // The first Super Admin is created through the controlled bootstrap procedure.
             // Without one, administrative endpoints stay unreachable (no account holds the permissions).
-            var administrators = (await userManager.GetUsersInRoleAsync(AppRoles.Admin.Name)).Count(u => !u.IsDisabled);
+            var administrators = await userRepository.CountActiveUsersInRoleAsync(PermissionCatalog.SuperAdmin, CancellationToken.None);
             if (administrators == 0)
                 logger.LogWarning("No active administrator exists. Administrative features are unavailable until the controlled bootstrap is performed.");
             else

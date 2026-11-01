@@ -5,7 +5,7 @@ using WazzufJobs.BLL.Features.Categories.Commands.DeleteCategory;
 using WazzufJobs.BLL.Features.Categories.Commands.UpdateCategory;
 using WazzufJobs.BLL.Features.Categories.Queries.GetAllCategories;
 using WazzufJobs.BLL.Features.Categories.Queries.GetCategoryById;
-using WazzufJobs.DAL.Persistence.Seeders;
+using WazzufJobs.DAL.Authorization;
 
 namespace WazzufJobs.API.Controllers;
 

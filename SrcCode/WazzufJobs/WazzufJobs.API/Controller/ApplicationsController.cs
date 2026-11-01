@@ -8,7 +8,7 @@ using WazzufJobs.BLL.Features.Applications.Queries.GetMyApplications;
 using WazzufJobs.BLL.Features.UserCV.Queries.GetCvFile;
 using WazzufJobs.BLL.Services;
 using WazzufJobs.BLL.Settings;
-using WazzufJobs.DAL.Persistence.Seeders;
+using WazzufJobs.DAL.Authorization;
 
 namespace WazzufJobs.API.Controller;
 [Route("api/[controller]")]

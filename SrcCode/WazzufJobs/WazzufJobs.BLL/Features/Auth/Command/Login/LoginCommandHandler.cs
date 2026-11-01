@@ -26,10 +26,8 @@ public class LoginCommandHandler(
 
         if (result.Succeeded)
         {
-            var userRoles = await _userrepository.GetRolesAsync(user);
-            var userPermissions = await _userrepository.GetUserPermissionsAsync(userRoles, cancellationToken);
-
-            var (token, expireIn) = _jwtprovider.GenerateToken(user, userRoles, userPermissions);
+            var grant = PermissionCatalog.Resolve(user.AccountType, user.IsDemo, await _userrepository.GetRolesAsync(user));
+            var (token, expireIn) = _jwtprovider.GenerateToken(user, grant);
             var refreshToken = GenerateRefreshTokenHelper.GenerateRefreshToken();
             var refreshTokenExpiration = DateTime.UtcNow.AddDays(_refreshTokenValidityInDays);
 

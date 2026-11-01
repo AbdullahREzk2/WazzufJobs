@@ -3,7 +3,6 @@ using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Configuration;
 using WazzufJobs.DAL.Entities;
-using WazzufJobs.DAL.Persistence.Seeders;
 
 namespace WazzufJobs.BLL.Features.Auth.Command.GoogleLogin;
 
@@ -61,15 +60,14 @@ public class GoogleLoginCommandHandler(
                 return Result.Failure<loginResponseDTO>(new Error(error.Code, error.Description, StatusCodes.Status400BadRequest));
             }
 
-            await _userRepository.AddToRoleAsync(user, AppRoles.User.Name);
+            await _userRepository.AddToRoleAsync(user, PlatformRoles.Candidate);
         }
 
         if (user.IsDisabled)
             return Result.Failure<loginResponseDTO>(UserErrors.DisabledUser);
 
-        var userRoles = await _userRepository.GetRolesAsync(user);
-        var userPermissions = await _userRepository.GetUserPermissionsAsync(userRoles, cancellationToken);
-        var (token, expireIn) = _jwtProvider.GenerateToken(user, userRoles, userPermissions);
+        var grant = PermissionCatalog.Resolve(user.AccountType, user.IsDemo, await _userRepository.GetRolesAsync(user));
+        var (token, expireIn) = _jwtProvider.GenerateToken(user, grant);
         var refreshToken = GenerateRefreshTokenHelper.GenerateRefreshToken();
         var refreshTokenExpiration = DateTime.UtcNow.AddDays(_refreshTokenValidityInDays);
 

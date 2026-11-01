@@ -41,6 +41,13 @@ public record UserErrors
         new("User.GoogleAccountNotLinkable", "This email has an unconfirmed account. Confirm your email or reset your password before using Google sign-in.", StatusCodes.Status409Conflict);
 
     public static readonly Error LastAdministrator =
-        new("User.LastAdministrator", "The last active administrator cannot be disabled or lose the Admin role.", StatusCodes.Status400BadRequest);
+        new("User.LastAdministrator", "The last active Super Admin cannot be disabled or lose the SuperAdmin role.", StatusCodes.Status400BadRequest);
+
+    /// <summary>Phase 02 (S3): staff roles are never granted or revoked through the Users API.</summary>
+    public static readonly Error StaffRolesManagedSeparately =
+        new("Users.StaffRolesManagedSeparately", "Staff roles cannot be granted or revoked here.", StatusCodes.Status403Forbidden);
+
+    public static readonly Error RoleAccountTypeMismatch =
+        new("User.RoleAccountTypeMismatch", "An account holds at most one role, matching its account type.", StatusCodes.Status400BadRequest);
 }
 

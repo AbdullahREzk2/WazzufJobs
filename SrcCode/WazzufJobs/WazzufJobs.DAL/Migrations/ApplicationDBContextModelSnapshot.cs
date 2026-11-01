@@ -52,231 +52,245 @@ namespace WazzufJobs.DAL.Migrations
                             Id = 1,
                             ClaimType = "permissions",
                             ClaimValue = "jobs:read",
-                            RoleId = "C1E2A3D4-E5F6-7890-ABCD-EF1234567890"
+                            RoleId = "bf766c90-9e7c-4798-99c6-e90fe3a7960f"
                         },
                         new
                         {
                             Id = 2,
                             ClaimType = "permissions",
                             ClaimValue = "jobs:create",
-                            RoleId = "C1E2A3D4-E5F6-7890-ABCD-EF1234567890"
+                            RoleId = "bf766c90-9e7c-4798-99c6-e90fe3a7960f"
                         },
                         new
                         {
                             Id = 3,
                             ClaimType = "permissions",
                             ClaimValue = "jobs:update",
-                            RoleId = "C1E2A3D4-E5F6-7890-ABCD-EF1234567890"
+                            RoleId = "bf766c90-9e7c-4798-99c6-e90fe3a7960f"
                         },
                         new
                         {
                             Id = 4,
                             ClaimType = "permissions",
                             ClaimValue = "jobs:delete",
-                            RoleId = "C1E2A3D4-E5F6-7890-ABCD-EF1234567890"
+                            RoleId = "bf766c90-9e7c-4798-99c6-e90fe3a7960f"
                         },
                         new
                         {
                             Id = 5,
                             ClaimType = "permissions",
                             ClaimValue = "applications:read",
-                            RoleId = "C1E2A3D4-E5F6-7890-ABCD-EF1234567890"
+                            RoleId = "bf766c90-9e7c-4798-99c6-e90fe3a7960f"
                         },
                         new
                         {
                             Id = 6,
                             ClaimType = "permissions",
                             ClaimValue = "applications:create",
-                            RoleId = "C1E2A3D4-E5F6-7890-ABCD-EF1234567890"
+                            RoleId = "bf766c90-9e7c-4798-99c6-e90fe3a7960f"
                         },
                         new
                         {
                             Id = 7,
                             ClaimType = "permissions",
                             ClaimValue = "applications:update",
-                            RoleId = "C1E2A3D4-E5F6-7890-ABCD-EF1234567890"
+                            RoleId = "bf766c90-9e7c-4798-99c6-e90fe3a7960f"
                         },
                         new
                         {
                             Id = 8,
                             ClaimType = "permissions",
                             ClaimValue = "categories:read",
-                            RoleId = "C1E2A3D4-E5F6-7890-ABCD-EF1234567890"
+                            RoleId = "bf766c90-9e7c-4798-99c6-e90fe3a7960f"
                         },
                         new
                         {
                             Id = 9,
                             ClaimType = "permissions",
                             ClaimValue = "categories:create",
-                            RoleId = "C1E2A3D4-E5F6-7890-ABCD-EF1234567890"
+                            RoleId = "bf766c90-9e7c-4798-99c6-e90fe3a7960f"
                         },
                         new
                         {
                             Id = 10,
                             ClaimType = "permissions",
                             ClaimValue = "categories:update",
-                            RoleId = "C1E2A3D4-E5F6-7890-ABCD-EF1234567890"
+                            RoleId = "bf766c90-9e7c-4798-99c6-e90fe3a7960f"
                         },
                         new
                         {
                             Id = 11,
                             ClaimType = "permissions",
                             ClaimValue = "categories:delete",
-                            RoleId = "C1E2A3D4-E5F6-7890-ABCD-EF1234567890"
+                            RoleId = "bf766c90-9e7c-4798-99c6-e90fe3a7960f"
                         },
                         new
                         {
                             Id = 12,
                             ClaimType = "permissions",
                             ClaimValue = "users:read",
-                            RoleId = "C1E2A3D4-E5F6-7890-ABCD-EF1234567890"
+                            RoleId = "bf766c90-9e7c-4798-99c6-e90fe3a7960f"
                         },
                         new
                         {
                             Id = 13,
                             ClaimType = "permissions",
                             ClaimValue = "users:create",
-                            RoleId = "C1E2A3D4-E5F6-7890-ABCD-EF1234567890"
+                            RoleId = "bf766c90-9e7c-4798-99c6-e90fe3a7960f"
                         },
                         new
                         {
                             Id = 14,
                             ClaimType = "permissions",
                             ClaimValue = "users:update",
-                            RoleId = "C1E2A3D4-E5F6-7890-ABCD-EF1234567890"
+                            RoleId = "bf766c90-9e7c-4798-99c6-e90fe3a7960f"
                         },
                         new
                         {
                             Id = 15,
                             ClaimType = "permissions",
                             ClaimValue = "users:delete",
-                            RoleId = "C1E2A3D4-E5F6-7890-ABCD-EF1234567890"
+                            RoleId = "bf766c90-9e7c-4798-99c6-e90fe3a7960f"
                         },
                         new
                         {
                             Id = 16,
                             ClaimType = "permissions",
                             ClaimValue = "roles:read",
-                            RoleId = "C1E2A3D4-E5F6-7890-ABCD-EF1234567890"
+                            RoleId = "bf766c90-9e7c-4798-99c6-e90fe3a7960f"
                         },
                         new
                         {
                             Id = 17,
                             ClaimType = "permissions",
-                            ClaimValue = "roles:create",
-                            RoleId = "C1E2A3D4-E5F6-7890-ABCD-EF1234567890"
+                            ClaimValue = "cv:upload",
+                            RoleId = "bf766c90-9e7c-4798-99c6-e90fe3a7960f"
                         },
                         new
                         {
                             Id = 18,
                             ClaimType = "permissions",
-                            ClaimValue = "roles:update",
-                            RoleId = "C1E2A3D4-E5F6-7890-ABCD-EF1234567890"
+                            ClaimValue = "cv:delete",
+                            RoleId = "bf766c90-9e7c-4798-99c6-e90fe3a7960f"
                         },
                         new
                         {
                             Id = 19,
                             ClaimType = "permissions",
-                            ClaimValue = "roles:delete",
-                            RoleId = "C1E2A3D4-E5F6-7890-ABCD-EF1234567890"
+                            ClaimValue = "savedjobs:read",
+                            RoleId = "bf766c90-9e7c-4798-99c6-e90fe3a7960f"
                         },
                         new
                         {
                             Id = 20,
                             ClaimType = "permissions",
-                            ClaimValue = "cv:upload",
-                            RoleId = "C1E2A3D4-E5F6-7890-ABCD-EF1234567890"
+                            ClaimValue = "savedjobs:create",
+                            RoleId = "bf766c90-9e7c-4798-99c6-e90fe3a7960f"
                         },
                         new
                         {
                             Id = 21,
                             ClaimType = "permissions",
-                            ClaimValue = "cv:delete",
-                            RoleId = "C1E2A3D4-E5F6-7890-ABCD-EF1234567890"
+                            ClaimValue = "savedjobs:delete",
+                            RoleId = "bf766c90-9e7c-4798-99c6-e90fe3a7960f"
                         },
                         new
                         {
                             Id = 22,
                             ClaimType = "permissions",
-                            ClaimValue = "savedjobs:read",
-                            RoleId = "C1E2A3D4-E5F6-7890-ABCD-EF1234567890"
+                            ClaimValue = "jobs:read",
+                            RoleId = "21eb5d41-fffb-4b7d-8c09-abb15d40187b"
                         },
                         new
                         {
                             Id = 23,
                             ClaimType = "permissions",
-                            ClaimValue = "savedjobs:create",
-                            RoleId = "C1E2A3D4-E5F6-7890-ABCD-EF1234567890"
+                            ClaimValue = "categories:read",
+                            RoleId = "21eb5d41-fffb-4b7d-8c09-abb15d40187b"
                         },
                         new
                         {
                             Id = 24,
                             ClaimType = "permissions",
-                            ClaimValue = "savedjobs:delete",
-                            RoleId = "C1E2A3D4-E5F6-7890-ABCD-EF1234567890"
+                            ClaimValue = "users:read",
+                            RoleId = "21eb5d41-fffb-4b7d-8c09-abb15d40187b"
                         },
                         new
                         {
                             Id = 25,
                             ClaimType = "permissions",
                             ClaimValue = "jobs:read",
-                            RoleId = "D2E3B4C5-F6A7-8901-BCDE-F01234567892"
+                            RoleId = "eb935101-a57b-48a7-ad2d-ee21fc5e6ad1"
                         },
                         new
                         {
                             Id = 26,
                             ClaimType = "permissions",
                             ClaimValue = "applications:read",
-                            RoleId = "D2E3B4C5-F6A7-8901-BCDE-F01234567892"
+                            RoleId = "eb935101-a57b-48a7-ad2d-ee21fc5e6ad1"
                         },
                         new
                         {
                             Id = 27,
                             ClaimType = "permissions",
                             ClaimValue = "applications:create",
-                            RoleId = "D2E3B4C5-F6A7-8901-BCDE-F01234567892"
+                            RoleId = "eb935101-a57b-48a7-ad2d-ee21fc5e6ad1"
                         },
                         new
                         {
                             Id = 28,
                             ClaimType = "permissions",
                             ClaimValue = "categories:read",
-                            RoleId = "D2E3B4C5-F6A7-8901-BCDE-F01234567892"
+                            RoleId = "eb935101-a57b-48a7-ad2d-ee21fc5e6ad1"
                         },
                         new
                         {
                             Id = 29,
                             ClaimType = "permissions",
                             ClaimValue = "cv:upload",
-                            RoleId = "D2E3B4C5-F6A7-8901-BCDE-F01234567892"
+                            RoleId = "eb935101-a57b-48a7-ad2d-ee21fc5e6ad1"
                         },
                         new
                         {
                             Id = 30,
                             ClaimType = "permissions",
                             ClaimValue = "cv:delete",
-                            RoleId = "D2E3B4C5-F6A7-8901-BCDE-F01234567892"
+                            RoleId = "eb935101-a57b-48a7-ad2d-ee21fc5e6ad1"
                         },
                         new
                         {
                             Id = 31,
                             ClaimType = "permissions",
                             ClaimValue = "savedjobs:read",
-                            RoleId = "D2E3B4C5-F6A7-8901-BCDE-F01234567892"
+                            RoleId = "eb935101-a57b-48a7-ad2d-ee21fc5e6ad1"
                         },
                         new
                         {
                             Id = 32,
                             ClaimType = "permissions",
                             ClaimValue = "savedjobs:create",
-                            RoleId = "D2E3B4C5-F6A7-8901-BCDE-F01234567892"
+                            RoleId = "eb935101-a57b-48a7-ad2d-ee21fc5e6ad1"
                         },
                         new
                         {
                             Id = 33,
                             ClaimType = "permissions",
                             ClaimValue = "savedjobs:delete",
-                            RoleId = "D2E3B4C5-F6A7-8901-BCDE-F01234567892"
+                            RoleId = "eb935101-a57b-48a7-ad2d-ee21fc5e6ad1"
+                        },
+                        new
+                        {
+                            Id = 34,
+                            ClaimType = "permissions",
+                            ClaimValue = "jobs:read",
+                            RoleId = "6b2d257a-0e04-49aa-9d22-e893759ed0c9"
+                        },
+                        new
+                        {
+                            Id = 35,
+                            ClaimType = "permissions",
+                            ClaimValue = "categories:read",
+                            RoleId = "6b2d257a-0e04-49aa-9d22-e893759ed0c9"
                         });
                 });
 
@@ -546,12 +560,6 @@ namespace WazzufJobs.DAL.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
-                    b.Property<bool>("IsDefault")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
                     b.Property<bool>("IsSystem")
                         .HasColumnType("bit");
 
@@ -575,23 +583,48 @@ namespace WazzufJobs.DAL.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "C1E2A3D4-E5F6-7890-ABCD-EF1234567890",
-                            ConcurrencyStamp = "A1B2C3D4-E5F6-7890-ABCD-EF1234567891",
-                            IsDefault = false,
-                            IsDeleted = false,
+                            Id = "bf766c90-9e7c-4798-99c6-e90fe3a7960f",
+                            ConcurrencyStamp = "17291d98-8355-4440-a359-d4138485b8e6",
+                            Description = "Platform owner: every platform permission, including users, roles (read-only) and applications.",
                             IsSystem = true,
-                            Name = "Admin",
-                            NormalizedName = "ADMIN"
+                            Name = "SuperAdmin",
+                            NormalizedName = "SUPERADMIN"
                         },
                         new
                         {
-                            Id = "D2E3B4C5-F6A7-8901-BCDE-F01234567892",
-                            ConcurrencyStamp = "B2C3D4E5-F6A7-8901-BCDE-F01234567893",
-                            IsDefault = true,
-                            IsDeleted = false,
+                            Id = "21eb5d41-fffb-4b7d-8c09-abb15d40187b",
+                            ConcurrencyStamp = "0de9d4f3-4fb2-4bac-bf7e-f5cd60efc2b0",
+                            Description = "Platform moderation and the user list (read-only). Never CVs, applications or AI assessments.",
                             IsSystem = true,
-                            Name = "User",
-                            NormalizedName = "USER"
+                            Name = "Moderator",
+                            NormalizedName = "MODERATOR"
+                        },
+                        new
+                        {
+                            Id = "eb935101-a57b-48a7-ad2d-ee21fc5e6ad1",
+                            ConcurrencyStamp = "304deecb-d38e-43eb-aad3-b0476d91b2a3",
+                            Description = "Job seeker: own profile, CV, saved jobs and applications.",
+                            IsSystem = true,
+                            Name = "Candidate",
+                            NormalizedName = "CANDIDATE"
+                        },
+                        new
+                        {
+                            Id = "f6d38004-b93a-4e15-80c0-824e87e50339",
+                            ConcurrencyStamp = "7dcedc97-bb94-4df4-9744-3fa4b6870d12",
+                            Description = "Company account: no platform permissions; rights come from company membership.",
+                            IsSystem = true,
+                            Name = "CompanyUser",
+                            NormalizedName = "COMPANYUSER"
+                        },
+                        new
+                        {
+                            Id = "6b2d257a-0e04-49aa-9d22-e893759ed0c9",
+                            ConcurrencyStamp = "cb1d55b7-5d07-4845-9c1f-fba303e9f9c4",
+                            Description = "Demo staff: public reference data only until demo scope exists. Never real users, CVs or AI assessments.",
+                            IsSystem = true,
+                            Name = "DemoAdmin",
+                            NormalizedName = "DEMOADMIN"
                         });
                 });
 

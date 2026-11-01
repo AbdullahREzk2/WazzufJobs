@@ -13,7 +13,7 @@ public class JwtProvider : IJwtProvider
     {
         _options = options.Value;
     }
-    public (string token, int expireIn) GenerateToken(AppUser user, IEnumerable<string> roles, IEnumerable<string> permissions)
+    public (string token, int expireIn) GenerateToken(AppUser user, AccessGrant grant)
     {
         Claim[] claims = [
             new(JwtRegisteredClaimNames.Sub, user.Id),
@@ -21,8 +21,11 @@ public class JwtProvider : IJwtProvider
             new(JwtRegisteredClaimNames.GivenName,user.FirstName!),
             new(JwtRegisteredClaimNames.FamilyName,user.LastName!),
             new(JwtRegisteredClaimNames.Jti,Guid.NewGuid().ToString()),
-            new(nameof(roles),JsonSerializer.Serialize(roles),JsonClaimValueTypes.JsonArray),
-            new(nameof(permissions),JsonSerializer.Serialize(permissions),JsonClaimValueTypes.JsonArray)
+            // Phase 02 (S3): effective platform roles plus legacy aliases (display only: the API authorizes by
+            // permission, never by role), the account type, and the catalog permissions of the effective roles
+            new(AccessTokenClaims.Roles,JsonSerializer.Serialize(grant.TokenRoles),JsonClaimValueTypes.JsonArray),
+            new(AccessTokenClaims.AccountType,grant.AccountType.ToString()),
+            new(AccessTokenClaims.Permissions,JsonSerializer.Serialize(grant.Permissions),JsonClaimValueTypes.JsonArray)
             ];
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.key));

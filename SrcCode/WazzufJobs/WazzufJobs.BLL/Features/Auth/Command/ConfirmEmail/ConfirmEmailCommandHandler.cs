@@ -29,7 +29,7 @@ public class ConfirmEmailCommandHandler(IUserRepository userRepository, IBackgro
         if (result.Succeeded)
         {
             await _isendwelcome.sendEmail(user);
-            await _userrepository.AddToRoleAsync(user, AppRoles.User.Name);
+            await _userrepository.AddToRoleAsync(user, PlatformRoles.Candidate);
             return Result.Success();
         }
 

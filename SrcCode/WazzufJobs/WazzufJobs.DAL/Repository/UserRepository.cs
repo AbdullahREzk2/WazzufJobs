@@ -4,7 +4,7 @@ using WazzufJobs.DAL.DTOS;
 using WazzufJobs.DAL.Entities;
 using WazzufJobs.DAL.IRepository;
 using WazzufJobs.DAL.Persistence;
-using WazzufJobs.DAL.Persistence.Seeders;
+using WazzufJobs.DAL.Authorization;
 
 namespace WazzufJobs.DAL.Repository;
 
@@ -35,17 +35,6 @@ public class UserRepository : IUserRepository
     public async Task<IList<string>> GetRolesAsync(AppUser user)
         => await _usermanager.GetRolesAsync(user);
 
-    public async Task<IList<string>> GetUserPermissionsAsync(IList<string> userRoles, CancellationToken cancellationToken)
-    {
-        return (await (
-            from r in _dbcontext.Roles
-            join p in _dbcontext.RoleClaims on r.Id equals p.RoleId
-            where userRoles.Contains(r.Name!)
-            select p.ClaimValue)
-            .Distinct()
-            .ToListAsync(cancellationToken))!;
-    }
-
     public async Task<List<AppUser>> GetAllUsersAsync(CancellationToken cancellationToken)
         => await _usermanager.Users.ToListAsync(cancellationToken);
 
@@ -54,7 +43,7 @@ public class UserRepository : IUserRepository
             from u in _dbcontext.Users
             join ur in _dbcontext.UserRoles on u.Id equals ur.UserId
             join r in _dbcontext.Roles on ur.RoleId equals r.Id into roles
-            where !roles.Any(x => x.Name == AppRoles.User.Name)
+            where !roles.Any(x => x.Name == PlatformRoles.Candidate)
             select new
             {
                 u.Id,
@@ -143,8 +132,50 @@ public class UserRepository : IUserRepository
         });
     }
 
-    public async Task<int> CountActiveUsersInRoleAsync(string roleName, CancellationToken cancellationToken)
-        => (await _usermanager.GetUsersInRoleAsync(roleName)).Count(u => !u.IsDisabled);
+    public async Task<int> CountActiveUsersInRoleAsync(PlatformRole role, CancellationToken cancellationToken)
+    {
+        // same rule as PlatformRole.IsCompatibleWith, evaluated by the database
+        var demoOnly = role.DemoOnly;
+        var realOnly = role.IsStaff && !role.DemoOnly;
+        return await (
+            from u in _dbcontext.Users
+            join ur in _dbcontext.UserRoles on u.Id equals ur.UserId
+            where ur.RoleId == role.Id
+                && !u.IsDisabled
+                && u.AccountType == role.AccountType
+                && (!demoOnly || u.IsDemo)
+                && (!realOnly || !u.IsDemo)
+            select u.Id)
+            .Distinct()
+            .CountAsync(cancellationToken);
+    }
+
+    public async Task<TResult> RunExclusiveForRoleAsync<TResult>(
+        PlatformRole role, Func<Task<TResult>> change, Func<TResult, bool> succeeded, CancellationToken cancellationToken)
+    {
+        if (!_dbcontext.Database.IsRelational())
+            return await change();
+
+        var roleId = role.Id;
+        var strategy = _dbcontext.Database.CreateExecutionStrategy();
+        return await strategy.ExecuteAsync(async () =>
+        {
+            await using var transaction = await _dbcontext.Database.BeginTransactionAsync(cancellationToken);
+
+            // the role row is the lock: every change that can remove an active holder takes it first (U locks
+            // conflict with each other but not with readers, so sign-in and queries are not blocked)
+            await _dbcontext.Database.ExecuteSqlInterpolatedAsync(
+                $"DECLARE @locked int; SELECT @locked = 1 FROM [AspNetRoles] WITH (UPDLOCK, HOLDLOCK) WHERE [Id] = {roleId};",
+                cancellationToken);
+
+            var result = await change();
+            if (succeeded(result))
+                await transaction.CommitAsync(cancellationToken);
+            else
+                await transaction.RollbackAsync(cancellationToken);
+            return result;
+        });
+    }
 
     public async Task<IdentityResult> SetLockoutEndDateAsync(AppUser user, DateTimeOffset? lockoutEnd)
         => await _usermanager.SetLockoutEndDateAsync(user, lockoutEnd);

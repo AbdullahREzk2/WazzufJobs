@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using WazzufJobs.DAL.Persistence;
-using WazzufJobs.DAL.Persistence.Seeders;
+using WazzufJobs.DAL.Authorization;
 using WazzufJobs.Tests.Infrastructure;
 
 namespace WazzufJobs.Tests;

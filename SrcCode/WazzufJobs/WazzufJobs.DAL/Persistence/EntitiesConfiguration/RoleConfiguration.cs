@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using WazzufJobs.DAL.Authorization;
 using WazzufJobs.DAL.Entities;
-using WazzufJobs.DAL.Persistence.Seeders;
 
 namespace WazzufJobs.DAL.Persistence.EntitiesConfiguration;
 
@@ -11,27 +11,15 @@ public class RoleConfiguration : IEntityTypeConfiguration<ApplicationRole>
     {
         builder.Property(r => r.Description).HasMaxLength(256);
 
-        builder.HasData(
-            new ApplicationRole
-            {
-                Id = AppRoles.Admin.RoleId,
-                Name = AppRoles.Admin.Name,
-                NormalizedName = AppRoles.Admin.Name.ToUpper(),
-                ConcurrencyStamp = AppRoles.Admin.RoleConcurrencyStamp,
-                IsDefault = false,
-                IsDeleted = false,
-                IsSystem = true
-            },
-            new ApplicationRole
-            {
-                Id = AppRoles.User.RoleId,
-                Name = AppRoles.User.Name,
-                NormalizedName = AppRoles.User.Name.ToUpper(),
-                ConcurrencyStamp = AppRoles.User.RoleConcurrencyStamp,
-                IsDefault = true,
-                IsDeleted = false,
-                IsSystem = true
-            }
-        );
+        // the fixed platform roles, from the code catalog (Phase 02, S3)
+        builder.HasData(PermissionCatalog.Roles.Select(r => new ApplicationRole
+        {
+            Id = r.Id,
+            Name = r.Name,
+            NormalizedName = r.Name.ToUpperInvariant(),
+            ConcurrencyStamp = r.ConcurrencyStamp,
+            IsSystem = true,
+            Description = r.Description
+        }));
     }
 }

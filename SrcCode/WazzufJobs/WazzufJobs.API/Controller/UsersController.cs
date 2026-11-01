@@ -5,7 +5,7 @@ using WazzufJobs.BLL.Features.Users.Command.CreateUser;
 using WazzufJobs.BLL.Features.Users.Command.UpdateUser;
 using WazzufJobs.BLL.Features.Users.Command.UserToggleStatus;
 using WazzufJobs.BLL.Features.Users.Query.GetAllUsers;
-using WazzufJobs.DAL.Persistence.Seeders;
+using WazzufJobs.DAL.Authorization;
 
 namespace WazzufJobs.API.Controllers;
 

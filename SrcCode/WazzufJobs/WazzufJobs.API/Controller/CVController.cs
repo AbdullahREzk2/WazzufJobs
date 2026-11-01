@@ -3,7 +3,7 @@ using WazzufJobs.BLL.Features.UserCV.Commands.DeleteCV;
 using WazzufJobs.BLL.Features.UserCV.Commands.UploadCV;
 using WazzufJobs.BLL.Features.UserCV.Queries.GetCV;
 using WazzufJobs.BLL.Features.UserCV.Queries.GetCvFile;
-using WazzufJobs.DAL.Persistence.Seeders;
+using WazzufJobs.DAL.Authorization;
 
 namespace WazzufJobs.API.Controllers;
 

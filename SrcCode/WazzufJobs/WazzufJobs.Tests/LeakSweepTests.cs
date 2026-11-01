@@ -2,7 +2,7 @@ using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Http.Metadata;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
-using WazzufJobs.DAL.Persistence.Seeders;
+using WazzufJobs.DAL.Authorization;
 using WazzufJobs.Tests.Infrastructure;
 
 namespace WazzufJobs.Tests;
@@ -52,10 +52,10 @@ public class LeakSweepTests(C0WebApplicationFactory factory) : IClassFixture<C0W
     {
         var values = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase)
         {
-            ["id"] = [s.ApplicationOfB.Id.ToString(), s.Job.Id.ToString(), s.Job.CategoryId.ToString(), AppRoles.Admin.RoleId],
+            ["id"] = [s.ApplicationOfB.Id.ToString(), s.Job.Id.ToString(), s.Job.CategoryId.ToString(), PermissionCatalog.SuperAdmin.Id],
             ["jobId"] = [s.Job.Id.ToString()],
             ["userId"] = [s.CandidateB.Id, s.Admin.Id],
-            ["roleId"] = [AppRoles.Admin.RoleId]
+            ["roleId"] = [PermissionCatalog.SuperAdmin.Id]
         };
 
         var endpoints = factory.Services.GetRequiredService<EndpointDataSource>().Endpoints.OfType<RouteEndpoint>();

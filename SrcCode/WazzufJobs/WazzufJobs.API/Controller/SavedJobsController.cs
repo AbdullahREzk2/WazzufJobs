@@ -2,7 +2,7 @@
 using WazzufJobs.BLL.Features.SavedJobs.Commands.RemoveSavedJob;
 using WazzufJobs.BLL.Features.SavedJobs.Commands.SaveJob;
 using WazzufJobs.BLL.Features.SavedJobs.Queries.GetSavedJobs;
-using WazzufJobs.DAL.Persistence.Seeders;
+using WazzufJobs.DAL.Authorization;
 
 namespace WazzufJobs.API.Controllers;
 

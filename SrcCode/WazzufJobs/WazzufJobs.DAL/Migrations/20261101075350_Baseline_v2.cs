@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -18,8 +18,6 @@ namespace WazzufJobs.DAL.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    IsDefault = table.Column<bool>(type: "bit", nullable: false),
-                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
                     IsSystem = table.Column<bool>(type: "bit", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     Name = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -663,11 +661,14 @@ namespace WazzufJobs.DAL.Migrations
 
             migrationBuilder.InsertData(
                 table: "AspNetRoles",
-                columns: new[] { "Id", "ConcurrencyStamp", "Description", "IsDefault", "IsDeleted", "IsSystem", "Name", "NormalizedName" },
+                columns: new[] { "Id", "ConcurrencyStamp", "Description", "IsSystem", "Name", "NormalizedName" },
                 values: new object[,]
                 {
-                    { "C1E2A3D4-E5F6-7890-ABCD-EF1234567890", "A1B2C3D4-E5F6-7890-ABCD-EF1234567891", null, false, false, true, "Admin", "ADMIN" },
-                    { "D2E3B4C5-F6A7-8901-BCDE-F01234567892", "B2C3D4E5-F6A7-8901-BCDE-F01234567893", null, true, false, true, "User", "USER" }
+                    { "21eb5d41-fffb-4b7d-8c09-abb15d40187b", "0de9d4f3-4fb2-4bac-bf7e-f5cd60efc2b0", "Platform moderation and the user list (read-only). Never CVs, applications or AI assessments.", true, "Moderator", "MODERATOR" },
+                    { "6b2d257a-0e04-49aa-9d22-e893759ed0c9", "cb1d55b7-5d07-4845-9c1f-fba303e9f9c4", "Demo staff: public reference data only until demo scope exists. Never real users, CVs or AI assessments.", true, "DemoAdmin", "DEMOADMIN" },
+                    { "bf766c90-9e7c-4798-99c6-e90fe3a7960f", "17291d98-8355-4440-a359-d4138485b8e6", "Platform owner: every platform permission, including users, roles (read-only) and applications.", true, "SuperAdmin", "SUPERADMIN" },
+                    { "eb935101-a57b-48a7-ad2d-ee21fc5e6ad1", "304deecb-d38e-43eb-aad3-b0476d91b2a3", "Job seeker: own profile, CV, saved jobs and applications.", true, "Candidate", "CANDIDATE" },
+                    { "f6d38004-b93a-4e15-80c0-824e87e50339", "7dcedc97-bb94-4df4-9744-3fa4b6870d12", "Company account: no platform permissions; rights come from company membership.", true, "CompanyUser", "COMPANYUSER" }
                 });
 
             migrationBuilder.InsertData(
@@ -700,39 +701,41 @@ namespace WazzufJobs.DAL.Migrations
                 columns: new[] { "Id", "ClaimType", "ClaimValue", "RoleId" },
                 values: new object[,]
                 {
-                    { 1, "permissions", "jobs:read", "C1E2A3D4-E5F6-7890-ABCD-EF1234567890" },
-                    { 2, "permissions", "jobs:create", "C1E2A3D4-E5F6-7890-ABCD-EF1234567890" },
-                    { 3, "permissions", "jobs:update", "C1E2A3D4-E5F6-7890-ABCD-EF1234567890" },
-                    { 4, "permissions", "jobs:delete", "C1E2A3D4-E5F6-7890-ABCD-EF1234567890" },
-                    { 5, "permissions", "applications:read", "C1E2A3D4-E5F6-7890-ABCD-EF1234567890" },
-                    { 6, "permissions", "applications:create", "C1E2A3D4-E5F6-7890-ABCD-EF1234567890" },
-                    { 7, "permissions", "applications:update", "C1E2A3D4-E5F6-7890-ABCD-EF1234567890" },
-                    { 8, "permissions", "categories:read", "C1E2A3D4-E5F6-7890-ABCD-EF1234567890" },
-                    { 9, "permissions", "categories:create", "C1E2A3D4-E5F6-7890-ABCD-EF1234567890" },
-                    { 10, "permissions", "categories:update", "C1E2A3D4-E5F6-7890-ABCD-EF1234567890" },
-                    { 11, "permissions", "categories:delete", "C1E2A3D4-E5F6-7890-ABCD-EF1234567890" },
-                    { 12, "permissions", "users:read", "C1E2A3D4-E5F6-7890-ABCD-EF1234567890" },
-                    { 13, "permissions", "users:create", "C1E2A3D4-E5F6-7890-ABCD-EF1234567890" },
-                    { 14, "permissions", "users:update", "C1E2A3D4-E5F6-7890-ABCD-EF1234567890" },
-                    { 15, "permissions", "users:delete", "C1E2A3D4-E5F6-7890-ABCD-EF1234567890" },
-                    { 16, "permissions", "roles:read", "C1E2A3D4-E5F6-7890-ABCD-EF1234567890" },
-                    { 17, "permissions", "roles:create", "C1E2A3D4-E5F6-7890-ABCD-EF1234567890" },
-                    { 18, "permissions", "roles:update", "C1E2A3D4-E5F6-7890-ABCD-EF1234567890" },
-                    { 19, "permissions", "roles:delete", "C1E2A3D4-E5F6-7890-ABCD-EF1234567890" },
-                    { 20, "permissions", "cv:upload", "C1E2A3D4-E5F6-7890-ABCD-EF1234567890" },
-                    { 21, "permissions", "cv:delete", "C1E2A3D4-E5F6-7890-ABCD-EF1234567890" },
-                    { 22, "permissions", "savedjobs:read", "C1E2A3D4-E5F6-7890-ABCD-EF1234567890" },
-                    { 23, "permissions", "savedjobs:create", "C1E2A3D4-E5F6-7890-ABCD-EF1234567890" },
-                    { 24, "permissions", "savedjobs:delete", "C1E2A3D4-E5F6-7890-ABCD-EF1234567890" },
-                    { 25, "permissions", "jobs:read", "D2E3B4C5-F6A7-8901-BCDE-F01234567892" },
-                    { 26, "permissions", "applications:read", "D2E3B4C5-F6A7-8901-BCDE-F01234567892" },
-                    { 27, "permissions", "applications:create", "D2E3B4C5-F6A7-8901-BCDE-F01234567892" },
-                    { 28, "permissions", "categories:read", "D2E3B4C5-F6A7-8901-BCDE-F01234567892" },
-                    { 29, "permissions", "cv:upload", "D2E3B4C5-F6A7-8901-BCDE-F01234567892" },
-                    { 30, "permissions", "cv:delete", "D2E3B4C5-F6A7-8901-BCDE-F01234567892" },
-                    { 31, "permissions", "savedjobs:read", "D2E3B4C5-F6A7-8901-BCDE-F01234567892" },
-                    { 32, "permissions", "savedjobs:create", "D2E3B4C5-F6A7-8901-BCDE-F01234567892" },
-                    { 33, "permissions", "savedjobs:delete", "D2E3B4C5-F6A7-8901-BCDE-F01234567892" }
+                    { 1, "permissions", "jobs:read", "bf766c90-9e7c-4798-99c6-e90fe3a7960f" },
+                    { 2, "permissions", "jobs:create", "bf766c90-9e7c-4798-99c6-e90fe3a7960f" },
+                    { 3, "permissions", "jobs:update", "bf766c90-9e7c-4798-99c6-e90fe3a7960f" },
+                    { 4, "permissions", "jobs:delete", "bf766c90-9e7c-4798-99c6-e90fe3a7960f" },
+                    { 5, "permissions", "applications:read", "bf766c90-9e7c-4798-99c6-e90fe3a7960f" },
+                    { 6, "permissions", "applications:create", "bf766c90-9e7c-4798-99c6-e90fe3a7960f" },
+                    { 7, "permissions", "applications:update", "bf766c90-9e7c-4798-99c6-e90fe3a7960f" },
+                    { 8, "permissions", "categories:read", "bf766c90-9e7c-4798-99c6-e90fe3a7960f" },
+                    { 9, "permissions", "categories:create", "bf766c90-9e7c-4798-99c6-e90fe3a7960f" },
+                    { 10, "permissions", "categories:update", "bf766c90-9e7c-4798-99c6-e90fe3a7960f" },
+                    { 11, "permissions", "categories:delete", "bf766c90-9e7c-4798-99c6-e90fe3a7960f" },
+                    { 12, "permissions", "users:read", "bf766c90-9e7c-4798-99c6-e90fe3a7960f" },
+                    { 13, "permissions", "users:create", "bf766c90-9e7c-4798-99c6-e90fe3a7960f" },
+                    { 14, "permissions", "users:update", "bf766c90-9e7c-4798-99c6-e90fe3a7960f" },
+                    { 15, "permissions", "users:delete", "bf766c90-9e7c-4798-99c6-e90fe3a7960f" },
+                    { 16, "permissions", "roles:read", "bf766c90-9e7c-4798-99c6-e90fe3a7960f" },
+                    { 17, "permissions", "cv:upload", "bf766c90-9e7c-4798-99c6-e90fe3a7960f" },
+                    { 18, "permissions", "cv:delete", "bf766c90-9e7c-4798-99c6-e90fe3a7960f" },
+                    { 19, "permissions", "savedjobs:read", "bf766c90-9e7c-4798-99c6-e90fe3a7960f" },
+                    { 20, "permissions", "savedjobs:create", "bf766c90-9e7c-4798-99c6-e90fe3a7960f" },
+                    { 21, "permissions", "savedjobs:delete", "bf766c90-9e7c-4798-99c6-e90fe3a7960f" },
+                    { 22, "permissions", "jobs:read", "21eb5d41-fffb-4b7d-8c09-abb15d40187b" },
+                    { 23, "permissions", "categories:read", "21eb5d41-fffb-4b7d-8c09-abb15d40187b" },
+                    { 24, "permissions", "users:read", "21eb5d41-fffb-4b7d-8c09-abb15d40187b" },
+                    { 25, "permissions", "jobs:read", "eb935101-a57b-48a7-ad2d-ee21fc5e6ad1" },
+                    { 26, "permissions", "applications:read", "eb935101-a57b-48a7-ad2d-ee21fc5e6ad1" },
+                    { 27, "permissions", "applications:create", "eb935101-a57b-48a7-ad2d-ee21fc5e6ad1" },
+                    { 28, "permissions", "categories:read", "eb935101-a57b-48a7-ad2d-ee21fc5e6ad1" },
+                    { 29, "permissions", "cv:upload", "eb935101-a57b-48a7-ad2d-ee21fc5e6ad1" },
+                    { 30, "permissions", "cv:delete", "eb935101-a57b-48a7-ad2d-ee21fc5e6ad1" },
+                    { 31, "permissions", "savedjobs:read", "eb935101-a57b-48a7-ad2d-ee21fc5e6ad1" },
+                    { 32, "permissions", "savedjobs:create", "eb935101-a57b-48a7-ad2d-ee21fc5e6ad1" },
+                    { 33, "permissions", "savedjobs:delete", "eb935101-a57b-48a7-ad2d-ee21fc5e6ad1" },
+                    { 34, "permissions", "jobs:read", "6b2d257a-0e04-49aa-9d22-e893759ed0c9" },
+                    { 35, "permissions", "categories:read", "6b2d257a-0e04-49aa-9d22-e893759ed0c9" }
                 });
 
             migrationBuilder.CreateIndex(

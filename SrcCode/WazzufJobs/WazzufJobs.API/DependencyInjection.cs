@@ -99,7 +99,10 @@ public static class DependencyInjection
                 ValidIssuer = jwtSettings.Issuer,
                 ValidAudience = jwtSettings.Audience,
                 IssuerSigningKey = new SymmetricSecurityKey(
-                    Encoding.UTF8.GetBytes(jwtSettings.key!))
+                    Encoding.UTF8.GetBytes(jwtSettings.key!)),
+                // Phase 02 (S3): authorization is by permission only. No token carries this claim type, so role checks
+                // (IsInRole, [Authorize(Roles = ...)]) never succeed and the legacy aliases in "roles" grant nothing.
+                RoleClaimType = AccessTokenClaims.NoRoleAuthorization
             };
 
             o.Events = new JwtBearerEvents
@@ -212,7 +215,6 @@ public static class DependencyInjection
     public static IServiceCollection AddRepositories(this IServiceCollection services)
     {
         services.AddScoped<IUserRepository, UserRepository>();
-        services.AddScoped<IRoleRepository, RoleRepository>();
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<IJobRepository, JobRepository>();
         services.AddScoped<IApplicationRepository, ApplicationRepository>();

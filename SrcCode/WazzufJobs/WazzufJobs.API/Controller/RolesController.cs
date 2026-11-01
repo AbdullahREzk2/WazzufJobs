@@ -1,14 +1,15 @@
 ﻿using WazzufJobs.BLL.Authentication;
-using WazzufJobs.BLL.Contracts.Roles;
-using WazzufJobs.BLL.Features.Roles.Command.CreateRole;
-using WazzufJobs.BLL.Features.Roles.Command.RoleToggleStatus;
-using WazzufJobs.BLL.Features.Roles.Command.UpdateRole;
+using WazzufJobs.BLL.Errors;
 using WazzufJobs.BLL.Features.Roles.Query.GetAllRoles;
 using WazzufJobs.BLL.Features.Roles.Query.GetRoleDetails;
-using WazzufJobs.DAL.Persistence.Seeders;
+using WazzufJobs.DAL.Authorization;
 
 namespace WazzufJobs.API.Controllers;
 
+/// <summary>
+/// Read-only view of the fixed platform roles (Phase 02, S3). Roles and their permissions are defined in code
+/// (<c>PermissionCatalog</c>); the former mutation routes stay mapped and always answer 403 <c>Roles.Fixed</c>.
+/// </summary>
 [Route("api/[controller]")]
 [ApiController]
 public class RolesController(IMediator mediator) : ControllerBase
@@ -31,31 +32,19 @@ public class RolesController(IMediator mediator) : ControllerBase
         return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
     }
 
+    // The request body is deliberately not bound: every mutation is refused, whatever it contains.
+
     [HttpPost]
-    [HasPermission(Permissions.RolesCreate)]
-    public async Task<IActionResult> CreateRole(
-        [FromBody] RoleRequest request,
-        CancellationToken cancellationToken)
-    {
-        var result = await _mediator.Send(new CreateRoleCommand(request), cancellationToken);
-        return result.IsSuccess
-            ? CreatedAtAction(nameof(GetRoleDetails), new { id = result.Value.Id }, result.Value)
-            : result.ToProblem();
-    }
+    [HasPermission(Permissions.RolesRead)]
+    public IActionResult CreateRole() => RolesAreFixed();
 
     [HttpPut("{roleId}")]
-    [HasPermission(Permissions.RolesUpdate)]
-    public async Task<IActionResult> UpdateRole(string roleId, [FromBody] RoleRequest request)
-    {
-        var result = await _mediator.Send(new UpdateRoleCommand(roleId, request));
-        return result.IsSuccess ? NoContent() : result.ToProblem();
-    }
+    [HasPermission(Permissions.RolesRead)]
+    public IActionResult UpdateRole(string roleId) => RolesAreFixed();
 
     [HttpPut("{roleId}/toggle-status")]
-    [HasPermission(Permissions.RolesUpdate)]
-    public async Task<IActionResult> ToggleStatus(string roleId)
-    {
-        var result = await _mediator.Send(new RoleToggleStatusCommand(roleId));
-        return result.IsSuccess ? NoContent() : result.ToProblem();
-    }
+    [HasPermission(Permissions.RolesRead)]
+    public IActionResult ToggleStatus(string roleId) => RolesAreFixed();
+
+    private IActionResult RolesAreFixed() => Result.Failure(RoleErros.Fixed).ToProblem();
 }

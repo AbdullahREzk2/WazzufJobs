@@ -4,14 +4,15 @@ using System.Net.Http.Json;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using WazzufJobs.DAL.Entities;
-using WazzufJobs.DAL.Persistence.Seeders;
+using WazzufJobs.DAL.Enums;
+using WazzufJobs.DAL.Authorization;
 using WazzufJobs.Tests.Infrastructure;
 
 namespace WazzufJobs.Tests;
 
 /// <summary>
-/// Owner action "change the admin email" must keep the Admin role and a working login; the platform must never
-/// be left without an administrator. Runs on a throwaway local SQL Server database (relational behaviour).
+/// Owner action "change the admin email" must keep the Super Admin role and a working login; the platform must never
+/// be left without an active Super Admin (C0-5, generalized in Phase 02 S3). Runs on a throwaway local SQL Server database (relational behaviour).
 /// </summary>
 public class AdminAccountSafetyTests(SqlServerC0Factory factory) : IClassFixture<SqlServerC0Factory>
 {
@@ -26,7 +27,7 @@ public class AdminAccountSafetyTests(SqlServerC0Factory factory) : IClassFixture
 
         // the same payload the admin "Edit user" form sends (current roles pre-selected)
         var update = await client.PutAsJsonAsync($"/api/users/{admin.Id}",
-            new { firstName = admin.FirstName, lastName = admin.LastName, email = newEmail, roles = new[] { AppRoles.Admin.Name } });
+            new { firstName = admin.FirstName, lastName = admin.LastName, email = newEmail, roles = new[] { PlatformRoles.SuperAdmin } });
         Assert.Equal(HttpStatusCode.NoContent, update.StatusCode);
 
         using (var scope = factory.Services.CreateScope())
@@ -36,7 +37,7 @@ public class AdminAccountSafetyTests(SqlServerC0Factory factory) : IClassFixture
             Assert.Equal(newEmail, reloaded!.Email);
             Assert.Equal(newEmail, reloaded.UserName);
             Assert.True(reloaded.EmailConfirmed);
-            Assert.True(await users.IsInRoleAsync(reloaded, AppRoles.Admin.Name));
+            Assert.True(await users.IsInRoleAsync(reloaded, PlatformRoles.SuperAdmin));
         }
 
         var anonymous = factory.CreateClient();
@@ -69,14 +70,14 @@ public class AdminAccountSafetyTests(SqlServerC0Factory factory) : IClassFixture
         using var scope = factory.Services.CreateScope();
         var users = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
         var reloaded = await users.FindByIdAsync(admin.Id);
-        Assert.True(await users.IsInRoleAsync(reloaded!, AppRoles.Admin.Name));
+        Assert.True(await users.IsInRoleAsync(reloaded!, PlatformRoles.SuperAdmin));
         Assert.False(reloaded!.IsDisabled);
     }
 
-    // note: the default "User" role is rejected by the existing role validation (pre-existing behaviour),
-    // so the admin-only demotion scenario is exercised with an empty role list
+    // Phase 02 (S3, D-STAFF-ROLES): this C0 scenario (an administrator removing another administrator's role through
+    // the Users API) is now refused: staff roles are never granted or revoked there. The role is kept.
     [SqlServerFact]
-    public async Task Role_changes_apply_only_differences_when_another_admin_exists()
+    public async Task Staff_roles_cannot_be_revoked_through_the_users_api_even_when_another_super_admin_exists()
     {
         var keeper = await CreateAdminAsync();
         var other = await CreateAdminAsync();
@@ -85,12 +86,42 @@ public class AdminAccountSafetyTests(SqlServerC0Factory factory) : IClassFixture
         var response = await client.PutAsJsonAsync($"/api/users/{other.Id}",
             new { firstName = other.FirstName, lastName = other.LastName, email = other.Email, roles = Array.Empty<string>() });
 
-        Assert.True(response.StatusCode == HttpStatusCode.NoContent, await response.Content.ReadAsStringAsync());
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        Assert.Contains("Users.StaffRolesManagedSeparately", await response.Content.ReadAsStringAsync());
         using var scope = factory.Services.CreateScope();
         var users = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
-        var roles = await users.GetRolesAsync((await users.FindByIdAsync(other.Id))!);
-        Assert.Empty(roles);
-        Assert.True(await users.IsInRoleAsync((await users.FindByIdAsync(keeper.Id))!, AppRoles.Admin.Name));
+        Assert.Equal([PlatformRoles.SuperAdmin], await users.GetRolesAsync((await users.FindByIdAsync(other.Id))!));
+        Assert.True(await users.IsInRoleAsync((await users.FindByIdAsync(keeper.Id))!, PlatformRoles.SuperAdmin));
+    }
+
+    // the C0 "apply only differences" behaviour, on the role the Users API can still change (an empty list is valid)
+    [SqlServerFact]
+    public async Task Role_changes_apply_only_differences()
+    {
+        var admin = await CreateAdminAsync();
+        var client = factory.CreateClient().AsAdmin(factory.Services, admin);
+        AppUser candidate;
+        using (var scope = factory.Services.CreateScope())
+        {
+            var users = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
+            candidate = TestData.NewUser("candidate");
+            Assert.True((await users.CreateAsync(candidate, Password)).Succeeded);
+            Assert.True((await users.AddToRoleAsync(candidate, PlatformRoles.Candidate)).Succeeded);
+        }
+
+        async Task<IList<string>> RolesAfter(string[] roles)
+        {
+            var response = await client.PutAsJsonAsync($"/api/users/{candidate.Id}",
+                new { firstName = candidate.FirstName, lastName = candidate.LastName, email = candidate.Email, roles });
+            Assert.True(response.StatusCode == HttpStatusCode.NoContent, await response.Content.ReadAsStringAsync());
+            using var scope = factory.Services.CreateScope();
+            var users = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
+            return await users.GetRolesAsync((await users.FindByIdAsync(candidate.Id))!);
+        }
+
+        Assert.Equal([PlatformRoles.Candidate], await RolesAfter([PlatformRoles.Candidate]));
+        Assert.Empty(await RolesAfter([]));
+        Assert.Equal([PlatformRoles.Candidate], await RolesAfter([PlatformRoles.Candidate]));
     }
 
     private async Task<AppUser> CreateAdminAsync()
@@ -98,9 +129,9 @@ public class AdminAccountSafetyTests(SqlServerC0Factory factory) : IClassFixture
         using var scope = factory.Services.CreateScope();
         var users = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
         var email = $"admin-{Guid.NewGuid():N}@example.test";
-        var admin = new AppUser { UserName = email, Email = email, FirstName = "Site", LastName = "Admin", EmailConfirmed = true };
+        var admin = new AppUser { UserName = email, Email = email, FirstName = "Site", LastName = "Admin", EmailConfirmed = true, AccountType = AccountType.Staff };
         Assert.True((await users.CreateAsync(admin, Password)).Succeeded);
-        Assert.True((await users.AddToRoleAsync(admin, AppRoles.Admin.Name)).Succeeded);
+        Assert.True((await users.AddToRoleAsync(admin, PlatformRoles.SuperAdmin)).Succeeded);
         return admin;
     }
 
@@ -108,8 +139,8 @@ public class AdminAccountSafetyTests(SqlServerC0Factory factory) : IClassFixture
     {
         using var scope = factory.Services.CreateScope();
         var users = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
-        foreach (var existing in await users.GetUsersInRoleAsync(AppRoles.Admin.Name))
-            await users.RemoveFromRoleAsync(existing, AppRoles.Admin.Name);
+        foreach (var existing in await users.GetUsersInRoleAsync(PlatformRoles.SuperAdmin))
+            await users.RemoveFromRoleAsync(existing, PlatformRoles.SuperAdmin);
     }
 
     private record LoginResult(string Token);
