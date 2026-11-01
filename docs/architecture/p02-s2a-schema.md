@@ -61,14 +61,16 @@ New enums (`WazzufJobs.DAL.Enums/Phase02Enums.cs`) are stored as **tinyint**, wi
 ## Transitional deviations (incompatibilities recorded for later stages)
 | # | Deviation from the target model | Why it is still there | Resolved in |
 |---|---|---|---|
-| T1 | `Jobs.CompanyId`, `Applications.CompanyId`, `Applications.ResumeId` are **nullable** | Existing job and apply handlers don't set them. No implicit default was added: a default tenant FK would silently assign rows to a company. | S2b (handlers set them; columns become required) |
-| T2 | `CVs`, `UserPreferences` and the onboarding columns on `AspNetUsers` remain | CV, onboarding and profile handlers use them | S2b (port to `Resumes` / `CandidateProfiles`, then drop) |
+| T1 | `Jobs.CompanyId`, `Applications.CompanyId`, `Applications.ResumeId` are **nullable** | Existing job and apply handlers don't set them. No implicit default was added: a default tenant FK would silently assign rows to a company. | S2b (handlers set them; columns become required) — **resolved in S2b** (`p02-s2b-port.md`) |
+| T2 | `CVs`, `UserPreferences` and the onboarding columns on `AspNetUsers` remain | CV, onboarding and profile handlers use them | S2b (port to `Resumes` / `CandidateProfiles`, then drop) — **resolved in S2b** (`p02-s2b-port.md`) |
 | T3 | `LegacyRefreshTokens` (plaintext tokens) remains | Login, refresh and revoke handlers use it | S6a (session-based rotation) |
 | T4 | `Applications → Jobs` stays **Cascade** | `DeleteJob` deletes jobs that have applications | P04 (jobs are closed, not deleted) → Restrict |
 | T5 | `AspNetRoles.IsDefault/IsDeleted` remain; only Admin/User roles exist | Roles admin endpoints use them | S3 (fixed platform roles) |
-| T6 | Status and enum columns of legacy tables stay as strings; `CandidateProfiles.CareerLevel` is int | Legacy storage kept to avoid churn | S2b (aligned when ported) |
+| T6 | Status and enum columns of legacy tables stay as strings; `CandidateProfiles.CareerLevel` is int | Legacy storage kept to avoid churn | S2b (aligned when ported) — **resolved in S2b** (`p02-s2b-port.md`) |
 
 ## Findings
+> F-S2a-1 follow-up (S2b): every deployment script now starts with `tools/p02/db/session-options.sql`, which sets and verifies the session options itself (see `p02-s2b-port.md`).
+
 - **F-S2a-1, deployment script settings.** `sqlcmd` runs with `QUOTED_IDENTIFIER OFF` by default, and SQL Server refuses to create filtered indexes under that setting. Running the generated idempotent script through plain `sqlcmd` **fails**. The failure is atomic: the migration transaction rolls back, leaving only the empty history table.
   - With `sqlcmd -I` it applies cleanly.
   - **S2c requirement:** the reviewed `02_baseline_v2.sql` must begin with `SET QUOTED_IDENTIFIER ON; SET ANSI_NULLS ON;`, and the runbook must use `sqlcmd -I`. The MonsterASP SQL tool's settings must also be verified before D-RESET.

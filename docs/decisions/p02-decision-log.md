@@ -27,7 +27,9 @@ Each entry records what was decided, by whom and when, and where the design is s
 | ID | Decision | § | Status |
 |---|---|---|---|
 | D-IDS | `int` ids for jobs, applications, categories and resumes; GUIDs for companies, sessions and challenges | 1 | Approved |
-| D-PLATFORM-CO | A seeded "WazzufJobs" platform company owns admin-created jobs until P04 | 1 | Approved |
+| D-PLATFORM-CO | A seeded "WazzufJobs" platform company (Baseline_v2 seed) owns admin-created jobs until P04. It is looked up by `IsPlatform`, never taken from input; missing → 503, nothing created. | 1 | Approved; **implemented in S2b** |
+| D-RESUME-S2B | Until resume versioning (P05) a candidate has one current resume, replaced in place, and admins review the current CV (exact C0 behaviour). Deleting a CV that an application references keeps a `Removed` record without a file. Applications record `ResumeId` for P05. | S2b doc | Implemented in S2b (preserves C0 tests); snapshot semantics deferred to P05 |
+| D-SQL-SESSION | Every deployment script starts with `tools/p02/db/session-options.sql` (sets and verifies options; `NOEXEC` on failure) instead of relying on `sqlcmd -I` | S2b doc | Implemented in S2b (owner requirement) |
 | D-STAFF-ROLES | Staff roles cannot be assigned through the legacy Users endpoints. Moderator management comes in P09. | 2 | Approved |
 | D-404 | A resource outside the caller's tenant or ownership returns 404. A missing permission returns 403. | 4 | Approved |
 | D-SESSION-TTL | Access token 15 min. Candidate/company refresh 14 d sliding, 30 d absolute. Staff refresh 8 h sliding, 24 h absolute. Rotation grace 10 s with no credentials issued. Session-check cache 30 s. | 5.1–5.2 | Approved |
