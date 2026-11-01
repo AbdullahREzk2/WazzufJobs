@@ -52,6 +52,8 @@ Each entry records what was decided, by whom and when, and where the design is s
 | D-CONFIG | New server secrets (`Security:DataKey`, `Proxy:SharedSecret`) and the Vercel env var `WJ_PROXY_SECRET`. The owner generates and sets them; the values are never shared. | 5.4, 6 | Approved; owner action at S11 |
 | D-ORPHANS | After the reset, Cloudinary image orphans are inventoried read-only. Deleting them is a separate approval. | 9 | Approved |
 | **D-RESET** | Reset the production database to `Baseline_v2` | 9, 13 | **Gated**: after the S10 rehearsal report |
+| VER-SQL | Verify how SQL will be run on MonsterASP (remote `sqlcmd`/SSMS preferred; the web tool only if it runs multi-batch scripts on one session) | S2c doc | **Prerequisite for D-RESET** (owner) |
+| D-PROD-DRYRUN | Read-only dry run of `01` against production to confirm the migration history and inventory before reset day | S2c doc | **Requires separate approval** (read-only) |
 | **D-FIXTURE** | Upload 2 synthetic PDFs to Cloudinary for verification data | 13 | **Gated**: at S11 |
 | D-BACKUP | Optional MonsterASP backup before the reset | 13 | Recommended; owner's choice at S11 |
 | D-DEPLOY / D-PUSH | Production deployment, then pushing and merging | 13 | **Gated**: S11 / S12 |
