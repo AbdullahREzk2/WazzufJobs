@@ -2,7 +2,7 @@
 
 Status: **implemented and rehearsed on throwaway local databases (2026-11-01). Nothing has run against production or the development database.**
 - The production reset requires **D-RESET** approval and is performed only in the S11 deployment.
-- **S3 update (2026-11-01):** `Baseline_v2` was regenerated as `20261101075350_Baseline_v2` (fixed platform roles). `03` now also restores missing roles and permission claims, and `04` verifies them against `PermissionCatalog` (`docs/architecture/p02-s3-platform-roles.md` §9). The rehearsal results below are the S2c results.
+- **S3 update (2026-11-01):** `Baseline_v2` was regenerated as `20261101075350_Baseline_v2` (fixed platform roles). `03` now also restores missing roles and permission claims, and `04` verifies them against `PermissionCatalog` (`docs/architecture/p02-s3-platform-roles.md` §9). The rehearsal results below are the S2c results. **S4 update:** `04` also verifies company memberships (company accounts only, same partition, never the platform company, an active owner per company).
 
 ## Scripts (`tools/p02/db/`)
 Every script starts with the required session header (`session-options.sql`). It works with plain `sqlcmd` (no `-I`); `-b` (stop on the first error) is still recommended.

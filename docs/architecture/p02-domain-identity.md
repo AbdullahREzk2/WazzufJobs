@@ -1,6 +1,6 @@
 # Phase 02: domain model, identity & authorization core (architecture)
 
-> Status: **APPROVED for staged local implementation (2026-10-31).** Stages S0–S3 complete (local); S4 and later not started.
+> Status: **APPROVED for staged local implementation (2026-10-31).** Stages S0–S4 complete (local); S5 and later not started.
 > Branch `phase/02-domain-identity` (from `master` `282a7a2`). Decisions: `docs/decisions/p02-decision-log.md`. Invariants: `docs/architecture/security-invariants.md`. VER-08 results: `docs/architecture/ver-08-auth-proxy-probe.md`.
 > Production reset (D-RESET), deployment and publication each still require separate approval.
 
@@ -528,7 +528,7 @@ The dev DB `WazzufJobsDB` and production are **never** touched.
 | S2b | Port repositories and handlers to the new model behind the legacy adapters. **Done 2026-11-01** (`docs/architecture/p02-s2b-port.md`; T1, T2 and T6 resolved; deployment-script session header). | 177/177; contracts unchanged |
 | S2c | `db/p02` scripts 01–04 and 90 + local rehearsal #1. **Done 2026-11-01**: scripts are in `tools/p02/db` (01–04, 90, 91; `docs/architecture/p02-s2c-reset-scripts.md`). | Rehearsal test (206/206) + manual end-to-end rehearsal |
 | S3 | Permission catalog, platform roles, account types, legacy aliases, Users/Roles rules, last-SuperAdmin guard. **Done 2026-11-01** (`docs/architecture/p02-s3-platform-roles.md`; T5 resolved; Baseline_v2 regenerated as `20261101075350_Baseline_v2`). | Matrix test (311/311) |
-| S4 | Company membership, `ICompanyAccessService`, scoped repositories, two read endpoints | Isolation tests |
+| S4 | Company membership, `ICompanyAccessService`, scoped repositories, two read endpoints. **Done 2026-11-01** (`docs/architecture/p02-s4-company-membership.md`; team-management handlers and last-owner guard implemented, not exposed until P04). | Isolation tests (332/332) |
 | S5 | Audit log + trigger + events on existing admin and auth actions | Audit tests |
 | S6a | Sessions, CAS rotation, reuse detection, session check, logout and session API (transport-neutral) | Concurrency tests (SQL Server) |
 | S6b | Split routing, proxy gate (`Proxy.Required` / `Proxy.NotAllowedHere`), browser-bound hand-off (`session/prepare`, `session`), cookies and CSRF, IPv6 /64 partitioning, per-token and failure-budget limiters + frontend auth service, interceptor (single-flight + Web Locks) and `vercel.json` | Proxy-gate, hand-off, header-forgery, rate-limit, cookie and CSRF tests; frontend specs |
